@@ -74,9 +74,9 @@ TRAINING_PARAMS = {
 
 # Paths to files and directories
 PATHS = {
-    'combined_dataset': 'combined_dataset.csv',
-    'predictions': 'predictions.csv',
-    'differences': 'differences.csv',
+    'combined_dataset': 'data/combined_dataset.csv',
+    'predictions': 'data/predictions.csv',
+    'differences': 'data/differences.csv',
     'models_dir': 'models',
     'visualization_dir': 'visualizations',
     'data_dir': 'data',
