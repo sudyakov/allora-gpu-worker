@@ -1,4 +1,5 @@
 import os
+import logging
 import numpy as np
 import pandas as pd
 import torch
@@ -132,6 +133,8 @@ def save_predictions_to_csv(predictions, filename, current_time):
         df.to_csv(filename, index=False, float_format='%.10f')
     else:
         existing_df = pd.read_csv(filename)
+        # Исключаем пустые или все-NA записи
+        existing_df = existing_df.dropna(how='all')
         combined_df = pd.concat([df, existing_df], ignore_index=True).sort_values('timestamp', ascending=False)
         combined_df.to_csv(filename, index=False, float_format='%.10f')
     
@@ -148,8 +151,8 @@ def print_combined_row(current_row, difference_row, predicted_next_row):
     # Добавляем строку с удобным для чтения временем
     table.add_row(
         "Readable Time",
-        timestamp_to_readable_time(current_row['timestamp']) if current_row['timestamp'] is not None else "N/A",
-        timestamp_to_readable_time(current_row['timestamp']) if current_row['timestamp'] is not None else "N/A",
+        timestamp_to_readable_time(current_row['timestamp'].iloc[0]) if not current_row.empty and current_row['timestamp'].iloc[0] is not None else "N/A",
+        timestamp_to_readable_time(difference_row['timestamp']) if difference_row['timestamp'] is not None else "N/A",
         timestamp_to_readable_time(predicted_next_row['timestamp']) if predicted_next_row['timestamp'] is not None else "N/A",
         style="yellow"
     )
@@ -157,7 +160,7 @@ def print_combined_row(current_row, difference_row, predicted_next_row):
     for col in DATASET_COLUMNS:
         table.add_row(
             col,
-            f"{current_row[col]:.10f}" if isinstance(current_row[col], float) else str(current_row[col]) if current_row[col] is not None else "N/A",
+            f"{current_row[col].iloc[0]:.10f}" if not current_row.empty and isinstance(current_row[col].iloc[0], float) else str(current_row[col].iloc[0]) if not current_row.empty else "N/A",
             f"{difference_row[col]:.10f}" if isinstance(difference_row[col], float) else str(difference_row[col]) if difference_row[col] is not None else "N/A",
             f"{predicted_next_row[col]:.10f}" if isinstance(predicted_next_row[col], float) else str(predicted_next_row[col]) if predicted_next_row[col] is not None else "N/A"
         )
@@ -189,27 +192,25 @@ def get_latest_value(data_file, target_symbol):
     console.print(f"Filtering data for symbol: {target_symbol} and interval: {interval}", style="blue")
     filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
     
+    if filtered_df.empty:
+        console.print(f"No data found for symbol: {target_symbol} and interval: {interval}", style="blue")
+        return pd.DataFrame(columns=DATASET_COLUMNS)
+    
     latest_value_row = filtered_df.iloc[0]
-    return latest_value_row
+    return latest_value_row.to_frame().T
 
 def get_latest_prediction(predictions_file, target_symbol):
     """Получает последнее предсказание для заданного символа."""
     df = pd.read_csv(predictions_file).sort_values('timestamp', ascending=False)
     
-    # Проверка наличия необходимых столбцов
-    required_columns = {'symbol', 'interval', 'timestamp'}
-    if not required_columns.issubset(df.columns):
-        raise KeyError(f"Missing required columns in predictions file: {required_columns - set(df.columns)}")
-    
     interval = get_interval(PREDICTION_MINUTES)
     filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
     
     if filtered_df.empty:
-        console.print(f"No latest prediction found for {target_symbol} with interval {interval}", style="blue")
-        return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
+        return pd.Series()
     
-    latest_prediction_row = filtered_df.iloc[0]
-    return latest_prediction_row
+    return filtered_df.iloc[0]
+
 
 def get_difference_row(current_time: int, symbol: str) -> pd.Series:
     """Получает строку разницы для заданного времени и символа из файла differences.csv."""
@@ -221,15 +222,15 @@ def get_difference_row(current_time: int, symbol: str) -> pd.Series:
         (differences_data['timestamp'] == current_time)
     ]
     if not difference_row.empty:
-        return difference_row.iloc[-1]
+        return difference_row.iloc[0]
     else:
         return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
 
-def save_difference_to_csv(predictions, actuals, filename, prediction_timestamp):
+def save_difference_to_csv(predictions, actuals, filename, current_time):
     """Сохраняет разницу между предсказанными и фактическими значениями в CSV файл."""
     difference = actuals - predictions
-    df = pd.DataFrame(difference, columns=FEATURE_NAMES)
-    df['timestamp'] = prediction_timestamp
+    df = pd.DataFrame(difference.reshape(1, -1), columns=FEATURE_NAMES)
+    df['timestamp'] = current_time
     df['symbol'] = TARGET_SYMBOL
     df['interval'] = get_interval(PREDICTION_MINUTES)
     df = df[DATASET_COLUMNS]
@@ -286,79 +287,86 @@ def load_model(model, filepath, device):
     else:
         console.print(f"No model found at {filepath}. Starting with a new model.", style="bold yellow")
 
+
+def get_latest_timestamp(data_file, target_symbol, prediction_minutes):
+    """Получает самый новый таймстамп для заданного символа и интервала."""
+    df = pd.read_csv(data_file).sort_values('timestamp', ascending=False)
+    interval = get_interval(prediction_minutes)
+    filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
+    
+    if filtered_df.empty:
+        return None
+    
+    return filtered_df['timestamp'].max()
+
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levellevel)s - %(message)s')
+
 def main():
-    """Основная функция для выполнения процесса предсказания."""
     device = get_device()
     model = EnhancedBiLSTMModel(**MODEL_PARAMS).to(device)
     
-    # Проверка и создание файлов, если они отсутствуют
     ensure_file_exists(PATHS['predictions'])
     ensure_file_exists(PATHS['differences'])
     ensure_file_exists(MODEL_FILENAME)
     
-    # Загрузка модели, если она существует
     load_model(model, MODEL_FILENAME, device)
     
-    console.print("Downloading latest data...", style="bold green")
-    
+    logging.info("Downloading latest data...")
     for symbol in SYMBOLS:
         for interval_name, interval_info in INTERVALS_PERIODS.items():
-            console.print(f"Updating data for {symbol} with interval {interval_name}...", style="bold green")
+            logging.info(f"Updating data for {symbol} with interval {interval_name}...")
             download_data.update_data(symbol, interval_info['minutes'])
     
-    console.print("Preparing dataset...", style="bold green")
+    logging.info("Preparing dataset...")
     dataset, scaler, df = prepare_dataset(PATHS['combined_dataset'])
     dataloader = DataLoader(dataset, batch_size=TRAINING_PARAMS['batch_size'], shuffle=True)
     
-    console.print("Loading differences data...", style="bold green")
+    logging.info("Loading differences data...")
     _, _, differences_data = load_training_data()
     
-    console.print("Training model...", style="bold green")
+    logging.info("Training model...")
     model = train_model(model, dataloader, device, differences_data)
-    
-    # Сохранение модели после обучения
     save_model(model, MODEL_FILENAME)
     
+    current_time = get_latest_timestamp(PATHS['combined_dataset'], TARGET_SYMBOL, PREDICTION_MINUTES)
+    if current_time is None:
+        logging.error("No data found for the specified symbol and interval.")
+        return
+    
     last_sequence = dataset[-1][0]
-    current_time = df['timestamp'].max()
-        
     predictions = predict_future_price(model, last_sequence, scaler)
     
     server_time, readable_server_time = get_current_time()
-    console.print(f"Current Binance server time: {readable_server_time}", style="green")
+    logging.info(f"Current Binance server time: {readable_server_time}")
     
     prediction_milliseconds = next(v['milliseconds'] for k, v in INTERVALS_PERIODS.items() if v['minutes'] == PREDICTION_MINUTES)
     prediction_time = current_time + prediction_milliseconds
     
     saved_prediction = save_predictions_to_csv(predictions, PATHS['predictions'], current_time)
     
-    # Загрузка данных из combined_dataset.csv для отображения в таблице
+    # Загрузка самых свежих данных после сохранения предсказаний
     current_value_row = get_latest_value(PATHS['combined_dataset'], TARGET_SYMBOL)
     latest_prediction_row = get_latest_prediction(PATHS['predictions'], TARGET_SYMBOL)
-    predicted_prev_row = get_predicted_prev_row(current_time, TARGET_SYMBOL)
-    
-    # Получение строки разницы для текущего времени
     difference_row = get_difference_row(current_time, TARGET_SYMBOL)
     
-    print_combined_row(current_value_row, difference_row, latest_prediction_row)
-    
-    if current_value_row['close'] is not None and difference_row['close'] is not None:
-        if abs(difference_row['close']) <= 5:
-            console.print("Difference between current value and previous prediction is within 5 units.", style="bold blue")
-        elif difference_row['close'] > 0:
-            console.print("Previous prediction was higher than the current value.", style="green")
-        else:
-            console.print("Previous prediction was lower than the current value.", style="red")
-        
-        # Сохранение разницы между предсказанными и фактическими значениями
+    if not current_value_row.empty and not latest_prediction_row.empty:
         actuals = current_value_row[FEATURE_NAMES].values
-        save_difference_to_csv(predictions, actuals, PATHS['differences'], prediction_time)
+        predictions = latest_prediction_row[FEATURE_NAMES].values
+        save_difference_to_csv(predictions, actuals, PATHS['differences'], current_time)
+        logging.info("Difference between current value and previous prediction saved.")
+        
+        # Обновляем difference_row после сохранения новых различий
+        difference_row = get_difference_row(current_time, TARGET_SYMBOL)
     else:
-        console.print("Unable to compare current value with previous prediction due to missing data.", style="bold yellow")
+        logging.warning("Unable to compare current value with previous prediction due to missing data.")
     
-    
+    # Выводим таблицу только после всех обновлений
+    print_combined_row(current_value_row, difference_row, latest_prediction_row)
+
 if __name__ == "__main__":
     while True:
         main()
         # update_visualization()
-        time.sleep(3)
+        time.sleep(45)
