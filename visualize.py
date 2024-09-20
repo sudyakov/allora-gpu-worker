@@ -1,63 +1,71 @@
-import os
-import time
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 import pandas as pd
-import schedule
-from config import SYMBOL, PREDICTION_MINUTES, PATHS, DATETIME_FORMAT
-from download_data import get_current_price
+import matplotlib.pyplot as plt
+from config import PREDICTION_MINUTES, TARGET_SYMBOL
 
-def load_data(file_path):
-    return pd.read_csv(file_path)
+# Пути к файлам
+combined_dataset_path = 'data/combined_dataset.csv'
+predictions_path = 'data/predictions.csv'
+differences_path = 'data/differences.csv'
 
-def update_real_prices():
-    current_price = get_current_price(SYMBOL)
-    if not current_price.empty:
-        current_price.to_csv(PATHS['real_prices'], mode='a', header=False, index=False)
+def load_and_filter_data():
+    # Загрузка данных
+    combined_data = pd.read_csv(combined_dataset_path)
+    predictions_data = pd.read_csv(predictions_path)
+    differences_data = pd.read_csv(differences_path)
 
-def create_visualization(predictions_df, real_prices_df):
-    merged_df = pd.merge_asof(
-        predictions_df, 
-        real_prices_df, 
-        on='timestamp', 
-        by='symbol', 
-        suffixes=('_pred', '_real')
-    )
-    merged_df['timestamp'] = pd.to_datetime(merged_df['timestamp'], unit='ms')
-    merged_df = merged_df.sort_values('timestamp')
+    # Фильтрация данных по TARGET_SYMBOL и интервалу
+    interval = f'{PREDICTION_MINUTES}m'
+    combined_data = combined_data[(combined_data['symbol'] == TARGET_SYMBOL) & (combined_data['interval'] == interval)]
+    predictions_data = predictions_data[(predictions_data['symbol'] == TARGET_SYMBOL) & (predictions_data['interval'] == interval)]
+    differences_data = differences_data[(differences_data['symbol'] == TARGET_SYMBOL) & (differences_data['interval'] == interval)]
 
-    plt.figure(figsize=(16, 8))
-    plt.plot(merged_df['timestamp'], merged_df['close_real'], label='Реальная цена', color='#00FF00')
-    plt.plot(merged_df['timestamp'], merged_df['close_pred'], label='Прогноз', color='#FF00FF', linestyle='--')
+    # Преобразование timestamp в datetime
+    combined_data['timestamp'] = pd.to_datetime(combined_data['timestamp'])
+    predictions_data['timestamp'] = pd.to_datetime(predictions_data['timestamp'])
+    differences_data['timestamp'] = pd.to_datetime(differences_data['timestamp'])
 
-    plt.title(f'{SYMBOL} - Прогноз vs Реальная цена', fontsize=20)
-    plt.xlabel('Время', fontsize=14)
-    plt.ylabel('Цена', fontsize=14)
-    plt.legend(fontsize=12)
+    # Устреднение данных в differences_data по timestamp, исключая нечисловые столбцы
+    numeric_columns = differences_data.select_dtypes(include=[float, int]).columns
+    differences_data = differences_data.groupby('timestamp')[numeric_columns].mean().reset_index()
 
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter(DATETIME_FORMAT))
-    plt.gca().xaxis.set_major_locator(mdates.MinuteLocator(interval=5))
-    plt.gcf().autofmt_xdate()
+    return combined_data, predictions_data, differences_data
 
-    plt.grid(True, linestyle='--', alpha=0.7)
-    plt.tight_layout()
+def plot_data(combined_data, predictions_data, differences_data):
+    # Настройка темного фона
+    plt.style.use('dark_background')
 
-    os.makedirs(PATHS['visualization_dir'], exist_ok=True)
-    plt.savefig(os.path.join(PATHS['visualization_dir'], 'prediction_visualization.png'), dpi=300)
-    plt.close()
+    # Создание фигуры и осей
+    fig, ax1 = plt.subplots(figsize=(14, 7))
 
-def run_visualization():
-    update_real_prices()
-    predictions_df = load_data(PATHS['predictions'])
-    real_prices_df = load_data(PATHS['combined_dataset'])
-    create_visualization(predictions_df, real_prices_df)
-    print("График обновлен")
+    # График фактических данных
+    ax1.plot(combined_data['timestamp'], combined_data['close'], label='Actual Prices', color='cyan')
+    ax1.plot(predictions_data['timestamp'], predictions_data['close'], label='Predicted Prices', color='lime')
+    ax1.plot(differences_data['timestamp'], differences_data['close'], label='Prediction Differences', color='red')
 
-def main():
-    schedule.every(1).minutes.do(run_visualization)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    # Настройки осей
+    ax1.set_xlabel('Timestamp')
+    ax1.set_ylabel('Price')
+    ax1.set_title(f'Price Prediction Visualization for {TARGET_SYMBOL}')
+    ax1.legend(loc='upper left')
+    ax1.grid(True)
+
+    # Создание второго y-axes для объемов
+    ax2 = ax1.twinx()
+    ax2.bar(combined_data['timestamp'], combined_data['volume'], alpha=0.3, color='yellow', label='Volume')
+    ax2.set_ylabel('Volume')
+    ax2.legend(loc='upper right')
+
+    # Показ графика
+    plt.show()
+
+def update_visualization():
+    combined_data, predictions_data, differences_data = load_and_filter_data()
+    
+    # Проверка наличия новых данных
+    if not combined_data.empty and not predictions_data.empty and not differences_data.empty:
+        plot_data(combined_data, predictions_data, differences_data)
+    else:
+        print("Нет новых данных для обновления визуализации.")
 
 if __name__ == "__main__":
-    main()
+    update_visualization()

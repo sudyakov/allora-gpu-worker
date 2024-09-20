@@ -11,14 +11,15 @@ from rich.table import Table
 from config import *
 from download_data import DownloadData
 from utils import *
+from visualize import *
 
 console = Console()
 MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
 download_data = DownloadData()
 
-class SimpleBiLSTMModel(nn.Module):
+class EnhancedBiLSTMModel(nn.Module):
     def __init__(self, input_size, hidden_layer_size, num_layers, dropout):
-        super(SimpleBiLSTMModel, self).__init__()
+        super(EnhancedBiLSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_layer_size, num_layers=num_layers, dropout=dropout, batch_first=True, bidirectional=True)
         self.linear = nn.Linear(hidden_layer_size * 2, input_size)
 
@@ -39,7 +40,7 @@ def get_interval(minutes):
 
 def prepare_dataset(csv_file, seq_length=SEQ_LENGTH, target_symbol=TARGET_SYMBOL):
     df = pd.read_csv(csv_file)
-    df = df[df['symbol'] == target_symbol].sort_values('timestamp')
+    df = df.sort_values('timestamp')
     df = preprocess_binance_data(df)
     
     scaler = MinMaxScaler(feature_range=(-1, 1))
@@ -148,36 +149,8 @@ def print_combined_row(current_row, predicted_prev_row, predicted_next_row):
     
     console.print(table)
 
-def get_predicted_prev_row(current_time: int, symbol: str) -> pd.Series:
-    """Получает предыдущее предсказание для заданного времени и символа."""
-    saved_predictions = pd.read_csv(PATHS['predictions'])
-    interval = get_interval(PREDICTION_MINUTES)
-    predicted_prev_row = saved_predictions[
-        (saved_predictions['symbol'] == symbol) &
-        (saved_predictions['interval'] == interval) &
-        (saved_predictions['timestamp'] == current_time)
-    ]
-    if not predicted_prev_row.empty:
-        return predicted_prev_row.iloc[-1]
-    else:
-        differences_data = pd.read_csv(PATHS['differences'])
-        if not differences_data.empty:
-            return differences_data.iloc[-1]
-        else:
-            return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
-
-def get_latest_value(data_file, target_symbol):
-    """Получает последнее доступное значение для заданного символа из combined_dataset.csv."""
-    df = pd.read_csv(data_file)
-    interval = get_interval(PREDICTION_MINUTES)
-    console.print(f"Filtering data for symbol: {target_symbol} and interval: {interval}", style="blue")
-    filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
-    
-    latest_value_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
-    return latest_value_row
-
-def get_latest_prediction(predictions_file, target_symbol):
-    """Получает последнее предсказание для заданного символа."""
+def get_prediction_row(predictions_file: str, target_symbol: str, current_time: Optional[int] = None) -> pd.Series:
+    """Получает строку предсказания для заданного символа и времени (если указано)."""
     df = pd.read_csv(predictions_file)
     
     # Проверка наличия необходимых столбцов
@@ -188,12 +161,27 @@ def get_latest_prediction(predictions_file, target_symbol):
     interval = get_interval(PREDICTION_MINUTES)
     filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
     
+    if current_time is not None:
+        prediction_row = filtered_df[filtered_df['timestamp'] == current_time]
+        if not prediction_row.empty:
+            return prediction_row.iloc[-1]
+    
     if filtered_df.empty:
-        console.print(f"No latest prediction found for {target_symbol} with interval {interval}", style="blue")
+        console.print(f"No prediction found for {target_symbol} with interval {interval}", style="blue")
         return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
     
     latest_prediction_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
     return latest_prediction_row
+
+def get_latest_value(data_file, target_symbol):
+    """Получает последнее доступное значение для заданного символа из combined_dataset.csv."""
+    df = pd.read_csv(data_file)
+    interval = get_interval(PREDICTION_MINUTES)
+    console.print(f"Filtering data for symbol: {target_symbol} and interval: {interval}", style="blue")
+    filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
+    
+    latest_value_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
+    return latest_value_row
 
 def get_difference_row(current_time: int, symbol: str) -> pd.Series:
     """Получает строку разницы для заданного времени и символа из файла differences.csv."""
@@ -271,7 +259,7 @@ def load_model(model, filepath, device):
 def main():
     """Основная функция для выполнения процесса предсказания."""
     device = get_device()
-    model = SimpleBiLSTMModel(**MODEL_PARAMS).to(device)
+    model = EnhancedBiLSTMModel(**MODEL_PARAMS).to(device)
     
     # Проверка и создание файлов, если они отсутствуют
     ensure_file_exists(PATHS['predictions'])
@@ -316,8 +304,8 @@ def main():
     
     # Загрузка данных из combined_dataset.csv для отображения в таблице
     current_value_row = get_latest_value(PATHS['combined_dataset'], TARGET_SYMBOL)
-    latest_prediction_row = get_latest_prediction(PATHS['predictions'], TARGET_SYMBOL)
-    predicted_prev_row = get_predicted_prev_row(current_time, TARGET_SYMBOL)
+    latest_prediction_row = get_prediction_row(PATHS['predictions'], TARGET_SYMBOL)
+    predicted_prev_row = get_prediction_row(PATHS['predictions'], TARGET_SYMBOL, current_time)
     
     # Получение строки разницы для текущего времени
     difference_row = get_difference_row(current_time, TARGET_SYMBOL)
@@ -325,10 +313,12 @@ def main():
     print_combined_row(current_value_row, predicted_prev_row, latest_prediction_row)
     
     if current_value_row['close'] is not None and predicted_prev_row['close'] is not None:
-        if current_value_row['close'] > predicted_prev_row['close']:
-            console.print("Current value is higher than the previous prediction.", style="bold blue")
+        if abs(current_value_row['close'] - predicted_prev_row['close']) <= 5:
+            console.print("Current value is equal to the previous prediction (within 5 units).", style="bold blue")
+        elif current_value_row['close'] > predicted_prev_row['close']:
+            console.print("Current value is higher than the previous prediction.", style="green")
         else:
-            console.print("Current value is lower or equal to the previous prediction.", style="bold red")
+            console.print("Current value is lower than the previous prediction.", style="red")
         
         # Сохранение разницы между предсказанными и фактическими значениями
         actuals = current_value_row[FEATURE_NAMES].values
@@ -336,7 +326,8 @@ def main():
     else:
         console.print("Unable to compare current value with previous prediction due to missing data.", style="bold yellow")
     
+    # update_visualization()
     time.sleep(1)
-
+    
 if __name__ == "__main__":
     main()
