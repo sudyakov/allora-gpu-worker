@@ -92,9 +92,16 @@ def create_visualization():
         font=dict(color='white')
     )
     
-    # Устанавливаем диапазон оси X на основе PREDICTION_MINUTES
+    # Устанавливаем диапазон оси X на основе временного интервала
     end_time = combined_data['timestamp'].max()
-    start_time = end_time - pd.Timedelta(minutes=PREDICTION_MINUTES)
+    start_time = end_time - pd.Timedelta(hours=12)
+    full_range = pd.date_range(start=start_time, end=end_time, freq='5T')
+    
+    combined_data = combined_data.set_index('timestamp').reindex(full_range).reset_index()
+    combined_data['timestamp'] = combined_data.index
+    predictions_data = predictions_data.set_index('timestamp').reindex(full_range).reset_index()
+    predictions_data['timestamp'] = predictions_data.index
+    
     fig.update_xaxes(range=[start_time, end_time])
     
     # Логарифмическая шкала для объема
@@ -103,7 +110,8 @@ def create_visualization():
     fig.write_html(f"{PATHS['visualization_dir']}/price_prediction_{TARGET_SYMBOL}.html")
     fig.write_image(f"{PATHS['visualization_dir']}/price_prediction_{TARGET_SYMBOL}.png")
     
-    fig.show()
+    # Убираем вызов fig.show(), чтобы не открывать график в браузере
+    # fig.show()
 
 if __name__ == "__main__":
     create_visualization()

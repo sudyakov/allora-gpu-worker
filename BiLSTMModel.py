@@ -75,27 +75,24 @@ def prepare_dataset(csv_file, seq_length=SEQ_LENGTH, target_symbol=TARGET_SYMBOL
     
     return TensorDataset(torch.FloatTensor(sequences), torch.FloatTensor(labels)), scaler, df
 
+from tqdm import tqdm
+
 def train_model(model, dataloader, device, differences_data):
     """Обучает модель на предоставленных данных."""
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS['initial_lr'])
     criterion = nn.MSELoss()
 
-    # Проверка наличия необходимых столбцов
-    required_columns = {'timestamp'}
-    if not required_columns.issubset(differences_data.columns):
-        raise KeyError(f"Missing required columns in differences data: {required_columns - set(differences_data.columns)}")
-
     for epoch in range(TRAINING_PARAMS['initial_epochs']):
         total_loss = 0
-        for inputs, targets in dataloader:
+        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{TRAINING_PARAMS['initial_epochs']}", unit="batch")
+        for inputs, targets in progress_bar:
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             
-            # Использование разницы для корректировки весов
-            target_timestamps = targets[:, -1].cpu().numpy()  # Предполагаем, что последний столбец - это timestamp
+            target_timestamps = targets[:, -1].cpu().numpy()
             differences = differences_data[differences_data['timestamp'].isin(target_timestamps)]
             if not differences.empty:
                 differences = torch.FloatTensor(differences[FEATURE_NAMES].values).to(device)
@@ -104,7 +101,12 @@ def train_model(model, dataloader, device, differences_data):
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        console.print(f"Epoch {epoch+1}/{TRAINING_PARAMS['initial_epochs']}, Loss: {total_loss/len(dataloader):.4f}", style="bold green")
+            
+            progress_bar.set_postfix(loss=loss.item())
+        
+        avg_loss = total_loss / len(dataloader)
+        print(f"Epoch {epoch+1}/{TRAINING_PARAMS['initial_epochs']}, Loss: {avg_loss:.4f}")
+    
     return model
 
 def predict_future_price(model, last_sequence, scaler, steps=1):
@@ -369,5 +371,5 @@ if __name__ == "__main__":
     while True:
         main()
         time.sleep(30)
-        create_visualization()
+        # create_visualization()
         time.sleep(30)
