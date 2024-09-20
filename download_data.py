@@ -240,6 +240,7 @@ def main():
             current_price_df = download_data.get_current_price(symbol, interval_info['minutes'])
             download_data.logger.info(current_price_df)
             download_data.logger.info("------------------------")
+            time.sleep(1)
 
     if binance_data:
         download_data.save_combined_dataset(binance_data, download_data.PATHS['combined_dataset'])
