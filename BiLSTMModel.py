@@ -12,6 +12,7 @@ from rich.table import Table
 from config import *
 from download_data import DownloadData
 from utils import *
+from visualize import *
 
 console = Console()
 MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
@@ -150,11 +151,10 @@ def print_combined_row(current_row, difference_row, predicted_next_row):
     
     # Добавляем строку с удобным для чтения временем
     table.add_row(
-        "Readable Time",
+        "Readable Time*",
         timestamp_to_readable_time(current_row['timestamp'].iloc[0]) if not current_row.empty and current_row['timestamp'].iloc[0] is not None else "N/A",
         timestamp_to_readable_time(difference_row['timestamp']) if difference_row['timestamp'] is not None else "N/A",
-        timestamp_to_readable_time(predicted_next_row['timestamp']) if predicted_next_row['timestamp'] is not None else "N/A",
-        style="yellow"
+        timestamp_to_readable_time(predicted_next_row['timestamp']) if predicted_next_row['timestamp'] is not None else "N/A"
     )
     
     for col in DATASET_COLUMNS:
@@ -368,5 +368,6 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        # update_visualization()
-        time.sleep(45)
+        time.sleep(30)
+        create_visualization()
+        time.sleep(30)

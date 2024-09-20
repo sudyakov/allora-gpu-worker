@@ -20,9 +20,10 @@ PREDICTION_MINUTES = 5
 CURRENT_MINUTES = 1
 
 INTERVALS_PERIODS = {
-    "1m": {"interval": "1m", "days": 1, "minutes": 1, "milliseconds": 1 * 60 * 1000},
-    "5m": {"interval": "5m", "days": 5, "minutes": 5, "milliseconds": 5 * 60 * 1000},
-    "15m": {"interval": "15m", "days": 15, "minutes": 15, "milliseconds": 15 * 60 * 1000},
+    "1m": {"interval": "1m", "days": 30, "minutes": 1, "milliseconds": 1 * 60 * 1000},
+    "5m": {"interval": "5m", "days": 90, "minutes": 5, "milliseconds": 5 * 60 * 1000},
+    "15m": {"interval": "15m", "days": 180, "minutes": 15, "milliseconds": 15 * 60 * 1000},
+    "30m": {"interval": "30m", "days": 540, "minutes": 30, "milliseconds": 30 * 60 * 1000},
 }
 
 FEATURE_NAMES = [
@@ -53,7 +54,7 @@ MODEL_PARAMS = {
 
 TRAINING_PARAMS = {
     'batch_size': 4096, 'initial_epochs': 10, 'initial_lr': 0.001,
-    'max_epochs': 50, 'min_lr': 0.0001, 'use_mixed_precision': True,
+    'max_epochs': 60, 'min_lr': 0.0001, 'use_mixed_precision': True,
     'num_workers': 16
 }
 

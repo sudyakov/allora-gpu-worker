@@ -1,71 +1,109 @@
+import os
 import pandas as pd
-import matplotlib.pyplot as plt
-from config import PREDICTION_MINUTES, TARGET_SYMBOL
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from config import PREDICTION_MINUTES, TARGET_SYMBOL, PATHS
 
-# Пути к файлам
-combined_dataset_path = 'data/combined_dataset.csv'
-predictions_path = 'data/predictions.csv'
-differences_path = 'data/differences.csv'
-
-def load_and_filter_data():
-    # Загрузка данных
-    combined_data = pd.read_csv(combined_dataset_path)
-    predictions_data = pd.read_csv(predictions_path)
-    differences_data = pd.read_csv(differences_path)
-
-    # Фильтрация данных по TARGET_SYMBOL и интервалу
-    interval = f'{PREDICTION_MINUTES}m'
-    combined_data = combined_data[(combined_data['symbol'] == TARGET_SYMBOL) & (combined_data['interval'] == interval)]
-    predictions_data = predictions_data[(predictions_data['symbol'] == TARGET_SYMBOL) & (predictions_data['interval'] == interval)]
-    differences_data = differences_data[(differences_data['symbol'] == TARGET_SYMBOL) & (differences_data['interval'] == interval)]
-
-    # Преобразование timestamp в datetime
+def load_and_prepare_data():
+    combined_data = pd.read_csv(PATHS['combined_dataset'])
+    predictions_data = pd.read_csv(PATHS['predictions'])
+    
     combined_data['timestamp'] = pd.to_datetime(combined_data['timestamp'], unit='ms')
     predictions_data['timestamp'] = pd.to_datetime(predictions_data['timestamp'], unit='ms')
-    differences_data['timestamp'] = pd.to_datetime(differences_data['timestamp'], unit='ms')
-
-    # Устреднение данных в differences_data по timestamp, исключая нечисловые столбцы
-    numeric_columns = differences_data.select_dtypes(include=[float, int]).columns
-    differences_data = differences_data.groupby('timestamp')[numeric_columns].mean().reset_index()
-
-    return combined_data, predictions_data, differences_data
-
-def plot_data(combined_data, predictions_data, differences_data):
-    # Настройка темного фона
-    plt.style.use('dark_background')
-
-    # Создание фигуры и осей
-    fig, ax1 = plt.subplots(figsize=(14, 7))
-
-    # График фактических данных
-    ax1.plot(combined_data['timestamp'], combined_data['close'], label='Actual Prices', color='cyan')
-    ax1.plot(predictions_data['timestamp'], predictions_data['close'], label='Predicted Prices', color='lime')
-    ax1.plot(differences_data['timestamp'], differences_data['close'], label='Prediction Differences', color='red')
-
-    # Настройки осей
-    ax1.set_xlabel('Timestamp')
-    ax1.set_ylabel('Price')
-    ax1.set_title(f'Price Prediction Visualization for {TARGET_SYMBOL}')
-    ax1.legend(loc='upper left')
-    ax1.grid(True)
-
-    # Создание второго y-axes для объемов
-    ax2 = ax1.twinx()
-    ax2.bar(combined_data['timestamp'], combined_data['volume'], alpha=0.3, color='yellow', label='Volume')
-    ax2.set_ylabel('Volume')
-    ax2.legend(loc='upper right')
-
-    # Показ графика
-    plt.show()
-
-def update_visualization():
-    combined_data, predictions_data, differences_data = load_and_filter_data()
     
-    # Проверка наличия новых данных
-    if not combined_data.empty and not predictions_data.empty and not differences_data.empty:
-        plot_data(combined_data, predictions_data, differences_data)
-    else:
-        print("Нет новых данных для обновления визуализации.")
+    # Фильтруем данные по TARGET_SYMBOL и интервалу PREDICTION_MINUTES
+    interval = f"{PREDICTION_MINUTES}m"
+    combined_data = combined_data[(combined_data['symbol'] == TARGET_SYMBOL) & (combined_data['interval'] == interval)]
+    predictions_data = predictions_data[(predictions_data['symbol'] == TARGET_SYMBOL) & (predictions_data['interval'] == interval)]
+    
+    return combined_data, predictions_data
+
+def create_candlestick_trace(df, name, color):
+    return go.Candlestick(
+        x=df['timestamp'],
+        open=df['open'],
+        high=df['high'],
+        low=df['low'],
+        close=df['close'],
+        name=name,
+        increasing_line_color=color,
+        decreasing_line_color=color
+    )
+
+def create_volume_trace(df, name, color):
+    return go.Bar(
+        x=df['timestamp'],
+        y=df['volume'],
+        name=name,
+        marker_color=color
+    )
+
+def create_visualization():
+    combined_data, predictions_data = load_and_prepare_data()
+    
+    os.makedirs(PATHS['visualization_dir'], exist_ok=True)
+    
+    fig = make_subplots(
+        rows=3, cols=1, 
+        shared_xaxes=True, 
+        vertical_spacing=0.1,  # Увеличиваем вертикальные отступы между подграфиками
+        subplot_titles=(f'{TARGET_SYMBOL} Price', 'Volume', 'Prediction Error')
+    )
+    
+    # Основной график цен
+    fig.add_trace(create_candlestick_trace(combined_data, 'Actual', 'cyan'), row=1, col=1)
+    fig.add_trace(create_candlestick_trace(predictions_data, 'Predicted', 'magenta'), row=1, col=1)
+    
+    # Линии между предсказанными и реальными точками
+    for _, row in predictions_data.iterrows():
+        actual_data = combined_data[combined_data['timestamp'] == row['timestamp'] + pd.Timedelta(minutes=PREDICTION_MINUTES)]
+        if not actual_data.empty:
+            fig.add_trace(go.Scatter(
+                x=[row['timestamp'], actual_data['timestamp'].iloc[0]],
+                y=[row['close'], actual_data['close'].iloc[0]],
+                mode='lines',
+                line=dict(color='lime', width=1),
+                showlegend=False
+            ), row=1, col=1)
+    
+    # График объема торгов
+    fig.add_trace(create_volume_trace(combined_data, 'Actual Volume', 'blue'), row=2, col=1)
+    fig.add_trace(create_volume_trace(predictions_data, 'Predicted Volume', 'magenta'), row=2, col=1)
+    
+    # График ошибок предсказания
+    error_data = combined_data.set_index('timestamp')['close'] - predictions_data.set_index('timestamp')['close']
+    fig.add_trace(go.Scatter(
+        x=error_data.index,
+        y=error_data,
+        mode='lines',
+        name='Prediction Error',
+        line=dict(color='red')
+    ), row=3, col=1)
+    
+    fig.update_layout(
+        title=f'{TARGET_SYMBOL} Price Prediction vs Actual',
+        xaxis_title='Time',
+        yaxis_title='Price',
+        xaxis_rangeslider_visible=False,
+        height=1500,  # Увеличиваем высоту графика для лучшей читаемости
+        width=1920,
+        plot_bgcolor='rgb(30,30,30)',
+        paper_bgcolor='rgb(20,20,20)',
+        font=dict(color='white')
+    )
+    
+    # Устанавливаем диапазон оси X на основе PREDICTION_MINUTES
+    end_time = combined_data['timestamp'].max()
+    start_time = end_time - pd.Timedelta(minutes=PREDICTION_MINUTES)
+    fig.update_xaxes(range=[start_time, end_time])
+    
+    # Логарифмическая шкала для объема
+    fig.update_yaxes(type="log", row=2, col=1)
+    
+    fig.write_html(f"{PATHS['visualization_dir']}/price_prediction_{TARGET_SYMBOL}.html")
+    fig.write_image(f"{PATHS['visualization_dir']}/price_prediction_{TARGET_SYMBOL}.png")
+    
+    fig.show()
 
 if __name__ == "__main__":
-    update_visualization()
+    create_visualization()
