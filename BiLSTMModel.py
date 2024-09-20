@@ -13,7 +13,7 @@ from download_data import DownloadData
 from utils import *
 
 console = Console()
-MODEL_FILENAME = f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth'
+MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
 download_data = DownloadData()
 
 class SimpleBiLSTMModel(nn.Module):
@@ -99,21 +99,6 @@ def predict_future_price(model, last_sequence, scaler, steps=1):
         # Убедитесь, что предсказанные данные не содержат отрицательных значений
         predicted_data = np.abs(predicted_data)
     return predicted_data
-
-def predict_with_current_data(model, last_sequence, scaler, current_price, steps=1):
-    """Предсказывает будущую цену с учетом текущих данных."""
-    model.eval()
-    with torch.no_grad():
-        # Добавляем текущие данные к последней последовательности
-        current_price_scaled = scaler.transform(current_price[FEATURE_NAMES])
-        input_sequence = torch.cat((last_sequence[1:], torch.FloatTensor(current_price_scaled).unsqueeze(0)), dim=0)
-        input_sequence = input_sequence.unsqueeze(0).to(next(model.parameters()).device)
-        
-        predictions = model(input_sequence)
-        predicted_data = scaler.inverse_transform(predictions.cpu().numpy())
-        predicted_data = np.abs(predicted_data)  # Убедитесь, что предсказанные данные не содержат отрицательных значений
-    return predicted_data
-
 
 def save_predictions_to_csv(predictions, filename, current_time):
     """Сохраняет предсказания в CSV файл."""
@@ -265,6 +250,10 @@ def load_training_data():
 
 def ensure_file_exists(filepath):
     """Проверяет, существует ли файл, и создает его, если он отсутствует."""
+    directory = os.path.dirname(filepath)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+    
     if not os.path.exists(filepath):
         with open(filepath, 'w') as f:
             f.write('')  # Создаем пустой файл
@@ -272,9 +261,19 @@ def ensure_file_exists(filepath):
         if 'predictions' in filepath or 'differences' in filepath:
             df = pd.DataFrame(columns=DATASET_COLUMNS)
             df.to_csv(filepath, index=False)
-            
-def is_prediction_needed(last_prediction_time, current_time, prediction_interval):
-    return current_time - last_prediction_time >= prediction_interval
+
+def save_model(model, filepath):
+    """Сохраняет модель в указанный файл."""
+    torch.save(model.state_dict(), filepath)
+    console.print(f"Model saved to {filepath}", style="bold green")
+
+def load_model(model, filepath, device):
+    """Загружает модель из указанного файла."""
+    if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
+        model.load_state_dict(torch.load(filepath, map_location=device))
+        console.print(f"Model loaded from {filepath}", style="bold green")
+    else:
+        console.print(f"No model found at {filepath}. Starting with a new model.", style="bold yellow")
 
 def main():
     """Основная функция для выполнения процесса предсказания."""
@@ -284,6 +283,10 @@ def main():
     # Проверка и создание файлов, если они отсутствуют
     ensure_file_exists(PATHS['predictions'])
     ensure_file_exists(PATHS['differences'])
+    ensure_file_exists(MODEL_FILENAME)
+    
+    # Загрузка модели, если она существует
+    load_model(model, MODEL_FILENAME, device)
     
     while True:
         console.print("Downloading latest data...", style="bold green")
@@ -302,6 +305,9 @@ def main():
         
         console.print("Training model...", style="bold green")
         model = train_model(model, dataloader, device, differences_data)
+        
+        # Сохранение модели после обучения
+        save_model(model, MODEL_FILENAME)
         
         last_sequence = dataset[-1][0]
         current_time = df['timestamp'].max()
@@ -338,27 +344,7 @@ def main():
         else:
             console.print("Unable to compare current value with previous prediction due to missing data.", style="bold yellow")
         
-        time.sleep(60)
-
-def get_prediction_with_current_data(model, symbol):
-    """Получает предсказание с учетом текущих данных за последнюю минуту."""
-    device = get_device()
-    model.to(device)
-    
-    # Получение текущих данных за последнюю минуту
-    current_price = download_data.get_current_price(symbol, CURRENT_MINUTES)
-    if current_price.empty:
-        console.print(f"Failed to fetch current price for {symbol}.", style="bold red")
-        return
-    
-    # Подготовка данных для предсказания
-    dataset, scaler, df = prepare_dataset(PATHS['combined_dataset'])
-    last_sequence = dataset[-1][0]
-    
-    # Получение предсказания с учетом текущих данных
-    predictions = predict_with_current_data(model, last_sequence, scaler, current_price)
-    console.print(f"Prediction with current data for {symbol}: {predictions}", style="bold green")
-    return predictions
+        time.sleep(CURRENT_MINUTES*60)
 
 if __name__ == "__main__":
     main()
