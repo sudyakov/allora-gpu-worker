@@ -5015,3 +5015,733 @@ INFO - Updating data for ARBUSDT from 1726813620001 to 1726813680000 (2024-09-20
 INFO - Combined dataset updated: data/combined_dataset.csv
 INFO - Data for ARBUSDT does not require updating. Using current data.
 INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726813680001 to 1726814040000 (2024-09-20 06:28:00 to 2024-09-20 06:34:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726813500001 to 1726813800000 (2024-09-20 06:25:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726812900001 to 1726813800000 (2024-09-20 06:15:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726813680001 to 1726814040000 (2024-09-20 06:28:00 to 2024-09-20 06:34:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726813500001 to 1726813800000 (2024-09-20 06:25:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726812900001 to 1726813800000 (2024-09-20 06:15:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726813680001 to 1726814040000 (2024-09-20 06:28:00 to 2024-09-20 06:34:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726813500001 to 1726813800000 (2024-09-20 06:25:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726812900001 to 1726813800000 (2024-09-20 06:15:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726813680001 to 1726814040000 (2024-09-20 06:28:00 to 2024-09-20 06:34:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726813500001 to 1726813800000 (2024-09-20 06:25:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726812900001 to 1726813800000 (2024-09-20 06:15:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726813680001 to 1726814040000 (2024-09-20 06:28:00 to 2024-09-20 06:34:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726813500001 to 1726814100000 (2024-09-20 06:25:00 to 2024-09-20 06:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726812900001 to 1726813800000 (2024-09-20 06:15:00 to 2024-09-20 06:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726814040001 to 1726814160000 (2024-09-20 06:34:00 to 2024-09-20 06:36:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726813800001 to 1726814100000 (2024-09-20 06:30:00 to 2024-09-20 06:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726814040001 to 1726814160000 (2024-09-20 06:34:00 to 2024-09-20 06:36:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726813800001 to 1726814100000 (2024-09-20 06:30:00 to 2024-09-20 06:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726814040001 to 1726814160000 (2024-09-20 06:34:00 to 2024-09-20 06:36:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726813800001 to 1726814100000 (2024-09-20 06:30:00 to 2024-09-20 06:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726814040001 to 1726814160000 (2024-09-20 06:34:00 to 2024-09-20 06:36:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726813800001 to 1726814100000 (2024-09-20 06:30:00 to 2024-09-20 06:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726814040001 to 1726814160000 (2024-09-20 06:34:00 to 2024-09-20 06:36:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726814160001 to 1726814220000 (2024-09-20 06:36:00 to 2024-09-20 06:37:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726814160001 to 1726814220000 (2024-09-20 06:36:00 to 2024-09-20 06:37:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726814160001 to 1726814220000 (2024-09-20 06:36:00 to 2024-09-20 06:37:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726814160001 to 1726814220000 (2024-09-20 06:36:00 to 2024-09-20 06:37:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726814160001 to 1726814220000 (2024-09-20 06:36:00 to 2024-09-20 06:37:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726814220001 to 1726814280000 (2024-09-20 06:37:00 to 2024-09-20 06:38:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726814220001 to 1726814280000 (2024-09-20 06:37:00 to 2024-09-20 06:38:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726814220001 to 1726814340000 (2024-09-20 06:37:00 to 2024-09-20 06:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726814220001 to 1726814340000 (2024-09-20 06:37:00 to 2024-09-20 06:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726814220001 to 1726814340000 (2024-09-20 06:37:00 to 2024-09-20 06:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726814280001 to 1726814400000 (2024-09-20 06:38:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726814100001 to 1726814400000 (2024-09-20 06:35:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726814280001 to 1726814400000 (2024-09-20 06:38:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726814100001 to 1726814400000 (2024-09-20 06:35:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726814340001 to 1726814400000 (2024-09-20 06:39:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726814100001 to 1726814400000 (2024-09-20 06:35:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726814340001 to 1726814400000 (2024-09-20 06:39:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726814100001 to 1726814400000 (2024-09-20 06:35:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726814340001 to 1726814400000 (2024-09-20 06:39:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726814100001 to 1726814400000 (2024-09-20 06:35:00 to 2024-09-20 06:40:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726814400001 to 1726814460000 (2024-09-20 06:40:00 to 2024-09-20 06:41:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726814400001 to 1726814460000 (2024-09-20 06:40:00 to 2024-09-20 06:41:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726814400001 to 1726814460000 (2024-09-20 06:40:00 to 2024-09-20 06:41:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726814400001 to 1726814460000 (2024-09-20 06:40:00 to 2024-09-20 06:41:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726814400001 to 1726814460000 (2024-09-20 06:40:00 to 2024-09-20 06:41:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726814460001 to 1726814520000 (2024-09-20 06:41:00 to 2024-09-20 06:42:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726814520001 to 1726814700000 (2024-09-20 06:42:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726814400001 to 1726814700000 (2024-09-20 06:40:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726813800001 to 1726814700000 (2024-09-20 06:30:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726814460001 to 1726814700000 (2024-09-20 06:41:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726814400001 to 1726814700000 (2024-09-20 06:40:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726813800001 to 1726814700000 (2024-09-20 06:30:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726814460001 to 1726814700000 (2024-09-20 06:41:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726814400001 to 1726814700000 (2024-09-20 06:40:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726813800001 to 1726814700000 (2024-09-20 06:30:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726814460001 to 1726814700000 (2024-09-20 06:41:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726814400001 to 1726814700000 (2024-09-20 06:40:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726813800001 to 1726814700000 (2024-09-20 06:30:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726814460001 to 1726814700000 (2024-09-20 06:41:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726814400001 to 1726814700000 (2024-09-20 06:40:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726813800001 to 1726814700000 (2024-09-20 06:30:00 to 2024-09-20 06:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726814700001 to 1726815780000 (2024-09-20 06:45:00 to 2024-09-20 07:03:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726814700001 to 1726815780000 (2024-09-20 06:45:00 to 2024-09-20 07:03:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726814700001 to 1726815780000 (2024-09-20 06:45:00 to 2024-09-20 07:03:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726814700001 to 1726815840000 (2024-09-20 06:45:00 to 2024-09-20 07:04:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726814700001 to 1726815840000 (2024-09-20 06:45:00 to 2024-09-20 07:04:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726814700001 to 1726815600000 (2024-09-20 06:45:00 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726815780001 to 1726815900000 (2024-09-20 07:03:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726815600001 to 1726815900000 (2024-09-20 07:00:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726815780001 to 1726815900000 (2024-09-20 07:03:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726815600001 to 1726815900000 (2024-09-20 07:00:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726815780001 to 1726815900000 (2024-09-20 07:03:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726815600001 to 1726815900000 (2024-09-20 07:00:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726815840001 to 1726815900000 (2024-09-20 07:04:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726815600001 to 1726815900000 (2024-09-20 07:00:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726815840001 to 1726815900000 (2024-09-20 07:04:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726815600001 to 1726815900000 (2024-09-20 07:00:00 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726815900001 to 1726815960000 (2024-09-20 07:05:00 to 2024-09-20 07:06:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726815900001 to 1726815960000 (2024-09-20 07:05:00 to 2024-09-20 07:06:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726815900001 to 1726815960000 (2024-09-20 07:05:00 to 2024-09-20 07:06:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726815900001 to 1726815960000 (2024-09-20 07:05:00 to 2024-09-20 07:06:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726815900001 to 1726815960000 (2024-09-20 07:05:00 to 2024-09-20 07:06:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726815960001 to 1726816020000 (2024-09-20 07:06:00 to 2024-09-20 07:07:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726815960001 to 1726816020000 (2024-09-20 07:06:00 to 2024-09-20 07:07:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726815960001 to 1726816020000 (2024-09-20 07:06:00 to 2024-09-20 07:07:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726815960001 to 1726816020000 (2024-09-20 07:06:00 to 2024-09-20 07:07:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726815960001 to 1726816080000 (2024-09-20 07:06:00 to 2024-09-20 07:08:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726729772522 to 1726816140000 (2024-09-19 07:09:32 to 2024-09-20 07:09:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726384174719 to 1726815900000 (2024-09-15 07:09:34 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1725520179652 to 1726815600000 (2024-09-05 07:09:39 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726729791635 to 1726816140000 (2024-09-19 07:09:51 to 2024-09-20 07:09:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726384193802 to 1726815900000 (2024-09-15 07:09:53 to 2024-09-20 07:05:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1725520198832 to 1726815600000 (2024-09-05 07:09:58 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726729811035 to 1726816200000 (2024-09-19 07:10:11 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726384213268 to 1726816200000 (2024-09-15 07:10:13 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1725520218247 to 1726815600000 (2024-09-05 07:10:18 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726729830304 to 1726816200000 (2024-09-19 07:10:30 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726384233046 to 1726816200000 (2024-09-15 07:10:33 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1725520238074 to 1726815600000 (2024-09-05 07:10:38 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726729849445 to 1726816200000 (2024-09-19 07:10:49 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726384251496 to 1726816200000 (2024-09-15 07:10:51 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1725520256017 to 1726815600000 (2024-09-05 07:10:56 to 2024-09-20 07:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726816140001 to 1726816320000 (2024-09-20 07:09:00 to 2024-09-20 07:12:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726815900001 to 1726816200000 (2024-09-20 07:05:00 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726816140001 to 1726816320000 (2024-09-20 07:09:00 to 2024-09-20 07:12:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726815900001 to 1726816200000 (2024-09-20 07:05:00 to 2024-09-20 07:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726816200001 to 1726816320000 (2024-09-20 07:10:00 to 2024-09-20 07:12:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726816200001 to 1726816320000 (2024-09-20 07:10:00 to 2024-09-20 07:12:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726816200001 to 1726816320000 (2024-09-20 07:10:00 to 2024-09-20 07:12:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726816320001 to 1726816380000 (2024-09-20 07:12:00 to 2024-09-20 07:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726816320001 to 1726816380000 (2024-09-20 07:12:00 to 2024-09-20 07:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726816320001 to 1726816380000 (2024-09-20 07:12:00 to 2024-09-20 07:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726816320001 to 1726816380000 (2024-09-20 07:12:00 to 2024-09-20 07:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726816320001 to 1726816380000 (2024-09-20 07:12:00 to 2024-09-20 07:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+WARNING - Failed to fetch new data for BNBUSDT.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726816380001 to 1726816440000 (2024-09-20 07:13:00 to 2024-09-20 07:14:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726816380001 to 1726816440000 (2024-09-20 07:13:00 to 2024-09-20 07:14:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726816380001 to 1726816500000 (2024-09-20 07:13:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726816200001 to 1726816500000 (2024-09-20 07:10:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726815600001 to 1726816500000 (2024-09-20 07:00:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726816380001 to 1726816560000 (2024-09-20 07:13:00 to 2024-09-20 07:16:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726816200001 to 1726816500000 (2024-09-20 07:10:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726815600001 to 1726816500000 (2024-09-20 07:00:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726816380001 to 1726816560000 (2024-09-20 07:13:00 to 2024-09-20 07:16:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726816200001 to 1726816500000 (2024-09-20 07:10:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726815600001 to 1726816500000 (2024-09-20 07:00:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726816440001 to 1726816560000 (2024-09-20 07:14:00 to 2024-09-20 07:16:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726816200001 to 1726816500000 (2024-09-20 07:10:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726815600001 to 1726816500000 (2024-09-20 07:00:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726816440001 to 1726816560000 (2024-09-20 07:14:00 to 2024-09-20 07:16:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726816200001 to 1726816500000 (2024-09-20 07:10:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726815600001 to 1726816500000 (2024-09-20 07:00:00 to 2024-09-20 07:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726816500001 to 1726816620000 (2024-09-20 07:15:00 to 2024-09-20 07:17:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726816560001 to 1726816620000 (2024-09-20 07:16:00 to 2024-09-20 07:17:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726816560001 to 1726816620000 (2024-09-20 07:16:00 to 2024-09-20 07:17:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726816560001 to 1726816680000 (2024-09-20 07:16:00 to 2024-09-20 07:18:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726816560001 to 1726816680000 (2024-09-20 07:16:00 to 2024-09-20 07:18:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726816620001 to 1726816800000 (2024-09-20 07:17:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726816500001 to 1726816800000 (2024-09-20 07:15:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726816620001 to 1726816800000 (2024-09-20 07:17:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726816500001 to 1726816800000 (2024-09-20 07:15:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726816620001 to 1726816800000 (2024-09-20 07:17:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726816500001 to 1726816800000 (2024-09-20 07:15:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726816680001 to 1726816800000 (2024-09-20 07:18:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726816500001 to 1726816800000 (2024-09-20 07:15:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726816680001 to 1726816800000 (2024-09-20 07:18:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726816500001 to 1726816800000 (2024-09-20 07:15:00 to 2024-09-20 07:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726816800001 to 1726817100000 (2024-09-20 07:20:00 to 2024-09-20 07:25:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726817100001 to 1726817580000 (2024-09-20 07:25:00 to 2024-09-20 07:33:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726817100001 to 1726817400000 (2024-09-20 07:25:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726816500001 to 1726817400000 (2024-09-20 07:15:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726817100001 to 1726817580000 (2024-09-20 07:25:00 to 2024-09-20 07:33:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726817100001 to 1726817400000 (2024-09-20 07:25:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726816500001 to 1726817400000 (2024-09-20 07:15:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726817100001 to 1726817580000 (2024-09-20 07:25:00 to 2024-09-20 07:33:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726817100001 to 1726817400000 (2024-09-20 07:25:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726816500001 to 1726817400000 (2024-09-20 07:15:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726817100001 to 1726817640000 (2024-09-20 07:25:00 to 2024-09-20 07:34:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726817100001 to 1726817400000 (2024-09-20 07:25:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726816500001 to 1726817400000 (2024-09-20 07:15:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726817100001 to 1726817640000 (2024-09-20 07:25:00 to 2024-09-20 07:34:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726817100001 to 1726817400000 (2024-09-20 07:25:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726816500001 to 1726817400000 (2024-09-20 07:15:00 to 2024-09-20 07:30:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726817580001 to 1726817940000 (2024-09-20 07:33:00 to 2024-09-20 07:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726817400001 to 1726817700000 (2024-09-20 07:30:00 to 2024-09-20 07:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726817580001 to 1726817940000 (2024-09-20 07:33:00 to 2024-09-20 07:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726817400001 to 1726817700000 (2024-09-20 07:30:00 to 2024-09-20 07:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726817580001 to 1726817940000 (2024-09-20 07:33:00 to 2024-09-20 07:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726817400001 to 1726817700000 (2024-09-20 07:30:00 to 2024-09-20 07:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726817640001 to 1726817940000 (2024-09-20 07:34:00 to 2024-09-20 07:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726817400001 to 1726817700000 (2024-09-20 07:30:00 to 2024-09-20 07:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726817640001 to 1726817940000 (2024-09-20 07:34:00 to 2024-09-20 07:39:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726817400001 to 1726817700000 (2024-09-20 07:30:00 to 2024-09-20 07:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726817940001 to 1726818420000 (2024-09-20 07:39:00 to 2024-09-20 07:47:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726817700001 to 1726818300000 (2024-09-20 07:35:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726817400001 to 1726818300000 (2024-09-20 07:30:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726817940001 to 1726818420000 (2024-09-20 07:39:00 to 2024-09-20 07:47:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726817700001 to 1726818300000 (2024-09-20 07:35:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726817400001 to 1726818300000 (2024-09-20 07:30:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726817940001 to 1726818420000 (2024-09-20 07:39:00 to 2024-09-20 07:47:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726817700001 to 1726818300000 (2024-09-20 07:35:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726817400001 to 1726818300000 (2024-09-20 07:30:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726817940001 to 1726818420000 (2024-09-20 07:39:00 to 2024-09-20 07:47:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726817700001 to 1726818300000 (2024-09-20 07:35:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726817400001 to 1726818300000 (2024-09-20 07:30:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726817940001 to 1726818420000 (2024-09-20 07:39:00 to 2024-09-20 07:47:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726817700001 to 1726818300000 (2024-09-20 07:35:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726817400001 to 1726818300000 (2024-09-20 07:30:00 to 2024-09-20 07:45:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726818420001 to 1726818780000 (2024-09-20 07:47:00 to 2024-09-20 07:53:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726818300001 to 1726818600000 (2024-09-20 07:45:00 to 2024-09-20 07:50:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726818420001 to 1726818780000 (2024-09-20 07:47:00 to 2024-09-20 07:53:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726818300001 to 1726818600000 (2024-09-20 07:45:00 to 2024-09-20 07:50:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726818420001 to 1726818780000 (2024-09-20 07:47:00 to 2024-09-20 07:53:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726818300001 to 1726818600000 (2024-09-20 07:45:00 to 2024-09-20 07:50:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726818420001 to 1726818780000 (2024-09-20 07:47:00 to 2024-09-20 07:53:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726818300001 to 1726818600000 (2024-09-20 07:45:00 to 2024-09-20 07:50:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726818420001 to 1726818780000 (2024-09-20 07:47:00 to 2024-09-20 07:53:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726818300001 to 1726818600000 (2024-09-20 07:45:00 to 2024-09-20 07:50:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726818780001 to 1726819320000 (2024-09-20 07:53:00 to 2024-09-20 08:02:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726818600001 to 1726819200000 (2024-09-20 07:50:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726818300001 to 1726819200000 (2024-09-20 07:45:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726818780001 to 1726819320000 (2024-09-20 07:53:00 to 2024-09-20 08:02:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726818600001 to 1726819200000 (2024-09-20 07:50:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726818300001 to 1726819200000 (2024-09-20 07:45:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726818780001 to 1726819320000 (2024-09-20 07:53:00 to 2024-09-20 08:02:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726818600001 to 1726819200000 (2024-09-20 07:50:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726818300001 to 1726819200000 (2024-09-20 07:45:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726818780001 to 1726819320000 (2024-09-20 07:53:00 to 2024-09-20 08:02:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726818600001 to 1726819200000 (2024-09-20 07:50:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726818300001 to 1726819200000 (2024-09-20 07:45:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726818780001 to 1726819320000 (2024-09-20 07:53:00 to 2024-09-20 08:02:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726818600001 to 1726819200000 (2024-09-20 07:50:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726818300001 to 1726819200000 (2024-09-20 07:45:00 to 2024-09-20 08:00:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726819320001 to 1726819800000 (2024-09-20 08:02:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726819200001 to 1726819800000 (2024-09-20 08:00:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726819320001 to 1726819800000 (2024-09-20 08:02:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726819200001 to 1726819800000 (2024-09-20 08:00:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726819320001 to 1726819800000 (2024-09-20 08:02:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726819200001 to 1726819800000 (2024-09-20 08:00:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726819320001 to 1726819800000 (2024-09-20 08:02:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726819200001 to 1726819800000 (2024-09-20 08:00:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726819320001 to 1726819800000 (2024-09-20 08:02:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726819200001 to 1726819800000 (2024-09-20 08:00:00 to 2024-09-20 08:10:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726819800001 to 1726819980000 (2024-09-20 08:10:00 to 2024-09-20 08:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726819800001 to 1726819980000 (2024-09-20 08:10:00 to 2024-09-20 08:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726819800001 to 1726819980000 (2024-09-20 08:10:00 to 2024-09-20 08:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726819800001 to 1726819980000 (2024-09-20 08:10:00 to 2024-09-20 08:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726819800001 to 1726819980000 (2024-09-20 08:10:00 to 2024-09-20 08:13:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726819980001 to 1726820040000 (2024-09-20 08:13:00 to 2024-09-20 08:14:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726819980001 to 1726820040000 (2024-09-20 08:13:00 to 2024-09-20 08:14:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726819980001 to 1726820040000 (2024-09-20 08:13:00 to 2024-09-20 08:14:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726819980001 to 1726820280000 (2024-09-20 08:13:00 to 2024-09-20 08:18:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726819800001 to 1726820100000 (2024-09-20 08:10:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726819200001 to 1726820100000 (2024-09-20 08:00:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726819980001 to 1726820280000 (2024-09-20 08:13:00 to 2024-09-20 08:18:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726819800001 to 1726820100000 (2024-09-20 08:10:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726819200001 to 1726820100000 (2024-09-20 08:00:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726820040001 to 1726820280000 (2024-09-20 08:14:00 to 2024-09-20 08:18:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726819800001 to 1726820100000 (2024-09-20 08:10:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726819200001 to 1726820100000 (2024-09-20 08:00:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726820040001 to 1726820280000 (2024-09-20 08:14:00 to 2024-09-20 08:18:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726819800001 to 1726820100000 (2024-09-20 08:10:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726819200001 to 1726820100000 (2024-09-20 08:00:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726820040001 to 1726820280000 (2024-09-20 08:14:00 to 2024-09-20 08:18:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726819800001 to 1726820100000 (2024-09-20 08:10:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726819200001 to 1726820100000 (2024-09-20 08:00:00 to 2024-09-20 08:15:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726820280001 to 1726820400000 (2024-09-20 08:18:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726820100001 to 1726820400000 (2024-09-20 08:15:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Updating data for ETHUSDT from 1726820280001 to 1726820400000 (2024-09-20 08:18:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ETHUSDT from 1726820100001 to 1726820400000 (2024-09-20 08:15:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Updating data for BNBUSDT from 1726820280001 to 1726820400000 (2024-09-20 08:18:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BNBUSDT from 1726820100001 to 1726820400000 (2024-09-20 08:15:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for BNBUSDT does not require updating. Using current data.
+INFO - Updating data for SOLUSDT from 1726820280001 to 1726820400000 (2024-09-20 08:18:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for SOLUSDT from 1726820100001 to 1726820400000 (2024-09-20 08:15:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for SOLUSDT does not require updating. Using current data.
+INFO - Updating data for ARBUSDT from 1726820280001 to 1726820400000 (2024-09-20 08:18:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for ARBUSDT from 1726820100001 to 1726820400000 (2024-09-20 08:15:00 to 2024-09-20 08:20:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data for ARBUSDT does not require updating. Using current data.
