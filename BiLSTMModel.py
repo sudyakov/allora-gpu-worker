@@ -11,23 +11,36 @@ from rich.table import Table
 from config import *
 from download_data import DownloadData
 from utils import *
-from visualize import *
 
 console = Console()
 MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
 download_data = DownloadData()
 
+class Attention(nn.Module):
+    def __init__(self, hidden_layer_size):
+        super(Attention, self).__init__()
+        self.attention_weights = nn.Parameter(torch.Tensor(hidden_layer_size * 2, 1))
+        nn.init.xavier_uniform_(self.attention_weights)
+
+    def forward(self, lstm_out):
+        attention_scores = torch.matmul(lstm_out, self.attention_weights).squeeze(-1)
+        attention_weights = torch.softmax(attention_scores, dim=1)
+        context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
+        return context_vector
+
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(self, input_size, hidden_layer_size, num_layers, dropout):
         super(EnhancedBiLSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_layer_size, num_layers=num_layers, dropout=dropout, batch_first=True, bidirectional=True)
+        self.attention = Attention(hidden_layer_size)
         self.linear = nn.Linear(hidden_layer_size * 2, input_size)
 
     def forward(self, x):
         h_0 = torch.zeros(self.lstm.num_layers * 2, x.size(0), self.lstm.hidden_size).to(x.device)
         c_0 = torch.zeros(self.lstm.num_layers * 2, x.size(0), self.lstm.hidden_size).to(x.device)
         lstm_out, _ = self.lstm(x, (h_0, c_0))
-        predictions = self.linear(lstm_out[:, -1])
+        context_vector = self.attention(lstm_out)
+        predictions = self.linear(context_vector)
         return predictions
 
 def get_device():
@@ -40,7 +53,7 @@ def get_interval(minutes):
 
 def prepare_dataset(csv_file, seq_length=SEQ_LENGTH, target_symbol=TARGET_SYMBOL):
     df = pd.read_csv(csv_file)
-    df = df.sort_values('timestamp')
+    df = df[df['symbol'] == target_symbol].sort_values('timestamp')
     df = preprocess_binance_data(df)
     
     scaler = MinMaxScaler(feature_range=(-1, 1))
@@ -118,16 +131,18 @@ def save_predictions_to_csv(predictions, filename, current_time):
     if not pd.io.common.file_exists(filename):
         df.to_csv(filename, index=False, float_format='%.10f')
     else:
-        df.to_csv(filename, mode='a', header=False, index=False, float_format='%.10f')
+        existing_df = pd.read_csv(filename)
+        combined_df = pd.concat([df, existing_df], ignore_index=True).sort_values('timestamp', ascending=False)
+        combined_df.to_csv(filename, index=False, float_format='%.10f')
     
     return df.iloc[0]
 
-def print_combined_row(current_row, predicted_prev_row, predicted_next_row):
-    """Выводит сравнительную таблицу текущих значений и предсказаний."""
+def print_combined_row(current_row, difference_row, predicted_next_row):
+    """Выводит сравнительную таблицу текущих значений, разницы предсказаний и предсказаний."""
     table = Table(title="Current vs Predicted")
     table.add_column("Field", style="cyan")
     table.add_column("Current Value", style="magenta")
-    table.add_column("Predicted prev", style="yellow")
+    table.add_column("Difference", style="yellow")
     table.add_column("Predicted next", style="green")
     
     # Добавляем строку с удобным для чтения временем
@@ -143,7 +158,7 @@ def print_combined_row(current_row, predicted_prev_row, predicted_next_row):
         table.add_row(
             col,
             f"{current_row[col]:.10f}" if isinstance(current_row[col], float) else str(current_row[col]) if current_row[col] is not None else "N/A",
-            f"{predicted_prev_row[col]:.10f}" if isinstance(predicted_prev_row[col], float) else str(predicted_prev_row[col]) if predicted_prev_row[col] is not None else "N/A",
+            f"{difference_row[col]:.10f}" if isinstance(difference_row[col], float) else str(difference_row[col]) if difference_row[col] is not None else "N/A",
             f"{predicted_next_row[col]:.10f}" if isinstance(predicted_next_row[col], float) else str(predicted_next_row[col]) if predicted_next_row[col] is not None else "N/A"
         )
     
@@ -151,7 +166,7 @@ def print_combined_row(current_row, predicted_prev_row, predicted_next_row):
 
 def get_predicted_prev_row(current_time: int, symbol: str) -> pd.Series:
     """Получает предыдущее предсказание для заданного времени и символа."""
-    saved_predictions = pd.read_csv(PATHS['predictions'])
+    saved_predictions = pd.read_csv(PATHS['predictions']).sort_values('timestamp', ascending=False)
     interval = get_interval(PREDICTION_MINUTES)
     predicted_prev_row = saved_predictions[
         (saved_predictions['symbol'] == symbol) &
@@ -161,7 +176,7 @@ def get_predicted_prev_row(current_time: int, symbol: str) -> pd.Series:
     if not predicted_prev_row.empty:
         return predicted_prev_row.iloc[-1]
     else:
-        differences_data = pd.read_csv(PATHS['differences'])
+        differences_data = pd.read_csv(PATHS['differences']).sort_values('timestamp', ascending=False)
         if not differences_data.empty:
             return differences_data.iloc[-1]
         else:
@@ -169,17 +184,17 @@ def get_predicted_prev_row(current_time: int, symbol: str) -> pd.Series:
 
 def get_latest_value(data_file, target_symbol):
     """Получает последнее доступное значение для заданного символа из combined_dataset.csv."""
-    df = pd.read_csv(data_file)
+    df = pd.read_csv(data_file).sort_values('timestamp', ascending=False)
     interval = get_interval(PREDICTION_MINUTES)
     console.print(f"Filtering data for symbol: {target_symbol} and interval: {interval}", style="blue")
     filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
     
-    latest_value_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
+    latest_value_row = filtered_df.iloc[0]
     return latest_value_row
 
 def get_latest_prediction(predictions_file, target_symbol):
     """Получает последнее предсказание для заданного символа."""
-    df = pd.read_csv(predictions_file)
+    df = pd.read_csv(predictions_file).sort_values('timestamp', ascending=False)
     
     # Проверка наличия необходимых столбцов
     required_columns = {'symbol', 'interval', 'timestamp'}
@@ -193,12 +208,12 @@ def get_latest_prediction(predictions_file, target_symbol):
         console.print(f"No latest prediction found for {target_symbol} with interval {interval}", style="blue")
         return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
     
-    latest_prediction_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
+    latest_prediction_row = filtered_df.iloc[0]
     return latest_prediction_row
 
 def get_difference_row(current_time: int, symbol: str) -> pd.Series:
     """Получает строку разницы для заданного времени и символа из файла differences.csv."""
-    differences_data = pd.read_csv(PATHS['differences'])
+    differences_data = pd.read_csv(PATHS['differences']).sort_values('timestamp', ascending=False)
     interval = get_interval(PREDICTION_MINUTES)
     difference_row = differences_data[
         (differences_data['symbol'] == symbol) &
@@ -222,21 +237,23 @@ def save_difference_to_csv(predictions, actuals, filename, prediction_timestamp)
     if not os.path.exists(filename):
         df.to_csv(filename, index=False, float_format='%.10f')
     else:
-        df.to_csv(filename, mode='a', header=False, index=False, float_format='%.10f')
+        existing_df = pd.read_csv(filename)
+        combined_df = pd.concat([df, existing_df], ignore_index=True).sort_values('timestamp', ascending=False)
+        combined_df.to_csv(filename, index=False, float_format='%.10f')
     
     return df.iloc[0]
 
 def load_training_data():
     """Загружает данные для обучения из всех трех источников."""
-    binance_data = pd.read_csv(PATHS['combined_dataset'])
+    binance_data = pd.read_csv(PATHS['combined_dataset']).sort_values('timestamp', ascending=False)
     
     if os.path.getsize(PATHS['predictions']) > 0:
-        predictions_data = pd.read_csv(PATHS['predictions'])
+        predictions_data = pd.read_csv(PATHS['predictions']).sort_values('timestamp', ascending=False)
     else:
         predictions_data = pd.DataFrame(columns=DATASET_COLUMNS)
     
     if os.path.getsize(PATHS['differences']) > 0:
-        differences_data = pd.read_csv(PATHS['differences'])
+        differences_data = pd.read_csv(PATHS['differences']).sort_values('timestamp', ascending=False)
     else:
         differences_data = pd.DataFrame(columns=DATASET_COLUMNS)
     
@@ -323,15 +340,15 @@ def main():
     # Получение строки разницы для текущего времени
     difference_row = get_difference_row(current_time, TARGET_SYMBOL)
     
-    print_combined_row(current_value_row, predicted_prev_row, latest_prediction_row)
+    print_combined_row(current_value_row, difference_row, latest_prediction_row)
     
-    if current_value_row['close'] is not None and predicted_prev_row['close'] is not None:
-        if abs(current_value_row['close'] - predicted_prev_row['close']) <= 5:
-            console.print("Current value is equal to the previous prediction (within 5 units).", style="bold blue")
-        elif current_value_row['close'] > predicted_prev_row['close']:
-            console.print("Current value is higher than the previous prediction.", style="green")
+    if current_value_row['close'] is not None and difference_row['close'] is not None:
+        if abs(difference_row['close']) <= 5:
+            console.print("Difference between current value and previous prediction is within 5 units.", style="bold blue")
+        elif difference_row['close'] > 0:
+            console.print("Previous prediction was higher than the current value.", style="green")
         else:
-            console.print("Current value is lower than the previous prediction.", style="red")
+            console.print("Previous prediction was lower than the current value.", style="red")
         
         # Сохранение разницы между предсказанными и фактическими значениями
         actuals = current_value_row[FEATURE_NAMES].values
@@ -343,5 +360,5 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        update_visualization()
+        # update_visualization()
         time.sleep(3)

@@ -20,9 +20,9 @@ def load_and_filter_data():
     differences_data = differences_data[(differences_data['symbol'] == TARGET_SYMBOL) & (differences_data['interval'] == interval)]
 
     # Преобразование timestamp в datetime
-    combined_data['timestamp'] = pd.to_datetime(combined_data['timestamp'])
-    predictions_data['timestamp'] = pd.to_datetime(predictions_data['timestamp'])
-    differences_data['timestamp'] = pd.to_datetime(differences_data['timestamp'])
+    combined_data['timestamp'] = pd.to_datetime(combined_data['timestamp'], unit='ms')
+    predictions_data['timestamp'] = pd.to_datetime(predictions_data['timestamp'], unit='ms')
+    differences_data['timestamp'] = pd.to_datetime(differences_data['timestamp'], unit='ms')
 
     # Устреднение данных в differences_data по timestamp, исключая нечисловые столбцы
     numeric_columns = differences_data.select_dtypes(include=[float, int]).columns
