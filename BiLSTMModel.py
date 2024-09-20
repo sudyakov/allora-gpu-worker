@@ -134,7 +134,7 @@ def print_combined_row(current_row, predicted_prev_row, predicted_next_row):
     table.add_row(
         "Readable Time",
         timestamp_to_readable_time(current_row['timestamp']) if current_row['timestamp'] is not None else "N/A",
-        timestamp_to_readable_time(predicted_prev_row['timestamp']) if predicted_prev_row['timestamp'] is not None else "N/A",
+        timestamp_to_readable_time(current_row['timestamp']) if current_row['timestamp'] is not None else "N/A",
         timestamp_to_readable_time(predicted_next_row['timestamp']) if predicted_next_row['timestamp'] is not None else "N/A",
         style="yellow"
     )
@@ -149,29 +149,24 @@ def print_combined_row(current_row, predicted_prev_row, predicted_next_row):
     
     console.print(table)
 
-def get_prediction_row(predictions_file: str, target_symbol: str, current_time: Optional[int] = None) -> pd.Series:
-    """Получает строку предсказания для заданного символа и времени (если указано)."""
-    df = pd.read_csv(predictions_file)
-    
-    # Проверка наличия необходимых столбцов
-    required_columns = {'symbol', 'interval', 'timestamp'}
-    if not required_columns.issubset(df.columns):
-        raise KeyError(f"Missing required columns in predictions file: {required_columns - set(df.columns)}")
-    
+
+def get_predicted_prev_row(current_time: int, symbol: str) -> pd.Series:
+    """Получает предыдущее предсказание для заданного времени и символа."""
+    saved_predictions = pd.read_csv(PATHS['predictions'])
     interval = get_interval(PREDICTION_MINUTES)
-    filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
-    
-    if current_time is not None:
-        prediction_row = filtered_df[filtered_df['timestamp'] == current_time]
-        if not prediction_row.empty:
-            return prediction_row.iloc[-1]
-    
-    if filtered_df.empty:
-        console.print(f"No prediction found for {target_symbol} with interval {interval}", style="blue")
-        return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
-    
-    latest_prediction_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
-    return latest_prediction_row
+    predicted_prev_row = saved_predictions[
+        (saved_predictions['symbol'] == symbol) &
+        (saved_predictions['interval'] == interval) &
+        (saved_predictions['timestamp'] == current_time)
+    ]
+    if not predicted_prev_row.empty:
+        return predicted_prev_row.iloc[-1]
+    else:
+        differences_data = pd.read_csv(PATHS['differences'])
+        if not differences_data.empty:
+            return differences_data.iloc[-1]
+        else:
+            return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
 
 def get_latest_value(data_file, target_symbol):
     """Получает последнее доступное значение для заданного символа из combined_dataset.csv."""
@@ -182,6 +177,25 @@ def get_latest_value(data_file, target_symbol):
     
     latest_value_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
     return latest_value_row
+
+def get_latest_prediction(predictions_file, target_symbol):
+    """Получает последнее предсказание для заданного символа."""
+    df = pd.read_csv(predictions_file)
+    
+    # Проверка наличия необходимых столбцов
+    required_columns = {'symbol', 'interval', 'timestamp'}
+    if not required_columns.issubset(df.columns):
+        raise KeyError(f"Missing required columns in predictions file: {required_columns - set(df.columns)}")
+    
+    interval = get_interval(PREDICTION_MINUTES)
+    filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == interval)]
+    
+    if filtered_df.empty:
+        console.print(f"No latest prediction found for {target_symbol} with interval {interval}", style="blue")
+        return pd.Series([None] * len(DATASET_COLUMNS), index=DATASET_COLUMNS)
+    
+    latest_prediction_row = filtered_df.loc[filtered_df['timestamp'].idxmax()]
+    return latest_prediction_row
 
 def get_difference_row(current_time: int, symbol: str) -> pd.Series:
     """Получает строку разницы для заданного времени и символа из файла differences.csv."""
@@ -304,8 +318,8 @@ def main():
     
     # Загрузка данных из combined_dataset.csv для отображения в таблице
     current_value_row = get_latest_value(PATHS['combined_dataset'], TARGET_SYMBOL)
-    latest_prediction_row = get_prediction_row(PATHS['predictions'], TARGET_SYMBOL)
-    predicted_prev_row = get_prediction_row(PATHS['predictions'], TARGET_SYMBOL, current_time)
+    latest_prediction_row = get_latest_prediction(PATHS['predictions'], TARGET_SYMBOL)
+    predicted_prev_row = get_predicted_prev_row(current_time, TARGET_SYMBOL)
     
     # Получение строки разницы для текущего времени
     difference_row = get_difference_row(current_time, TARGET_SYMBOL)
@@ -326,8 +340,9 @@ def main():
     else:
         console.print("Unable to compare current value with previous prediction due to missing data.", style="bold yellow")
     
-    # update_visualization()
-    time.sleep(1)
     
 if __name__ == "__main__":
-    main()
+    while True:
+        main()
+        time.sleep(3)
+
