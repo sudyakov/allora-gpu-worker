@@ -8913,3 +8913,6 @@ INFO - Data for SOLUSDT does not require updating. Using current data.
 INFO - Data for ARBUSDT does not require updating. Using current data.
 INFO - Data for ARBUSDT does not require updating. Using current data.
 INFO - Data for ARBUSDT does not require updating. Using current data.
+INFO - Updating data for BTCUSDT from 1726835640001 to 1726835700000 (2024-09-20 12:34:00 to 2024-09-20 12:35:00)
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Updating data for BTCUSDT from 1726835400001 to 1726835700000 (2024-09-20 12:30:00 to 2024-09-20 12:35:00)
