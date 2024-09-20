@@ -25,7 +25,6 @@ class DownloadData:
         self.logger = logging.getLogger("DownloadData")
         self.configure_logging()
 
-    # Configure logging to track events in the application
     def configure_logging(self):
         logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
         file_handler = logging.FileHandler(LOG_FILE)
@@ -34,19 +33,16 @@ class DownloadData:
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
 
-    # Create a directory for storing data if it doesn't exist
     def create_directory(self, folder: str):
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-    # Get interval information based on the given number of minutes
     def get_interval_info(self, prediction_minutes: int) -> tuple[str, Dict[str, Union[str, int]]]:
         for key, value in self.INTERVALS_PERIODS.items():
             if value["minutes"] == prediction_minutes:
                 return key, value
         raise KeyError(f"Invalid PREDICTION_MINUTES value: {prediction_minutes}")
 
-    # Get data from Binance API for the given symbol and time interval
     def get_binance_data(self, symbol: str, prediction_minutes: int, start_time: int, end_time: int) -> pd.DataFrame:
         _, interval_config = self.get_interval_info(prediction_minutes)
         interval = interval_config['interval']
@@ -84,7 +80,6 @@ class DownloadData:
 
         return combined_df[self.DATASET_COLUMNS]
 
-    # Get all available data from Binance API for the given symbol and time interval
     def get_all_binance_data(
         self, symbol: str, prediction_minutes: int, start_time: Optional[int] = None, end_time: Optional[int] = None, limit: int = BINANCE_LIMIT_STRING
     ) -> pd.DataFrame:
@@ -110,24 +105,20 @@ class DownloadData:
             self.logger.warning(f"Error loading data for pair {symbol} and interval: {e}")
             return pd.DataFrame()
 
-    # Prepare DataFrame for saving, including sorting and filtering by time
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time = get_current_time()[0]
         df = sort_dataframe(df[df['timestamp'] <= current_time])
         return df.sort_values(by='timestamp', ascending=False)[self.DATASET_COLUMNS]
 
-    # Save DataFrame to CSV file
     def save_to_csv(self, df: pd.DataFrame, filename: str):
-        # Создаем директорию, если она не существует
         parent_dir = os.path.dirname(filename)
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
         
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
-            prepared_df.to_csv(filename, index=False, float_format='%.6f')
+            prepared_df.to_csv(filename, index=False, float_format='%.10f')
 
-    # Save combined dataset, updating existing file or creating a new one
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if data:
             if os.path.exists(filename):
@@ -140,12 +131,11 @@ class DownloadData:
             else:
                 combined_data = pd.concat(data.values(), ignore_index=True)
             prepared_df = self.prepare_dataframe_for_save(combined_data)
-            prepared_df.to_csv(filename, index=False, float_format='%.6f')
+            prepared_df.to_csv(filename, index=False, float_format='%.10f')
             self.logger.info(f"Combined dataset updated: {filename}")
         else:
             self.logger.warning("No data to save to combined dataset.")
 
-    # Print data summary as a formatted string for logging
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: str):
         summary = f"Data summary for {symbol} ({interval}):\n"
         summary += f"{'Timestamp':<20} {' '.join([f'{feature.capitalize():<10}' for feature in self.FEATURE_NAMES])}\n"
@@ -156,7 +146,6 @@ class DownloadData:
             summary += f"{label:<20} {timestamp:<20} {' '.join([f'{row[feature]:<10.2f}' if isinstance(row[feature], float) else str(row[feature]) for feature in self.FEATURE_NAMES])}\n"
         self.logger.info(summary)
 
-    # Update data for the given symbol and prediction interval
     def update_data(self, symbol: str, prediction_minutes: int):
         _, interval_config = self.get_interval_info(prediction_minutes)
         interval = interval_config["interval"]
@@ -196,7 +185,6 @@ class DownloadData:
             self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
 
-    # Get current price for the given symbol and interval
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
         _, interval_config = self.get_interval_info(interval)
         interval_str = interval_config["interval"]
@@ -221,9 +209,7 @@ class DownloadData:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
             return pd.DataFrame()
 
-# Main function to perform all data loading and updating operations
 def main():
-
     download_data = DownloadData()
     download_data.configure_logging()
     download_data.logger.info("Script started")

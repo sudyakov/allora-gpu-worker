@@ -11,17 +11,15 @@ from rich.console import Console
 
 console = Console()
 
-# Функция для предобработки данных Binance
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     for col in FEATURE_NAMES:
         if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
+            df[col] = pd.to_numeric(df[col], errors='coerce').astype(np.float64)
     for col in ['timestamp', 'close_time']:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
     return df.replace([np.inf, -np.inf], np.nan).dropna()
 
-# Функция для сортировки DataFrame
 def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values('timestamp', ascending=False)
 
@@ -38,7 +36,6 @@ def get_current_time() -> Tuple[int, str]:
     readable_time = timestamp_to_readable_time(server_time)
     return server_time, readable_time
 
-# Функция для очистки кэша путем удаления всех CSV файлов данных
 def clear_cache(self):
     for file in os.listdir(self.PATHS['data_dir']):
         if file.endswith('_data.csv'):

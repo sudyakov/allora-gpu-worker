@@ -48,8 +48,8 @@ def prepare_dataset(csv_file, seq_length=SEQ_LENGTH, target_symbol=TARGET_SYMBOL
     
     sequences, labels = [], []
     for i in range(len(scaled_data) - seq_length):
-        sequences.append(scaled_data.values[i:i+seq_length])
-        labels.append(scaled_data.values[i+seq_length])
+        sequences.append(scaled_data.values[i:i+seq_length].astype(np.float64))
+        labels.append(scaled_data.values[i+seq_length].astype(np.float64))
     
     sequences = np.array(sequences)
     labels = np.array(labels)
@@ -101,7 +101,7 @@ def predict_future_price(model, last_sequence, scaler, steps=1):
         
         input_sequence = last_sequence.to(next(model.parameters()).device)
         predictions = model(input_sequence)
-        predicted_data = scaler.inverse_transform(predictions.cpu().numpy())
+        predicted_data = scaler.inverse_transform(predictions.cpu().numpy().astype(np.float64))
         predicted_data = np.abs(predicted_data)
     return predicted_data
 
@@ -116,9 +116,9 @@ def save_predictions_to_csv(predictions, filename, current_time):
     df = df[DATASET_COLUMNS]
     
     if not pd.io.common.file_exists(filename):
-        df.to_csv(filename, index=False, float_format='%.6f')
+        df.to_csv(filename, index=False, float_format='%.10f')
     else:
-        df.to_csv(filename, mode='a', header=False, index=False, float_format='%.6f')
+        df.to_csv(filename, mode='a', header=False, index=False, float_format='%.10f')
     
     return df.iloc[0]
 
@@ -142,13 +142,12 @@ def print_combined_row(current_row, predicted_prev_row, predicted_next_row):
     for col in DATASET_COLUMNS:
         table.add_row(
             col,
-            f"{current_row[col]:.8f}" if isinstance(current_row[col], float) else str(current_row[col]) if current_row[col] is not None else "N/A",
-            f"{predicted_prev_row[col]:.8f}" if isinstance(predicted_prev_row[col], float) else str(predicted_prev_row[col]) if predicted_prev_row[col] is not None else "N/A",
-            f"{predicted_next_row[col]:.8f}" if isinstance(predicted_next_row[col], float) else str(predicted_next_row[col]) if predicted_next_row[col] is not None else "N/A"
+            f"{current_row[col]:.10f}" if isinstance(current_row[col], float) else str(current_row[col]) if current_row[col] is not None else "N/A",
+            f"{predicted_prev_row[col]:.10f}" if isinstance(predicted_prev_row[col], float) else str(predicted_prev_row[col]) if predicted_prev_row[col] is not None else "N/A",
+            f"{predicted_next_row[col]:.10f}" if isinstance(predicted_next_row[col], float) else str(predicted_next_row[col]) if predicted_next_row[col] is not None else "N/A"
         )
     
     console.print(table)
-
 
 def get_predicted_prev_row(current_time: int, symbol: str) -> pd.Series:
     """Получает предыдущее предсказание для заданного времени и символа."""
@@ -221,9 +220,9 @@ def save_difference_to_csv(predictions, actuals, filename, prediction_timestamp)
     df = df[DATASET_COLUMNS]
     
     if not os.path.exists(filename):
-        df.to_csv(filename, index=False, float_format='%.6f')
+        df.to_csv(filename, index=False, float_format='%.10f')
     else:
-        df.to_csv(filename, mode='a', header=False, index=False, float_format='%.6f')
+        df.to_csv(filename, mode='a', header=False, index=False, float_format='%.10f')
     
     return df.iloc[0]
 
@@ -344,5 +343,5 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
+        update_visualization()
         time.sleep(3)
-

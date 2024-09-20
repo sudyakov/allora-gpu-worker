@@ -2,6 +2,7 @@ __pycache__
 .allorad
 .cache
 .venv
+.vscode
 config.json
 env_file
 worker-data
