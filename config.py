@@ -20,10 +20,10 @@ PREDICTION_MINUTES = 5
 CURRENT_MINUTES = 1
 
 INTERVALS_PERIODS = {
-    "1m": {"interval": "1m", "days": 30, "minutes": 1, "milliseconds": 1 * 60 * 1000},
-    "5m": {"interval": "5m", "days": 90, "minutes": 5, "milliseconds": 5 * 60 * 1000},
-    "15m": {"interval": "15m", "days": 180, "minutes": 15, "milliseconds": 15 * 60 * 1000},
-    "30m": {"interval": "30m", "days": 540, "minutes": 30, "milliseconds": 30 * 60 * 1000},
+    "1m": {"interval": "1m", "days": 180, "minutes": 1, "milliseconds": 1 * 60 * 1000},
+    "5m": {"interval": "5m", "days": 360, "minutes": 5, "milliseconds": 5 * 60 * 1000},
+    "15m": {"interval": "15m", "days": 720, "minutes": 15, "milliseconds": 15 * 60 * 1000},
+    "30m": {"interval": "30m", "days": 1440, "minutes": 30, "milliseconds": 30 * 60 * 1000},
 }
 
 FEATURE_NAMES = [
