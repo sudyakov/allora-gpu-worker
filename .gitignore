@@ -15,3 +15,4 @@ models/enhanced_bilstm_model_ETH.pth
 predictions.csv
 real_prices.csv
 models
+download_data.log
