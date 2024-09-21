@@ -8,11 +8,11 @@ from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import DataLoader, TensorDataset
 from rich.console import Console
 from rich.table import Table
-
 from config import *
 from download_data import DownloadData
 from utils import *
 from visualize import *
+from tqdm import tqdm
 
 console = Console()
 MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
@@ -75,7 +75,21 @@ def prepare_dataset(csv_file, seq_length=SEQ_LENGTH, target_symbol=TARGET_SYMBOL
     
     return TensorDataset(torch.FloatTensor(sequences), torch.FloatTensor(labels)), scaler, df
 
-from tqdm import tqdm
+def load_training_data():
+    """Загружает данные для обучения из всех трех источников."""
+    binance_data = pd.read_csv(PATHS['combined_dataset']).sort_values('timestamp', ascending=False)
+    
+    if os.path.getsize(PATHS['predictions']) > 0:
+        predictions_data = pd.read_csv(PATHS['predictions']).sort_values('timestamp', ascending=False)
+    else:
+        predictions_data = pd.DataFrame(columns=DATASET_COLUMNS)
+    
+    if os.path.getsize(PATHS['differences']) > 0:
+        differences_data = pd.read_csv(PATHS['differences']).sort_values('timestamp', ascending=False)
+    else:
+        differences_data = pd.DataFrame(columns=DATASET_COLUMNS)
+    
+    return binance_data, predictions_data, differences_data
 
 def train_model(model, dataloader, device, differences_data):
     """Обучает модель на предоставленных данных."""
@@ -142,6 +156,46 @@ def save_predictions_to_csv(predictions, filename, current_time):
         combined_df.to_csv(filename, index=False, float_format='%.10f')
     
     return df.iloc[0]
+
+def fill_missing_predictions(model, scaler, device, target_symbol, prediction_minutes):
+    # Получаем последнее сохраненное предсказание
+    last_prediction = get_latest_prediction(PATHS['predictions'], target_symbol)
+    last_prediction_time = last_prediction['timestamp'] if not last_prediction.empty else 0
+
+    # Получаем самый новый таймстамп из архива Binance
+    latest_binance_time = get_latest_timestamp(PATHS['combined_dataset'], target_symbol, prediction_minutes)
+
+    if latest_binance_time is None:
+        logging.error(f"No latest timestamp found for {target_symbol} with interval {prediction_minutes} minutes.")
+        return
+
+    # Вычисляем интервал в миллисекундах
+    interval_ms = next(v['milliseconds'] for k, v in INTERVALS_PERIODS.items() if v['minutes'] == prediction_minutes)
+
+    # Генерируем пропущенные таймстампы
+    missing_timestamps = range(last_prediction_time + interval_ms, latest_binance_time + interval_ms, interval_ms)
+
+    for timestamp in missing_timestamps:
+        # Получаем последовательность данных для предсказания
+        sequence = get_sequence_for_timestamp(timestamp - interval_ms, target_symbol, prediction_minutes)
+        
+        if sequence is not None:
+            # Преобразуем последовательность в тензор
+            sequence_tensor = torch.FloatTensor(sequence).unsqueeze(0).to(device)
+            
+            # Делаем предсказание
+            with torch.no_grad():
+                prediction = model(sequence_tensor)
+            
+            # Инвертируем масштабирование
+            prediction = scaler.inverse_transform(prediction.cpu().numpy())
+            
+            # Сохраняем предсказание
+            save_predictions_to_csv(prediction, PATHS['predictions'], timestamp)
+            logging.info(f"Saved prediction for timestamp {timestamp}")
+
+    logging.info(f"Filled {len(missing_timestamps)} missing predictions.")
+
 
 def print_combined_row(current_row, difference_row, predicted_next_row):
     """Выводит сравнительную таблицу текущих значений, разницы предсказаний и предсказаний."""
@@ -213,7 +267,6 @@ def get_latest_prediction(predictions_file, target_symbol):
     
     return filtered_df.iloc[0]
 
-
 def get_difference_row(current_time: int, symbol: str) -> pd.Series:
     """Получает строку разницы для заданного времени и символа из файла differences.csv."""
     differences_data = pd.read_csv(PATHS['differences']).sort_values('timestamp', ascending=False)
@@ -246,22 +299,6 @@ def save_difference_to_csv(predictions, actuals, filename, current_time):
     
     return df.iloc[0]
 
-def load_training_data():
-    """Загружает данные для обучения из всех трех источников."""
-    binance_data = pd.read_csv(PATHS['combined_dataset']).sort_values('timestamp', ascending=False)
-    
-    if os.path.getsize(PATHS['predictions']) > 0:
-        predictions_data = pd.read_csv(PATHS['predictions']).sort_values('timestamp', ascending=False)
-    else:
-        predictions_data = pd.DataFrame(columns=DATASET_COLUMNS)
-    
-    if os.path.getsize(PATHS['differences']) > 0:
-        differences_data = pd.read_csv(PATHS['differences']).sort_values('timestamp', ascending=False)
-    else:
-        differences_data = pd.DataFrame(columns=DATASET_COLUMNS)
-    
-    return binance_data, predictions_data, differences_data
-
 def ensure_file_exists(filepath):
     """Проверяет, существует ли файл, и создает его, если он отсутствует."""
     directory = os.path.dirname(filepath)
@@ -289,7 +326,6 @@ def load_model(model, filepath, device):
     else:
         console.print(f"No model found at {filepath}. Starting with a new model.", style="bold yellow")
 
-
 def get_latest_timestamp(data_file, target_symbol, prediction_minutes):
     """Получает самый новый таймстамп для заданного символа и интервала."""
     df = pd.read_csv(data_file).sort_values('timestamp', ascending=False)
@@ -301,6 +337,58 @@ def get_latest_timestamp(data_file, target_symbol, prediction_minutes):
     
     return filtered_df['timestamp'].max()
 
+def fill_missing_predictions(model, scaler, device, target_symbol, prediction_minutes):
+    # Получаем последнее сохраненное предсказание
+    last_prediction = get_latest_prediction(PATHS['predictions'], target_symbol)
+    last_prediction_time = last_prediction['timestamp'] if not last_prediction.empty else 0
+
+    # Получаем самый новый таймстамп из архива Binance
+    latest_binance_time = get_latest_timestamp(PATHS['combined_dataset'], target_symbol, prediction_minutes)
+
+    if latest_binance_time is None:
+        logging.error(f"No latest timestamp found for {target_symbol} with interval {prediction_minutes} minutes.")
+        return
+
+    # Вычисляем интервал в миллисекундах
+    interval_ms = next(v['milliseconds'] for k, v in INTERVALS_PERIODS.items() if v['minutes'] == prediction_minutes)
+
+    # Генерируем пропущенные таймстампы
+    missing_timestamps = range(last_prediction_time + interval_ms, latest_binance_time + interval_ms, interval_ms)
+
+    for timestamp in missing_timestamps:
+        # Получаем последовательность данных для предсказания
+        sequence = get_sequence_for_timestamp(timestamp - interval_ms, target_symbol, prediction_minutes)
+        
+        if sequence is not None:
+            # Преобразуем последовательность в тензор
+            sequence_tensor = torch.FloatTensor(sequence.copy()).unsqueeze(0).to(device)
+            
+            # Делаем предсказание
+            with torch.no_grad():
+                prediction = model(sequence_tensor)
+            
+            # Инвертируем масштабирование
+            prediction = scaler.inverse_transform(prediction.cpu().numpy())
+            
+            # Сохраняем предсказание
+            save_predictions_to_csv(prediction, PATHS['predictions'], timestamp)
+            logging.info(f"Saved prediction for timestamp {timestamp}")
+
+    logging.info(f"Filled {len(missing_timestamps)} missing predictions.")
+
+def get_sequence_for_timestamp(timestamp, target_symbol, prediction_minutes):
+    df = pd.read_csv(PATHS['combined_dataset'])
+    interval = get_interval(prediction_minutes)
+    
+    # Фильтруем данные
+    filtered_df = df[(df['symbol'] == target_symbol) & 
+                    (df['interval'] == interval) & 
+                    (df['timestamp'] <= timestamp)]
+    
+    if len(filtered_df) >= SEQ_LENGTH:
+        sequence = filtered_df.sort_values('timestamp', ascending=False).head(SEQ_LENGTH)[FEATURE_NAMES].values
+        return sequence[::-1]  # Возвращаем в правильном порядке
+    return None
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levellevel)s - %(message)s')
@@ -308,68 +396,71 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levellevel)s - %
 def main():
     device = get_device()
     model = EnhancedBiLSTMModel(**MODEL_PARAMS).to(device)
-    
+
     ensure_file_exists(PATHS['predictions'])
     ensure_file_exists(PATHS['differences'])
     ensure_file_exists(MODEL_FILENAME)
-    
+
     load_model(model, MODEL_FILENAME, device)
-    
+
     logging.info("Downloading latest data...")
     for symbol in SYMBOLS:
         for interval_name, interval_info in INTERVALS_PERIODS.items():
             logging.info(f"Updating data for {symbol} with interval {interval_name}...")
             download_data.update_data(symbol, interval_info['minutes'])
-    
+
     logging.info("Preparing dataset...")
     dataset, scaler, df = prepare_dataset(PATHS['combined_dataset'])
     dataloader = DataLoader(dataset, batch_size=TRAINING_PARAMS['batch_size'], shuffle=True)
-    
+
     logging.info("Loading differences data...")
     _, _, differences_data = load_training_data()
-    
+
     logging.info("Training model...")
     model = train_model(model, dataloader, device, differences_data)
     save_model(model, MODEL_FILENAME)
-    
+    logging.info("Model training completed and saved.")
+
     current_time = get_latest_timestamp(PATHS['combined_dataset'], TARGET_SYMBOL, PREDICTION_MINUTES)
     if current_time is None:
         logging.error("No data found for the specified symbol and interval.")
         return
-    
+
     last_sequence = dataset[-1][0]
     predictions = predict_future_price(model, last_sequence, scaler)
-    
-    server_time, readable_server_time = get_current_time()
+    logging.info(f"Predictions: {predictions}")
+
+    readable_server_time = get_current_time()
     logging.info(f"Current Binance server time: {readable_server_time}")
-    
-    prediction_milliseconds = next(v['milliseconds'] for k, v in INTERVALS_PERIODS.items() if v['minutes'] == PREDICTION_MINUTES)
-    prediction_time = current_time + prediction_milliseconds
-    
-    saved_prediction = save_predictions_to_csv(predictions, PATHS['predictions'], current_time)
-    
+
+    logging.info(f"Saved predictions to CSV.")
+
+    # Дополнительная логика для заполнения пропущенных предсказаний
+    fill_missing_predictions(model, scaler, device, TARGET_SYMBOL, PREDICTION_MINUTES)
+    logging.info("Filled missing predictions.")
+
     # Загрузка самых свежих данных после сохранения предсказаний
     current_value_row = get_latest_value(PATHS['combined_dataset'], TARGET_SYMBOL)
     latest_prediction_row = get_latest_prediction(PATHS['predictions'], TARGET_SYMBOL)
     difference_row = get_difference_row(current_time, TARGET_SYMBOL)
-    
+
     if not current_value_row.empty and not latest_prediction_row.empty:
         actuals = current_value_row[FEATURE_NAMES].values
         predictions = latest_prediction_row[FEATURE_NAMES].values
         save_difference_to_csv(predictions, actuals, PATHS['differences'], current_time)
         logging.info("Difference between current value and previous prediction saved.")
-        
+
         # Обновляем difference_row после сохранения новых различий
         difference_row = get_difference_row(current_time, TARGET_SYMBOL)
     else:
         logging.warning("Unable to compare current value with previous prediction due to missing data.")
-    
-    # Выводим таблицу только после всех обновлений
+
     print_combined_row(current_value_row, difference_row, latest_prediction_row)
+    logging.info("Completed printing combined row.")
 
 if __name__ == "__main__":
     while True:
         main()
-        time.sleep(30)
         create_visualization()
-        time.sleep(30)
+        logging.info("Visualization created.")
+
