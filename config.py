@@ -14,7 +14,7 @@ REQUEST_DELAY = 1
 
 TARGET_SYMBOL = 'ETHUSDT'
 SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ARBUSDT"]
-SEQ_LENGTH = 10
+SEQ_LENGTH = 300
 
 PREDICTION_MINUTES = 5
 CURRENT_MINUTES = 1
@@ -47,15 +47,19 @@ DATA_TYPES = {
 MODEL_VERSION = "2.0"
 MODEL_PARAMS = {
     'input_size': len(FEATURE_NAMES),
-    'hidden_layer_size': 512,
-    'num_layers': 6,
-    'dropout': 0.3
+    'hidden_layer_size': 256,
+    'num_layers': 4,
+    'dropout': 0.2
 }
 
 TRAINING_PARAMS = {
-    'batch_size': 4096, 'initial_epochs': 10, 'initial_lr': 0.001,
-    'max_epochs': 60, 'min_lr': 0.0001, 'use_mixed_precision': True,
-    'num_workers': 16
+    'batch_size': 512,
+    'initial_epochs': 20,
+    'initial_lr': 0.0005,
+    'max_epochs': 100,
+    'min_lr': 0.00001,
+    'use_mixed_precision': True,
+    'num_workers': 8
 }
 
 PATHS = {

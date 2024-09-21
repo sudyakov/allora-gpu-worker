@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from config import PREDICTION_MINUTES, TARGET_SYMBOL, PATHS, INTERVALS_PERIODS
+
 # Константы для цветов и размеров
 ACTUAL_COLOR = '#00FFFF'
 ACTUAL_CANDLE_COLOR = '#008888 '
@@ -24,6 +25,9 @@ FONT_SIZE = 10
 
 FIGURE_HEIGHT = 1200
 FIGURE_WIDTH = 1920
+
+# Константа для интервала времени
+TIME_INTERVAL_HOURS = 6
 
 def create_candlestick_trace(df, name, color):
     return go.Candlestick(
@@ -49,7 +53,7 @@ def load_and_prepare_data():
     else:
         end_time = combined_data['timestamp'].max()
     
-    start_time = end_time - timedelta(hours=12)
+    start_time = end_time - timedelta(hours=TIME_INTERVAL_HOURS)
     start_time = start_time.replace(minute=1, second=0, microsecond=0)
     
     combined_data = filter_data(combined_data, start_time)
