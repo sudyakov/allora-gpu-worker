@@ -433,9 +433,11 @@ def main():
     readable_server_time = get_current_time()
     logging.info(f"Current Binance server time: {readable_server_time}")
 
-    logging.info(f"Saved predictions to CSV.")
+    saved_prediction = save_predictions_to_csv(predictions, PATHS['predictions'], current_time)
+    logging.info(f"Saved predictions to CSV: {saved_prediction}")
 
     # Дополнительная логика для заполнения пропущенных предсказаний
+    logging.info("Starting to fill missing predictions...")
     fill_missing_predictions(model, scaler, device, TARGET_SYMBOL, PREDICTION_MINUTES)
     logging.info("Filled missing predictions.")
 
@@ -460,7 +462,9 @@ def main():
 
 if __name__ == "__main__":
     while True:
+        logging.info("Starting main loop iteration...")
         main()
+        logging.info("Creating visualization...")
         create_visualization()
         logging.info("Visualization created.")
 
