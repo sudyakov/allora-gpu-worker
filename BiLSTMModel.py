@@ -1,5 +1,6 @@
 import os
 import logging
+from time import sleep
 import numpy as np
 import pandas as pd
 import torch
@@ -464,6 +465,7 @@ if __name__ == "__main__":
     while True:
         logging.info("Starting main loop iteration...")
         main()
+        sleep(3)
         logging.info("Creating visualization...")
         create_visualization()
         logging.info("Visualization created.")
