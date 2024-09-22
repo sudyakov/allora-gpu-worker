@@ -92,16 +92,11 @@ def load_training_data():
     
     return binance_data, predictions_data, differences_data
 
-def train_model(model, dataloader, device, differences_data, val_dataloader=None):
+def train_model(model, dataloader, device, differences_data):
     """Обучает модель на предоставленных данных."""
-    model.train()  # Убедимся, что модель в режиме обучения
+    model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS['initial_lr'])
     criterion = nn.MSELoss()
-
-    best_val_loss = float('inf')
-    epochs_no_improve = 0
-    n_epochs_stop = 5  # Количество эпох без улучшений для раннего прекращения
-    min_lr = 1e-6  # Минимальная скорость обучения
 
     for epoch in range(TRAINING_PARAMS['initial_epochs']):
         total_loss = 0
@@ -126,42 +121,8 @@ def train_model(model, dataloader, device, differences_data, val_dataloader=None
         
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch {epoch+1}/{TRAINING_PARAMS['initial_epochs']}, Loss: {avg_loss:.4f}")
-
-        # Проверка на валидационном наборе данных
-        if val_dataloader:
-            model.eval()  # Переключаемся в режим оценки для валидации
-            val_loss = validate_model(model, val_dataloader, device, criterion)
-            model.train()  # Возвращаемся в режим обучения после валидации
-            print(f"Validation Loss: {val_loss:.4f}")
-
-            # Адаптация модели
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
-                epochs_no_improve = 0
-            else:
-                epochs_no_improve += 1
-                if epochs_no_improve >= n_epochs_stop:
-                    print("Early stopping")
-                    break
-                # Уменьшение скорости обучения
-                for param_group in optimizer.param_groups:
-                    param_group['lr'] = max(param_group['lr'] * 0.5, min_lr)
-                    print(f"Learning rate reduced to {param_group['lr']}")
-
+    
     return model
-
-def validate_model(model, dataloader, device, criterion):
-    """Валидация модели на валидационном наборе данных."""
-    model.eval()
-    total_loss = 0
-    with torch.no_grad():
-        for inputs, targets in dataloader:
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
-            total_loss += loss.item()
-    avg_loss = total_loss / len(dataloader)
-    return avg_loss
 
 def predict_future_price(model, last_sequence, scaler, steps=1):
     model.eval()
@@ -415,48 +376,6 @@ def fill_missing_predictions(model, scaler, device, target_symbol, prediction_mi
 
     logging.info(f"Filled {len(missing_timestamps)} missing predictions.")
 
-def fill_missing_differences(model, scaler, device, target_symbol, prediction_minutes):
-    # Получаем последнее сохраненное предсказание
-    last_prediction = get_latest_prediction(PATHS['predictions'], target_symbol)
-    last_prediction_time = last_prediction['timestamp'] if not last_prediction.empty else 0
-
-    # Получаем самый новый таймстамп из архива Binance
-    latest_binance_time = get_latest_timestamp(PATHS['combined_dataset'], target_symbol, prediction_minutes)
-
-    if latest_binance_time is None:
-        logging.error(f"No latest timestamp found for {target_symbol} with interval {prediction_minutes} minutes.")
-        return
-
-    # Вычисляем интервал в миллисекундах
-    interval_ms = next(v['milliseconds'] for k, v in INTERVALS_PERIODS.items() if v['minutes'] == prediction_minutes)
-
-    # Генерируем пропущенные таймстампы
-    missing_timestamps = range(last_prediction_time + interval_ms, latest_binance_time + interval_ms, interval_ms)
-
-    for timestamp in missing_timestamps:
-        # Получаем последовательность данных для предсказания
-        sequence = get_sequence_for_timestamp(timestamp - interval_ms, target_symbol, prediction_minutes)
-        
-        if sequence is not None:
-            # Преобразуем последовательность в тензор
-            sequence_tensor = torch.FloatTensor(sequence.copy()).unsqueeze(0).to(device)
-            
-            # Делаем предсказание
-            with torch.no_grad():
-                prediction = model(sequence_tensor)
-            
-            # Инвертируем масштабирование
-            prediction = scaler.inverse_transform(prediction.cpu().numpy())
-            
-            # Получаем фактические данные для текущего времени
-            actuals = get_latest_value(PATHS['combined_dataset'], target_symbol)[FEATURE_NAMES].values
-            
-            # Сохраняем разницу
-            save_difference_to_csv(prediction, actuals, PATHS['differences'], timestamp)
-            logging.info(f"Saved difference for timestamp {timestamp}")
-
-    logging.info(f"Filled {len(missing_timestamps)} missing differences.")
-
 def get_sequence_for_timestamp(timestamp, target_symbol, prediction_minutes):
     df = pd.read_csv(PATHS['combined_dataset'])
     interval = get_interval(prediction_minutes)
@@ -494,57 +413,50 @@ def main():
     dataset, scaler, df = prepare_dataset(PATHS['combined_dataset'])
     dataloader = DataLoader(dataset, batch_size=TRAINING_PARAMS['batch_size'], shuffle=True)
 
-    # Разделение данных на обучающую и валидационную выборки
-    train_size = int(0.8 * len(dataset))
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-    train_dataloader = DataLoader(train_dataset, batch_size=TRAINING_PARAMS['batch_size'], shuffle=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=TRAINING_PARAMS['batch_size'], shuffle=False)
-
     logging.info("Loading differences data...")
     _, _, differences_data = load_training_data()
 
     logging.info("Training model...")
-    model = train_model(model, train_dataloader, device, differences_data, val_dataloader)
+    model = train_model(model, dataloader, device, differences_data)
     save_model(model, MODEL_FILENAME)
     logging.info("Model training completed and saved.")
 
-    # Проверка на наличие данных с временными метками в predictions.csv
-    predictions_df = pd.read_csv(PATHS['predictions'])
-    if predictions_df.empty or 'timestamp' not in predictions_df.columns or predictions_df['timestamp'].isnull().all():
-        logging.info("Predictions file is empty or contains no timestamps. Creating initial predictions...")
-        current_time = get_latest_timestamp(PATHS['combined_dataset'], TARGET_SYMBOL, PREDICTION_MINUTES)
-        if current_time is None:
-            logging.error("No data found for the specified symbol and interval.")
-            return
+    current_time = get_latest_timestamp(PATHS['combined_dataset'], TARGET_SYMBOL, PREDICTION_MINUTES)
+    if current_time is None:
+        logging.error("No data found for the specified symbol and interval.")
+        return
 
-        last_sequence = dataset[-1][0]
-        predictions = predict_future_price(model, last_sequence, scaler)
-        logging.info(f"Predictions: {predictions}")
+    last_sequence = dataset[-1][0]
+    predictions = predict_future_price(model, last_sequence, scaler)
+    logging.info(f"Predictions: {predictions}")
 
-        readable_server_time = get_current_time()
-        logging.info(f"Current Binance server time: {readable_server_time}")
+    readable_server_time = get_current_time()
+    logging.info(f"Current Binance server time: {readable_server_time}")
 
-        saved_prediction = save_predictions_to_csv(predictions, PATHS['predictions'], current_time)
-        logging.info(f"Saved predictions to CSV: {saved_prediction}")
-    else:
-        logging.info("Predictions file is not empty and contains timestamps. Filling missing predictions...")
-        fill_missing_predictions(model, scaler, device, TARGET_SYMBOL, PREDICTION_MINUTES)
-        logging.info("Filled missing predictions.")
+    saved_prediction = save_predictions_to_csv(predictions, PATHS['predictions'], current_time)
+    logging.info(f"Saved predictions to CSV: {saved_prediction}")
+
+    # Дополнительная логика для заполнения пропущенных предсказаний
+    logging.info("Starting to fill missing predictions...")
+    fill_missing_predictions(model, scaler, device, TARGET_SYMBOL, PREDICTION_MINUTES)
+    logging.info("Filled missing predictions.")
 
     # Загрузка самых свежих данных после сохранения предсказаний
-    current_time = get_latest_timestamp(PATHS['combined_dataset'], TARGET_SYMBOL, PREDICTION_MINUTES)
     current_value_row = get_latest_value(PATHS['combined_dataset'], TARGET_SYMBOL)
     latest_prediction_row = get_latest_prediction(PATHS['predictions'], TARGET_SYMBOL)
+    difference_row = get_difference_row(current_time, TARGET_SYMBOL)
 
-    # Проверка наличия фактических данных для текущего временного интервала
-    if not current_value_row.empty and current_value_row['timestamp'].iloc[0] == latest_prediction_row['timestamp']:
+    if not current_value_row.empty and not latest_prediction_row.empty:
         actuals = current_value_row[FEATURE_NAMES].values
         predictions = latest_prediction_row[FEATURE_NAMES].values
         save_difference_to_csv(predictions, actuals, PATHS['differences'], current_time)
         logging.info("Difference between current value and previous prediction saved.")
 
-    difference_row = get_difference_row(current_time, TARGET_SYMBOL)
+        # Обновляем difference_row после сохранения новых различий
+        difference_row = get_difference_row(current_time, TARGET_SYMBOL)
+    else:
+        logging.warning("Unable to compare current value with previous prediction due to missing data.")
+
     print_combined_row(current_value_row, difference_row, latest_prediction_row)
     logging.info("Completed printing combined row.")
 
