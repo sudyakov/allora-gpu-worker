@@ -41,8 +41,16 @@ def create_candlestick_trace(df, name, color):
 
 def load_and_prepare_data():
     combined_data = pd.read_csv(PATHS['combined_dataset'])
-    predictions_data = pd.read_csv(PATHS['predictions']) if os.path.exists(PATHS['predictions']) else pd.DataFrame()
-    differences_data = pd.read_csv(PATHS['differences']) if os.path.exists(PATHS['differences']) else pd.DataFrame()
+    
+    try:
+        predictions_data = pd.read_csv(PATHS['predictions']) if os.path.exists(PATHS['predictions']) else pd.DataFrame()
+    except pd.errors.EmptyDataError:
+        predictions_data = pd.DataFrame()
+    
+    try:
+        differences_data = pd.read_csv(PATHS['differences']) if os.path.exists(PATHS['differences']) else pd.DataFrame()
+    except pd.errors.EmptyDataError:
+        differences_data = pd.DataFrame()
     
     for df in [combined_data, predictions_data, differences_data]:
         if not df.empty:
@@ -61,7 +69,6 @@ def load_and_prepare_data():
     differences_data = filter_data(differences_data, start_time)
     
     return combined_data, predictions_data, differences_data, start_time, end_time
-
 def filter_data(df, start_time):
     return df[(df['symbol'] == TARGET_SYMBOL) & 
             (df['interval'] == f"{PREDICTION_MINUTES}m") & 
