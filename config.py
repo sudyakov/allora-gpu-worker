@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
-from typing import Dict, List, Union
+from typing import Dict, Union, Optional
 import requests
 import time
-from typing import Optional
 import numpy as np
 
 API_BASE_URL = "https://api.binance.com/api/v3"
@@ -14,35 +13,37 @@ REQUEST_DELAY = 1
 
 TARGET_SYMBOL = 'ETHUSDT'
 SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ARBUSDT"]
-SEQ_LENGTH = 300
+SEQ_LENGTH = 30
 
 PREDICTION_MINUTES = 5
 CURRENT_MINUTES = 1
 
 INTERVALS_PERIODS = {
-    "1m": {"interval": "1m", "days": 30, "minutes": 1, "milliseconds": 1 * 60 * 1000},
-    "5m": {"interval": "5m", "days": 60, "minutes": 5, "milliseconds": 5 * 60 * 1000},
-    "15m": {"interval": "15m", "days": 90, "minutes": 15, "milliseconds": 15 * 60 * 1000},
-    # "30m": {"interval": "30m", "days": 72, "minutes": 30, "milliseconds": 30 * 60 * 1000}
+    "1m": {"days": 7, "minutes": 1, "milliseconds": 1 * 60 * 1000},
+    "5m": {"days": 14, "minutes": 5, "milliseconds": 5 * 60 * 1000},
+    "15m": {"days": 28, "minutes": 15, "milliseconds": 15 * 60 * 1000},
 }
 
-FEATURE_NAMES = [
-    'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume',
-    'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
-]
+FEATURE_NAMES: Dict[str, Union[type, np.dtype]] = {
+    'symbol': np.str_,
+    'interval': np.int64,
+    'timestamp': np.int64,
+    'open': np.float64,
+    'high': np.float64,
+    'low': np.float64,
+    'close': np.float64,
+    'volume': np.float64,
+    'quote_asset_volume': np.float64,
+    'number_of_trades': np.int64,
+    'taker_buy_base_asset_volume': np.float64,
+    'taker_buy_quote_asset_volume': np.float64
+}
 
 BINANCE_API_COLUMNS = [
     'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
     'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume',
     'taker_buy_quote_asset_volume', 'ignore'
 ]
-
-DATA_TYPES = {
-    'timestamp': int, 'open': np.float64, 'high': np.float64, 'low': np.float64, 'close': np.float64,
-    'volume': np.float64, 'quote_asset_volume': np.float64,
-    'number_of_trades': int, 'taker_buy_base_asset_volume': np.float64,
-    'taker_buy_quote_asset_volume': np.float64, 'symbol': str, 'interval': str
-}
 
 MODEL_VERSION = "2.0"
 MODEL_PARAMS = {
@@ -72,7 +73,6 @@ PATHS = {
 }
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-DATASET_COLUMNS = ['timestamp', 'symbol', 'interval'] + FEATURE_NAMES
 
 def get_binance_time_offset() -> Optional[int]:
     try:
@@ -80,7 +80,7 @@ def get_binance_time_offset() -> Optional[int]:
         server_time = response.json()['serverTime']
         local_time = int(time.time() * 1000)
         return server_time - local_time
-    except:
+    except requests.RequestException:
         return None
 
 TIME_OFFSET = get_binance_time_offset()

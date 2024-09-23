@@ -1,11 +1,13 @@
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from typing import Dict, Optional, Union
+
 import pandas as pd
-pd.set_option('mode.chained_assignment', None)
 import requests
 from requests.exceptions import RequestException
+
 from config import *
 from utils import *
 
@@ -15,13 +17,11 @@ class DownloadData:
     def __init__(self):
         self.API_BASE_URL = API_BASE_URL
         self.BINANCE_LIMIT_STRING = BINANCE_LIMIT_STRING
-        self.DATASET_COLUMNS = DATASET_COLUMNS
         self.BINANCE_API_COLUMNS = BINANCE_API_COLUMNS
         self.INTERVALS_PERIODS = INTERVALS_PERIODS
         self.SYMBOLS = SYMBOLS
         self.PATHS = PATHS
         self.FEATURE_NAMES = FEATURE_NAMES
-        self.DATA_TYPES = DATA_TYPES
         self.logger = logging.getLogger("DownloadData")
         self.configure_logging()
 
@@ -44,14 +44,13 @@ class DownloadData:
         raise KeyError(f"Invalid PREDICTION_MINUTES value: {prediction_minutes}")
 
     def get_binance_data(self, symbol: str, prediction_minutes: int, start_time: int, end_time: int) -> pd.DataFrame:
-        _, interval_config = self.get_interval_info(prediction_minutes)
-        interval = interval_config['interval']
+        interval_key, interval_config = self.get_interval_info(prediction_minutes)
+        interval = interval_key
         all_data = []
         current_start = start_time
 
         while current_start < end_time:
-            current_end = min(current_start + 12 * 60 * 60 * 1000, end_time)
-            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval}&limit={self.BINANCE_LIMIT_STRING}&startTime={current_start}&endTime={current_end}"
+            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval}&limit={self.BINANCE_LIMIT_STRING}&startTime={current_start}&endTime={end_time}"
 
             try:
                 response = requests.get(url)
@@ -63,7 +62,6 @@ class DownloadData:
 
                 df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
                 all_data.append(df)
-
                 current_start = int(df['timestamp'].iloc[-1]) + 1
 
             except RequestException as e:
@@ -76,16 +74,17 @@ class DownloadData:
         combined_df = pd.concat(all_data, ignore_index=True)
         combined_df = preprocess_binance_data(combined_df)
         combined_df['symbol'] = symbol
-        combined_df['interval'] = interval
+        combined_df['interval'] = interval_config['minutes']  # Используем значение minutes
 
-        return combined_df[self.DATASET_COLUMNS]
+        return combined_df[list(self.FEATURE_NAMES.keys())]
 
     def get_all_binance_data(
         self, symbol: str, prediction_minutes: int, start_time: Optional[int] = None, end_time: Optional[int] = None, limit: int = BINANCE_LIMIT_STRING
     ) -> pd.DataFrame:
         try:
-            _, interval_config = self.get_interval_info(prediction_minutes)
-            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_config['interval']}&limit={limit}"
+            interval_key, interval_config = self.get_interval_info(prediction_minutes)
+            interval = interval_key
+            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval}&limit={limit}"
             if start_time:
                 url += f"&startTime={start_time}"
             if end_time:
@@ -98,8 +97,8 @@ class DownloadData:
             if 'open_time' in df.columns:
                 df['timestamp'] = df['open_time']
             df['symbol'] = symbol
-            df['interval'] = interval_config['interval']
-            return df[self.DATASET_COLUMNS]
+            df['interval'] = interval_config['minutes']  # Используем значение minutes
+            return df[list(self.FEATURE_NAMES.keys())]
 
         except RequestException as e:
             self.logger.warning(f"Error loading data for pair {symbol} and interval: {e}")
@@ -108,16 +107,16 @@ class DownloadData:
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time = get_current_time()[0]
         df = sort_dataframe(df[df['timestamp'] <= current_time])
-        return df.sort_values(by='timestamp', ascending=False)[self.DATASET_COLUMNS]
+        return df.sort_values(by='timestamp', ascending=False)[list(self.FEATURE_NAMES.keys())]
 
     def save_to_csv(self, df: pd.DataFrame, filename: str):
         parent_dir = os.path.dirname(filename)
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
-        
+
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
-            prepared_df.to_csv(filename, index=False, float_format='%.10f')
+            prepared_df.to_csv(filename, index=False)
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if data:
@@ -125,19 +124,19 @@ class DownloadData:
                 existing_data = pd.read_csv(filename)
                 for key, df in data.items():
                     symbol, interval = key.split('_')
-                    mask = (existing_data['symbol'] == symbol) & (existing_data['interval'] == interval)
+                    mask = (existing_data['symbol'] == symbol) & (existing_data['interval'] == int(interval))
                     existing_data = existing_data[~mask]
                 combined_data = pd.concat([existing_data, *data.values()], ignore_index=True)
             else:
                 combined_data = pd.concat(data.values(), ignore_index=True)
             prepared_df = self.prepare_dataframe_for_save(combined_data)
-            prepared_df.to_csv(filename, index=False, float_format='%.10f')
+            prepared_df.to_csv(filename, index=False)
             self.logger.info(f"Combined dataset updated: {filename}")
         else:
             self.logger.warning("No data to save to combined dataset.")
 
-    def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: str):
-        summary = f"Data summary for {symbol} ({interval}):\n"
+    def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
+        summary = f"Data summary for {symbol} ({interval} minutes):\n"
         summary += f"{'Timestamp':<20} {' '.join([f'{feature.capitalize():<10}' for feature in self.FEATURE_NAMES])}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
         for i, row in enumerate(rows_to_display):
@@ -147,13 +146,13 @@ class DownloadData:
         self.logger.info(summary)
 
     def update_data(self, symbol: str, prediction_minutes: int):
-        _, interval_config = self.get_interval_info(prediction_minutes)
-        interval = interval_config["interval"]
-        filename = f"{self.PATHS['data_dir']}/{symbol}_{interval}_data.csv"
+        interval_key, interval_config = self.get_interval_info(prediction_minutes)
+        interval = interval_key
+        filename = f"{self.PATHS['data_dir']}/{symbol}_{interval_config['minutes']}_data.csv"
         server_time, _ = get_current_time()
-        df_existing = pd.DataFrame(columns=self.DATASET_COLUMNS)
+        df_existing = pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            df_existing = pd.read_csv(filename, dtype=self.DATA_TYPES)
+            df_existing = pd.read_csv(filename, dtype=self.FEATURE_NAMES)
         last_timestamp = df_existing['timestamp'].max() if not df_existing.empty else server_time - (interval_config['days'] * 24 * 60 * 60 * 1000)
         last_timestamp = int(last_timestamp)
         time_difference = server_time - last_timestamp
@@ -166,14 +165,14 @@ class DownloadData:
                 self.logger.info(
                     f"Updating data for {symbol} from {start_time} to {newest_timestamp} ({timestamp_to_readable_time(start_time)} to {timestamp_to_readable_time(newest_timestamp)})"
                 )
-                df_existing = df_existing.reindex(columns=self.DATASET_COLUMNS)
-                df_new = df_new.reindex(columns=self.DATASET_COLUMNS)
+                df_existing = df_existing.reindex(columns=list(self.FEATURE_NAMES.keys()))
+                df_new = df_new.reindex(columns=list(self.FEATURE_NAMES.keys()))
                 df_new = df_new.astype(df_existing.dtypes.to_dict())
                 df_updated = pd.concat([df_new, df_existing], ignore_index=True)
                 df_updated = df_updated.drop_duplicates(subset=['timestamp'], keep='first')
                 df_updated = sort_dataframe(df_updated)
                 self.save_to_csv(df_updated, filename)
-                self.save_combined_dataset({f"{symbol}_{interval}": df_updated}, self.PATHS['combined_dataset'])
+                self.save_combined_dataset({f"{symbol}_{interval_config['minutes']}": df_updated}, self.PATHS['combined_dataset'])
                 df_existing = df_updated
                 update_start_time = df_new['timestamp'].min()
                 update_end_time = df_new['timestamp'].max()
@@ -186,8 +185,8 @@ class DownloadData:
             return df_existing, None, None
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
-        _, interval_config = self.get_interval_info(interval)
-        interval_str = interval_config["interval"]
+        interval_key, interval_config = self.get_interval_info(interval)
+        interval_str = interval_key
         url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit=1"
 
         try:
@@ -201,9 +200,9 @@ class DownloadData:
             df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
             df = preprocess_binance_data(df)
             df['symbol'] = symbol
-            df['interval'] = interval_str
+            df['interval'] = interval_config['minutes']  # Используем значение minutes
 
-            return df[self.DATASET_COLUMNS].head(1)
+            return df[list(self.FEATURE_NAMES.keys())].head(1)
 
         except RequestException as e:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
@@ -233,10 +232,10 @@ def main():
             interval_info = download_data.INTERVALS_PERIODS[interval]
             updated_data, start_time, end_time = download_data.update_data(symbol, interval_info['minutes'])
             if updated_data is not None and not updated_data.empty:
-                binance_data[f"{symbol}_{interval_info['interval']}"] = updated_data
-                download_data.print_data_summary(updated_data, symbol, interval_info['interval'])
+                binance_data[f"{symbol}_{interval_info['minutes']}"] = updated_data
+                download_data.print_data_summary(updated_data, symbol, interval_info['minutes'])
             else:
-                download_data.logger.error(f"Failed to update data for pair {symbol} and interval {interval_info['interval']}")
+                download_data.logger.error(f"Failed to update data for pair {symbol} and interval {interval_info['minutes']}")
             current_price_df = download_data.get_current_price(symbol, interval_info['minutes'])
             download_data.logger.info(current_price_df)
             download_data.logger.info("------------------------")
