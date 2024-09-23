@@ -4,6 +4,7 @@ import requests
 import time
 import numpy as np
 
+
 API_BASE_URL = "https://api.binance.com/api/v3"
 MAX_RETRIES = 3
 RETRY_DELAY = 5
