@@ -94,12 +94,13 @@ class DownloadData:
 
     def save_to_csv(self, df: pd.DataFrame, filename: str):
         parent_dir = os.path.dirname(filename)
-        if not os.path.exists(parent_dir):
+        if parent_dir and not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
 
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False)
+        self.logger.info(f"Data saved to {filename}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if data:
@@ -193,11 +194,8 @@ class DownloadData:
 
 def main():
     download_data = DownloadData()
-    download_data.configure_logging()
     download_data.logger.info("Script started")
-    download_data.create_directory(download_data.PATHS['data_dir'])
     download_data.logger.info(f"Current working directory: {os.getcwd()}")
-    download_data.logger.info(f"Path to data directory: {os.path.abspath(download_data.PATHS['data_dir'])}")
 
     try:
         response = requests.get(f"{download_data.API_BASE_URL}/time")
