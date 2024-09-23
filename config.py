@@ -63,14 +63,19 @@ TRAINING_PARAMS = {
     'num_workers': 8
 }
 
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 PATHS = {
-    'combined_dataset': 'data/combined_dataset.csv',
-    'predictions': 'data/predictions.csv',
-    'differences': 'data/differences.csv',
-    'models_dir': 'models',
-    'visualization_dir': 'visualizations',
-    'data_dir': 'data',
+    'combined_dataset': os.path.join(BASE_DIR, 'data', 'combined_dataset.csv'),
+    'predictions': os.path.join(BASE_DIR, 'data', 'predictions.csv'),
+    'differences': os.path.join(BASE_DIR, 'data', 'differences.csv'),
+    'models_dir': os.path.join(BASE_DIR, 'models'),
+    'visualization_dir': os.path.join(BASE_DIR, 'visualizations'),
+    'data_dir': os.path.join(BASE_DIR, 'data'),
 }
+
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
