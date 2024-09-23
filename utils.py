@@ -8,17 +8,25 @@ from config import *
 from sklearn.preprocessing import MinMaxScaler
 from rich.table import Table
 from rich.console import Console
+import logging
 
 console = Console()
 
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     for col in FEATURE_NAMES:
         if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').astype(np.float64)
+            if col == 'symbol':
+                df[col] = df[col].astype(str)
+            else:
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype(FEATURE_NAMES[col])
     for col in ['timestamp', 'close_time']:
         if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
-    return df.replace([np.inf, -np.inf], np.nan).dropna()
+            df[col] = pd.to_numeric(df[col], errors='coerce').astype(np.int64)
+    df = df.replace([np.inf, -np.inf], np.nan).dropna()
+    logging.info(f"Data after preprocessing in preprocess_binance_data: {df.head()}")  # Добавлено для отладки
+    logging.info(f"Columns after preprocessing in preprocess_binance_data: {df.columns}")  # Добавлено для отладки
+    return df
+
 
 def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values('timestamp', ascending=False)
