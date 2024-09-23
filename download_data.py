@@ -43,14 +43,20 @@ class DownloadData:
                 return key, value
         raise KeyError(f"Invalid PREDICTION_MINUTES value: {prediction_minutes}")
 
-    def get_binance_data(self, symbol: str, prediction_minutes: int, start_time: int, end_time: int) -> pd.DataFrame:
+    def get_binance_data(
+        self, symbol: str, prediction_minutes: int, start_time: Optional[int] = None, end_time: Optional[int] = None, limit: int = BINANCE_LIMIT_STRING
+    ) -> pd.DataFrame:
         interval_key, interval_config = self.get_interval_info(prediction_minutes)
         interval = interval_key
         all_data = []
         current_start = start_time
 
-        while current_start < end_time:
-            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval}&limit={self.BINANCE_LIMIT_STRING}&startTime={current_start}&endTime={end_time}"
+        while current_start is None or current_start < end_time:
+            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval}&limit={limit}"
+            if current_start:
+                url += f"&startTime={current_start}"
+            if end_time:
+                url += f"&endTime={end_time}"
 
             try:
                 response = requests.get(url)
@@ -68,6 +74,9 @@ class DownloadData:
                 self.logger.warning(f"Error loading data for pair {symbol} and interval: {e}")
                 break
 
+            if start_time is None:
+                break
+
         if not all_data:
             return pd.DataFrame()
 
@@ -77,32 +86,6 @@ class DownloadData:
         combined_df['interval'] = interval_config['minutes']  # Используем значение minutes
 
         return combined_df[list(self.FEATURE_NAMES.keys())]
-
-    def get_all_binance_data(
-        self, symbol: str, prediction_minutes: int, start_time: Optional[int] = None, end_time: Optional[int] = None, limit: int = BINANCE_LIMIT_STRING
-    ) -> pd.DataFrame:
-        try:
-            interval_key, interval_config = self.get_interval_info(prediction_minutes)
-            interval = interval_key
-            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval}&limit={limit}"
-            if start_time:
-                url += f"&startTime={start_time}"
-            if end_time:
-                url += f"&endTime={end_time}"
-            response = requests.get(url)
-            response.raise_for_status()
-            data = response.json()
-            df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
-            df = preprocess_binance_data(df)
-            if 'open_time' in df.columns:
-                df['timestamp'] = df['open_time']
-            df['symbol'] = symbol
-            df['interval'] = interval_config['minutes']  # Используем значение minutes
-            return df[list(self.FEATURE_NAMES.keys())]
-
-        except RequestException as e:
-            self.logger.warning(f"Error loading data for pair {symbol} and interval: {e}")
-            return pd.DataFrame()
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time = get_current_time()[0]
