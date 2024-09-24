@@ -26,9 +26,9 @@ class DownloadData:
         self.configure_logging()
 
     def configure_logging(self):
-        logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
         file_handler = logging.FileHandler(LOG_FILE)
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.INFO)
         formatter = logging.Formatter('%(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
@@ -56,14 +56,10 @@ class DownloadData:
             if end_time:
                 url += f"&endTime={end_time}"
 
-            self.logger.debug(f"Request URL: {url}")
-
             try:
                 response = requests.get(url)
                 response.raise_for_status()
                 data = response.json()
-
-                self.logger.debug(f"Response data: {data}")
 
                 if not data:
                     break
@@ -83,7 +79,6 @@ class DownloadData:
 
             except RequestException as e:
                 self.logger.warning(f"Error loading data for pair {symbol} and interval: {e}")
-                self.logger.debug(f"Exception details: {e}", exc_info=True)
                 break
 
             if start_time is None:
@@ -93,19 +88,17 @@ class DownloadData:
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
 
         combined_df = pd.concat(all_data, ignore_index=True)
-        self.logger.debug(f"Combined DataFrame: {combined_df}")
+        combined_df = combined_df.astype(FEATURE_NAMES)  # Приведение типов данных
         return combined_df[list(self.FEATURE_NAMES.keys())]
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval)
         interval_str = next(key for key, value in self.INTERVALS_PERIODS.items() if value['minutes'] == interval)
         url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit=1"
-        self.logger.debug(f"Request URL: {url}")
         try:
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
-            self.logger.debug(f"Response data: {data}")
             if not data:
                 return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
             df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
@@ -118,15 +111,10 @@ class DownloadData:
                 'taker_buy_quote_asset_volume': 'taker_buy_quote_asset_volume'
             })
             df = df.astype({col: FEATURE_NAMES[col] for col in df.columns if col in FEATURE_NAMES})
-            self.logger.info(df)
+            df = df.astype(FEATURE_NAMES)  # Приведение типов данных
             return df[list(self.FEATURE_NAMES.keys())]
         except RequestException as e:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
-            self.logger.debug(f"Exception details: {e}", exc_info=True)
-            return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
-        except ValueError as e:
-            self.logger.error(f"ValueError occurred: {e}")
-            self.logger.debug(f"Exception details: {e}", exc_info=True)
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -143,7 +131,6 @@ class DownloadData:
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False)
         self.logger.info(f"Data saved to {filename}")
-        self.logger.debug(f"Saved DataFrame: {prepared_df}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if data:
@@ -159,7 +146,6 @@ class DownloadData:
             prepared_df = self.prepare_dataframe_for_save(combined_data)
             prepared_df.to_csv(filename, index=False)
             self.logger.info(f"Combined dataset updated: {filename}")
-            self.logger.debug(f"Combined DataFrame: {prepared_df}")
         else:
             self.logger.warning("No data to save to combined dataset.")
 
@@ -214,7 +200,6 @@ class DownloadData:
 def main():
     download_data = DownloadData()
     download_data.logger.info("Script started")
-    download_data.logger.info(f"Current working directory: {os.getcwd()}")
 
     try:
         response = requests.get(f"{download_data.API_BASE_URL}/time")
