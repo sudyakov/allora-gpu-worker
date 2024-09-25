@@ -34,10 +34,6 @@ def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime(DATETIME_FORMAT)
 
-def readable_time_to_timestamp(readable_time: str) -> int:
-    dt = datetime.strptime(readable_time, DATETIME_FORMAT)
-    return int(dt.replace(tzinfo=timezone.utc).timestamp() * 1000)
-
 def get_current_time() -> Tuple[int, str]:
     response = requests.get("https://api.binance.com/api/v3/time")
     server_time = response.json()['serverTime']
@@ -101,46 +97,6 @@ def get_difference_row(current_time: int, symbol: str) -> pd.Series:
         return difference_row.iloc[0]
     else:
         return pd.Series([None] * len(FEATURE_NAMES), index=FEATURE_NAMES.keys())
-
-def save_difference_to_csv(predictions_file: str, actuals_file: str, differences_file: str) -> None:
-    if not isinstance(predictions_file, str) or not isinstance(actuals_file, str) or not isinstance(differences_file, str):
-        raise TypeError("Все аргументы должны быть строками с путями к файлам.")
-    
-    if not os.path.exists(predictions_file):
-        logging.warning(f"Файл с предсказаниями {predictions_file} не найден.")
-        return
-    if not os.path.exists(actuals_file):
-        logging.warning(f"Файл с архивными данными {actuals_file} не найден.")
-        return
-    predictions = pd.read_csv(predictions_file)
-    actuals = pd.read_csv(actuals_file)
-    predictions = preprocess_binance_data(predictions)
-    actuals = preprocess_binance_data(actuals)
-    if predictions.empty:
-        logging.info("Нет новых предсказаний для сравнения.")
-        return
-    merged_df = pd.merge(predictions, actuals, on='timestamp', suffixes=('_pred', '_act'))
-    if merged_df.empty:
-        logging.info("Нет совпадений между предсказаниями и архивными данными по timestamp.")
-        return
-    exclude_columns = ['symbol', 'interval', 'timestamp']
-    numeric_columns = [col for col, dtype in FEATURE_NAMES.items() if dtype in [int, float] and col not in exclude_columns]
-    differences = pd.DataFrame()
-    differences['timestamp'] = merged_df['timestamp']
-    differences['symbol'] = merged_df['symbol_pred']
-    differences['interval'] = merged_df['interval_pred']
-    for col in numeric_columns:
-        differences[col] = merged_df[f"{col}_act"] - merged_df[f"{col}_pred"]
-    for col in FEATURE_NAMES.keys():
-        if FEATURE_NAMES[col] == str and col not in exclude_columns:
-            differences[col] = merged_df[f"{col}_act"]
-    if not os.path.exists(differences_file):
-        differences.to_csv(differences_file, index=False, float_format='%.10f')
-    else:
-        existing_differences = pd.read_csv(differences_file)
-        combined_differences = pd.concat([existing_differences, differences], ignore_index=True)
-        combined_differences.to_csv(differences_file, index=False, float_format='%.10f')
-    logging.info(f"Сохранены разницы в файл: {differences_file}")
 
 def ensure_file_exists(filepath):
     directory = os.path.dirname(filepath)

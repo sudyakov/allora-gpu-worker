@@ -56,7 +56,6 @@ class EnhancedBiLSTMModel(nn.Module):
         predictions = self.linear(context_vector)
         return predictions
 
-
 def get_device():
     return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
