@@ -3,22 +3,12 @@ import os
 import time
 from datetime import datetime, timezone
 from typing import Dict, Optional, Union
-
 import pandas as pd
 import requests
 from requests.exceptions import RequestException
-
 from config import *
-from utils import (
-    timestamp_to_readable_time,
-    get_current_time,
-    sort_dataframe,
-    preprocess_binance_data,
-    ensure_file_exists,
-)
-
+from utils import *
 LOG_FILE = 'download_data.log'
-
 class DownloadData:
     def __init__(self):
         self.API_BASE_URL = API_BASE_URL
@@ -30,7 +20,6 @@ class DownloadData:
         self.FEATURE_NAMES = FEATURE_NAMES
         self.logger = logging.getLogger("DownloadData")
         self.configure_logging()
-
     def configure_logging(self):
         logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
         file_handler = logging.FileHandler(LOG_FILE)
@@ -38,34 +27,28 @@ class DownloadData:
         formatter = logging.Formatter('%(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
-
     def get_interval_info(self, interval: int) -> Dict[str, Union[str, int]]:
         for key, value in self.INTERVALS_PERIODS.items():
             if value['minutes'] == interval:
                 return value
         raise KeyError(f"Invalid interval value: {interval}")
-
     def get_binance_data(self, symbol: str, interval: int, start_time: Optional[int] = None, end_time: Optional[int] = None, limit: int = BINANCE_LIMIT_STRING) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval)
         interval_str = next(key for key, value in self.INTERVALS_PERIODS.items() if value['minutes'] == interval)
         all_data = []
         current_start = start_time
-
         while current_start is None or current_start < end_time:
             url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit={limit}"
             if current_start:
                 url += f"&startTime={current_start}"
             if end_time:
                 url += f"&endTime={end_time}"
-
             try:
                 response = requests.get(url)
                 response.raise_for_status()
                 data = response.json()
-
                 if not data:
                     break
-
                 df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
                 df = df.drop(columns=['close_time', 'ignore'])
                 df['symbol'] = symbol
@@ -78,20 +61,15 @@ class DownloadData:
                 df = preprocess_binance_data(df)
                 all_data.append(df)
                 current_start = int(df['timestamp'].iloc[-1]) + 1
-
             except RequestException as e:
                 self.logger.warning(f"Error loading data for pair {symbol} and interval: {e}")
                 break
-
             if start_time is None:
                 break
-
         if not all_data:
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
-
         combined_df = pd.concat(all_data, ignore_index=True)
         return combined_df[list(self.FEATURE_NAMES.keys())]
-
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval)
         interval_str = next(key for key, value in self.INTERVALS_PERIODS.items() if value['minutes'] == interval)
@@ -115,19 +93,16 @@ class DownloadData:
         except RequestException as e:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
-
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
         df = preprocess_binance_data(df[df['timestamp'] <= current_time])
         return sort_dataframe(df)
-
     def save_to_csv(self, df: pd.DataFrame, filename: str):
         ensure_file_exists(filename)
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False)
         self.logger.info(f"Data saved to {filename}")
-
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if data:
             ensure_file_exists(filename)
@@ -145,7 +120,6 @@ class DownloadData:
             self.logger.info(f"Combined dataset updated: {filename}")
         else:
             self.logger.warning("No data to save to combined dataset.")
-
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
         summary += f"{'Timestamp':<20} {' '.join([f'{feature.capitalize():<10}' for feature in self.FEATURE_NAMES])}\n"
@@ -155,7 +129,6 @@ class DownloadData:
             timestamp = row['timestamp']
             summary += f"{label:<20} {timestamp:<20} {' '.join([f'{row[feature]:<10.2f}' if isinstance(row[feature], float) else str(row[feature]) for feature in self.FEATURE_NAMES])}\n"
         self.logger.info(summary)
-
     def update_data(self, symbol: str, interval: int):
         interval_info = self.get_interval_info(interval)
         filename = f"{self.PATHS['data_dir']}/{symbol}_{interval_info['minutes']}_data.csv"
@@ -190,11 +163,9 @@ class DownloadData:
         else:
             self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
-
 def main():
     download_data = DownloadData()
     download_data.logger.info("Script started")
-
     try:
         response = requests.get(f"{download_data.API_BASE_URL}/time")
         response.raise_for_status()
@@ -204,9 +175,7 @@ def main():
     except Exception as e:
         download_data.logger.error(f"Unable to access Binance API: {e}")
         return
-
     binance_data = {}
-
     for symbol in download_data.SYMBOLS:
         for interval in [value['minutes'] for value in download_data.INTERVALS_PERIODS.values()]:
             try:
@@ -222,13 +191,11 @@ def main():
                 time.sleep(1)
             except Exception as e:
                 download_data.logger.error(f"Error updating data for {symbol} at interval {interval}: {e}")
-
     if binance_data:
         download_data.save_combined_dataset(binance_data, download_data.PATHS['combined_dataset'])
         download_data.logger.info("All files updated with the latest prices.")
     else:
         download_data.logger.warning("No data to update.")
-
 if __name__ == "__main__":
     try:
         main()

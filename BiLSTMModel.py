@@ -1,15 +1,18 @@
 import os
 import logging
 from time import sleep
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from rich.console import Console
+from tqdm import tqdm
+
 from config import *
 from download_data import DownloadData
 from utils import *
 from visualize import create_visualization
-from tqdm import tqdm
+from dataset_utils import *
 
 console = Console()
 MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
@@ -34,6 +37,7 @@ class EnhancedBiLSTMModel(nn.Module):
         self.attention = Attention(hidden_layer_size)
         output_size = len(FEATURE_NAMES)
         self.linear = nn.Linear(hidden_layer_size * 2, output_size)
+
     def forward(self, x):
         h_0 = torch.zeros(self.lstm.num_layers * 2, x.size(0), self.lstm.hidden_size).to(x.device)
         c_0 = torch.zeros(self.lstm.num_layers * 2, x.size(0), self.lstm.hidden_size).to(x.device)
@@ -42,14 +46,10 @@ class EnhancedBiLSTMModel(nn.Module):
         predictions = self.linear(context_vector)
         return predictions
 
-def get_device():
-    return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 def train_model(model, dataloader, device, differences_data, val_dataloader=None):
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS['initial_lr'])
     criterion = nn.MSELoss()
-
     best_val_loss = float('inf')
     epochs_no_improve = 0
     n_epochs_stop = 5
@@ -58,24 +58,24 @@ def train_model(model, dataloader, device, differences_data, val_dataloader=None
     for epoch in range(TRAINING_PARAMS['initial_epochs']):
         total_loss = 0
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{TRAINING_PARAMS['initial_epochs']}", unit="batch")
+
         for inputs, targets in progress_bar:
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
-            
             target_timestamps = targets[:, -1].cpu().numpy()
             differences = differences_data[differences_data['timestamp'].isin(target_timestamps)]
+
             if not differences.empty:
                 differences = torch.FloatTensor(differences[list(FEATURE_NAMES.keys())].values).to(device)
                 loss += criterion(outputs, differences)
-            
+
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-            
             progress_bar.set_postfix(loss=loss.item())
-        
+
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch {epoch+1}/{TRAINING_PARAMS['initial_epochs']}, Loss: {avg_loss:.4f}")
 
@@ -102,60 +102,17 @@ def train_model(model, dataloader, device, differences_data, val_dataloader=None
 def validate_model(model, dataloader, device, criterion):
     model.eval()
     total_loss = 0
+
     with torch.no_grad():
         for inputs, targets in dataloader:
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             total_loss += loss.item()
+
     avg_loss = total_loss / len(dataloader)
     return avg_loss
 
-def predict_future_price(model, last_sequence, scaler, df, steps=1):
-    model.eval()
-    with torch.no_grad():
-        if last_sequence.dim() == 2:
-            last_sequence = last_sequence.unsqueeze(0)
-        
-        input_sequence = last_sequence.to(next(model.parameters()).device)
-        predictions = model(input_sequence)
-        
-        numeric_columns = scaler.feature_names_in_
-        indices = [list(FEATURE_NAMES.keys()).index(col) for col in numeric_columns]
-        scaled_predictions = predictions.cpu()[:, indices]
-
-        # Преобразуем тензор в DataFrame pandas
-        scaled_predictions_df = pd.DataFrame(scaled_predictions.numpy(), columns=numeric_columns)
-
-        # Предполагаем, что 'symbol' и 'interval' - категориальные признаки
-        categorical_columns = [col for col, dtype in FEATURE_NAMES.items() if dtype == str]
-
-        # Инверсное масштабирование числовых признаков
-        inverse_scaled_numeric = scaler.inverse_transform(scaled_predictions_df[numeric_columns])
-        inverse_scaled_df = pd.DataFrame(inverse_scaled_numeric, columns=numeric_columns)
-        # После инверсного масштабирования числовых признаков
-        inverse_scaled_df = pd.DataFrame(inverse_scaled_numeric, columns=numeric_columns)
-        # Получаем кодировки для символа и интервала
-        symbol_code = df['symbol'].astype('category').cat.categories.get_loc(TARGET_SYMBOL)
-        interval_code = PREDICTION_MINUTES  # Если интервал уже числовой, можно использовать напрямую
-
-        # Добавляем категориальные признаки как числовые кодировки
-        inverse_scaled_df['symbol'] = symbol_code
-        inverse_scaled_df['interval'] = interval_code
-        
-    # Обновляем предсказания, используя значения из DataFrame
-    for col in FEATURE_NAMES.keys():
-        idx = list(FEATURE_NAMES.keys()).index(col)
-        predictions[:, idx] = torch.tensor(inverse_scaled_df[col].values, dtype=torch.float32)
-
-        predictions = predictions.abs()
-        
-        symbol_index = list(FEATURE_NAMES.keys()).index('symbol')
-        predictions[:, symbol_index] = predictions[:, symbol_index].int()
-        
-        predictions_df = pd.DataFrame(predictions.cpu().numpy(), columns=list(FEATURE_NAMES.keys()))
-    
-    return predictions_df
 
 def save_model(model, filepath):
     torch.save(model.state_dict(), filepath)
@@ -173,30 +130,29 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def main():
     device = get_device()
     model = EnhancedBiLSTMModel(**MODEL_PARAMS).to(device)
-
     ensure_file_exists(PATHS['predictions'])
     ensure_file_exists(PATHS['differences'])
     ensure_file_exists(MODEL_FILENAME)
-
     load_model(model, MODEL_FILENAME, device)
-
-    logging.info("Preparing dataset...")
+    logging.info("Подготовка набора данных...")
+    combined_data, predictions_data, differences_data = load_and_prepare_data()
     dataset, scaler, df = prepare_dataset(PATHS['combined_dataset'])
     dataloader = DataLoader(dataset, batch_size=TRAINING_PARAMS['batch_size'], shuffle=True)
-
-    logging.info("Loading differences data...")
-    _, _, differences_data = load_and_prepare_data()
-
-    logging.info("Training model...")
-    model = train_model(model, dataloader, device, differences_data)
+    logging.info("Обучение модели...")
+    model = train_model(model, dataloader, device, differences_data=differences_data)
     save_model(model, MODEL_FILENAME)
-    logging.info("Model training completed and saved.")
-    
-    
+    logging.info("Обучение модели завершено и модель сохранена.")
+    logging.info("Создание первого предсказания...")
+    last_sequence = dataset.tensors[0][-1]
+    prediction = predict_future_price(model, last_sequence, scaler, df)
+    current_time, _ = get_current_time()
+    prediction['timestamp'] = current_time
+    prediction['symbol'] = TARGET_SYMBOL
+    prediction['interval'] = PREDICTION_MINUTES
+    prediction.to_csv(PATHS['predictions'], index=False)
+    fill_missing_predictions_to_csv(PATHS['predictions'], model, last_sequence, scaler, df)
+    logging.info("Первое предсказание сохранено.")
 
-
-
-    logging.info("Prediction made and saved to file.")
 if __name__ == "__main__":
     while True:
         logging.info("Starting main loop iteration...")
