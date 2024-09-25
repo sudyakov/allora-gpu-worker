@@ -8,7 +8,6 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-
 def load_and_prepare_data():
     combined_data = pd.read_csv(PATHS['combined_dataset'])
     predictions_data = pd.DataFrame(columns=list(FEATURE_NAMES.keys()))

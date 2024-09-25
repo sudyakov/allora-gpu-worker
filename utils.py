@@ -26,7 +26,7 @@ def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     logging.debug(f"Preprocessed DataFrame: {df}")
     return df
 
-# def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     sorted_df = df.sort_values('timestamp', ascending=False)
     logging.debug(f"Sorted DataFrame: {sorted_df}")
     return sorted_df
