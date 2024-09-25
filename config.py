@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Dict, Union, Optional
 import requests
 import time
-import numpy as np
+import pandas as pd
 
 # Базовый URL для API Binance
 API_BASE_URL = "https://api.binance.com/api/v3"
@@ -38,20 +38,21 @@ INTERVALS_PERIODS = {
 }
 
 # Определение типов данных для признаков
-FEATURE_NAMES: Dict[str, Union[type, np.dtype]] = {
-    'symbol': np.str_,
-    'interval': np.int64,
-    'timestamp': np.int64,
-    'open': np.float64,
-    'high': np.float64,
-    'low': np.float64,
-    'close': np.float64,
-    'volume': np.float64,
-    'quote_asset_volume': np.float64,
-    'number_of_trades': np.int64,
-    'taker_buy_base_asset_volume': np.float64,
-    'taker_buy_quote_asset_volume': np.float64
+FEATURE_NAMES: Dict[str, Union[type, str]] = {
+    'symbol': str,
+    'interval': int,
+    'timestamp': int,
+    'open': float,
+    'high': float,
+    'low': float,
+    'close': float,
+    'volume': float,
+    'quote_asset_volume': float,
+    'number_of_trades': int,
+    'taker_buy_base_asset_volume': float,
+    'taker_buy_quote_asset_volume': float
 }
+
 
 # Столбцы, возвращаемые API Binance
 BINANCE_API_COLUMNS = [

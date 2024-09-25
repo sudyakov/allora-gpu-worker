@@ -32,8 +32,8 @@ class EnhancedBiLSTMModel(nn.Module):
         super(EnhancedBiLSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_layer_size, num_layers=num_layers, dropout=dropout, batch_first=True, bidirectional=True)
         self.attention = Attention(hidden_layer_size)
-        self.linear = nn.Linear(hidden_layer_size * 2, input_size)
-
+        output_size = len(FEATURE_NAMES)
+        self.linear = nn.Linear(hidden_layer_size * 2, output_size)
     def forward(self, x):
         h_0 = torch.zeros(self.lstm.num_layers * 2, x.size(0), self.lstm.hidden_size).to(x.device)
         c_0 = torch.zeros(self.lstm.num_layers * 2, x.size(0), self.lstm.hidden_size).to(x.device)
@@ -111,7 +111,7 @@ def validate_model(model, dataloader, device, criterion):
     avg_loss = total_loss / len(dataloader)
     return avg_loss
 
-def predict_future_price(model, last_sequence, scaler, steps=1):
+def predict_future_price(model, last_sequence, scaler, df, steps=1):
     model.eval()
     with torch.no_grad():
         if last_sequence.dim() == 2:
@@ -121,19 +121,41 @@ def predict_future_price(model, last_sequence, scaler, steps=1):
         predictions = model(input_sequence)
         
         numeric_columns = scaler.feature_names_in_
-        scaled_predictions = predictions.cpu().numpy()[:, [list(FEATURE_NAMES.keys()).index(col) for col in numeric_columns]]
-        inverse_scaled = scaler.inverse_transform(scaled_predictions)
+        indices = [list(FEATURE_NAMES.keys()).index(col) for col in numeric_columns]
+        scaled_predictions = predictions.cpu()[:, indices]
+
+        # Преобразуем тензор в DataFrame pandas
+        scaled_predictions_df = pd.DataFrame(scaled_predictions.numpy(), columns=numeric_columns)
+
+        # Предполагаем, что 'symbol' и 'interval' - категориальные признаки
+        categorical_columns = [col for col, dtype in FEATURE_NAMES.items() if dtype == str]
+
+        # Инверсное масштабирование числовых признаков
+        inverse_scaled_numeric = scaler.inverse_transform(scaled_predictions_df[numeric_columns])
+        inverse_scaled_df = pd.DataFrame(inverse_scaled_numeric, columns=numeric_columns)
+        # После инверсного масштабирования числовых признаков
+        inverse_scaled_df = pd.DataFrame(inverse_scaled_numeric, columns=numeric_columns)
+        # Получаем кодировки для символа и интервала
+        symbol_code = df['symbol'].astype('category').cat.categories.get_loc(TARGET_SYMBOL)
+        interval_code = PREDICTION_MINUTES  # Если интервал уже числовой, можно использовать напрямую
+
+        # Добавляем категориальные признаки как числовые кодировки
+        inverse_scaled_df['symbol'] = symbol_code
+        inverse_scaled_df['interval'] = interval_code
         
-        predicted_data = predictions.cpu().numpy()
-        for i, col in enumerate(numeric_columns):
-            predicted_data[:, list(FEATURE_NAMES.keys()).index(col)] = inverse_scaled[:, i]
-        
-        predicted_data = np.abs(predicted_data)
+    # Обновляем предсказания, используя значения из DataFrame
+    for col in FEATURE_NAMES.keys():
+        idx = list(FEATURE_NAMES.keys()).index(col)
+        predictions[:, idx] = torch.tensor(inverse_scaled_df[col].values, dtype=torch.float32)
+
+        predictions = predictions.abs()
         
         symbol_index = list(FEATURE_NAMES.keys()).index('symbol')
-        predicted_data[:, symbol_index] = np.round(predicted_data[:, symbol_index]).astype(int)
+        predictions[:, symbol_index] = predictions[:, symbol_index].int()
+        
+        predictions_df = pd.DataFrame(predictions.cpu().numpy(), columns=list(FEATURE_NAMES.keys()))
     
-    return predicted_data
+    return predictions_df
 
 def save_model(model, filepath):
     torch.save(model.state_dict(), filepath)
@@ -158,12 +180,6 @@ def main():
 
     load_model(model, MODEL_FILENAME, device)
 
-    logging.info("Downloading latest data...")
-    for symbol in SYMBOLS:
-        for interval_name, interval_info in INTERVALS_PERIODS.items():
-            logging.info(f"Updating data for {symbol} with interval {interval_name}...")
-            download_data.update_data(symbol, interval_info['minutes'])
-
     logging.info("Preparing dataset...")
     dataset, scaler, df = prepare_dataset(PATHS['combined_dataset'])
     dataloader = DataLoader(dataset, batch_size=TRAINING_PARAMS['batch_size'], shuffle=True)
@@ -175,39 +191,12 @@ def main():
     model = train_model(model, dataloader, device, differences_data)
     save_model(model, MODEL_FILENAME)
     logging.info("Model training completed and saved.")
+    
+    
 
-    current_time = get_latest_timestamp(PATHS['combined_dataset'], TARGET_SYMBOL, PREDICTION_MINUTES)
-    if current_time is None:
-        logging.error("No data found for the specified symbol and interval.")
-        return
 
-    last_sequence = dataset[-1][0]
-    predictions = predict_future_price(model, last_sequence, scaler)
-    logging.info(f"Predictions: {predictions}")
 
-    readable_server_time = get_current_time()
-    logging.info(f"Current Binance server time: {readable_server_time}")
-
-    saved_prediction = save_predictions_to_csv(predictions, PATHS['predictions'], current_time)
-    logging.info(f"Saved predictions to CSV: {saved_prediction}")
-
-    current_value_row = get_latest_value(PATHS['combined_dataset'], TARGET_SYMBOL)
-    latest_prediction_row = get_latest_prediction(PATHS['predictions'], TARGET_SYMBOL)
-    difference_row = get_difference_row(current_time, TARGET_SYMBOL)
-
-    if not current_value_row.empty and not latest_prediction_row.empty:
-        actuals = current_value_row[list(FEATURE_NAMES.keys())].values
-        predictions = latest_prediction_row[list(FEATURE_NAMES.keys())].values
-        save_difference_to_csv(predictions, actuals, PATHS['differences'], current_time)
-        logging.info("Difference between current value and previous prediction saved.")
-
-        difference_row = get_difference_row(current_time, TARGET_SYMBOL)
-    else:
-        logging.warning("Unable to compare current value with previous prediction due to missing data.")
-
-    print_combined_row(current_value_row, difference_row, latest_prediction_row)
-    logging.info("Completed printing combined row.")
-
+    logging.info("Prediction made and saved to file.")
 if __name__ == "__main__":
     while True:
         logging.info("Starting main loop iteration...")

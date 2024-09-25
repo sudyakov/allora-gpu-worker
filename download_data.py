@@ -9,7 +9,13 @@ import requests
 from requests.exceptions import RequestException
 
 from config import *
-from utils import *
+from utils import (
+    timestamp_to_readable_time,
+    get_current_time,
+    sort_dataframe,
+    preprocess_binance_data,
+    ensure_file_exists,
+)
 
 LOG_FILE = 'download_data.log'
 
@@ -32,10 +38,6 @@ class DownloadData:
         formatter = logging.Formatter('%(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
-
-    def create_directory(self, folder: str):
-        if not os.path.exists(folder):
-            os.makedirs(folder)
 
     def get_interval_info(self, interval: int) -> Dict[str, Union[str, int]]:
         for key, value in self.INTERVALS_PERIODS.items():
@@ -73,7 +75,7 @@ class DownloadData:
                     'taker_buy_base_asset_volume': 'taker_buy_base_asset_volume',
                     'taker_buy_quote_asset_volume': 'taker_buy_quote_asset_volume'
                 })
-                df = df.astype({col: FEATURE_NAMES[col] for col in df.columns if col in FEATURE_NAMES})
+                df = preprocess_binance_data(df)
                 all_data.append(df)
                 current_start = int(df['timestamp'].iloc[-1]) + 1
 
@@ -88,7 +90,6 @@ class DownloadData:
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
 
         combined_df = pd.concat(all_data, ignore_index=True)
-        combined_df = combined_df.astype(FEATURE_NAMES)  # Приведение типов данных
         return combined_df[list(self.FEATURE_NAMES.keys())]
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
@@ -110,23 +111,18 @@ class DownloadData:
                 'taker_buy_base_asset_volume': 'taker_buy_base_asset_volume',
                 'taker_buy_quote_asset_volume': 'taker_buy_quote_asset_volume'
             })
-            df = df.astype({col: FEATURE_NAMES[col] for col in df.columns if col in FEATURE_NAMES})
-            df = df.astype(FEATURE_NAMES)  # Приведение типов данных
-            return df[list(self.FEATURE_NAMES.keys())]
+            return preprocess_binance_data(df)
         except RequestException as e:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
-        df = sort_dataframe(df[df['timestamp'] <= current_time])
-        return df.sort_values(by='timestamp', ascending=False)[list(self.FEATURE_NAMES.keys())]
+        df = preprocess_binance_data(df[df['timestamp'] <= current_time])
+        return sort_dataframe(df)
 
     def save_to_csv(self, df: pd.DataFrame, filename: str):
-        parent_dir = os.path.dirname(filename)
-        if parent_dir and not os.path.exists(parent_dir):
-            os.makedirs(parent_dir)
-
+        ensure_file_exists(filename)
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False)
@@ -134,7 +130,8 @@ class DownloadData:
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if data:
-            if os.path.exists(filename):
+            ensure_file_exists(filename)
+            if os.path.exists(filename) and os.path.getsize(filename) > 0:
                 existing_data = pd.read_csv(filename)
                 for key, df in data.items():
                     symbol, interval = key.split('_')
@@ -178,9 +175,6 @@ class DownloadData:
                 self.logger.info(
                     f"Updating data for {symbol} from {start_time} to {newest_timestamp} ({timestamp_to_readable_time(start_time)} to {timestamp_to_readable_time(newest_timestamp)})"
                 )
-                df_existing = df_existing.reindex(columns=list(self.FEATURE_NAMES.keys()))
-                df_new = df_new.reindex(columns=list(self.FEATURE_NAMES.keys()))
-                df_new = df_new.astype(self.FEATURE_NAMES)
                 df_updated = pd.concat([df_new, df_existing], ignore_index=True)
                 df_updated = df_updated.drop_duplicates(subset=['timestamp'], keep='first')
                 df_updated = sort_dataframe(df_updated)
