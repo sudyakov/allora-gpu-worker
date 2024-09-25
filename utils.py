@@ -112,6 +112,7 @@ def prepare_dataset(combined_dataset_path, seq_length=SEQ_LENGTH, target_symbol=
     return TensorDataset(sequences_tensor, labels_tensor), scaler, df
 
 def save_predictions_to_csv(predictions, filename):
+    current_time, _ = get_current_time()
     df = pd.DataFrame(predictions, columns=list(FEATURE_NAMES.keys()))
     prediction_milliseconds = INTERVALS_PERIODS[get_interval(PREDICTION_MINUTES)]['milliseconds']
     next_interval = (current_time // prediction_milliseconds + 1) * prediction_milliseconds
@@ -133,7 +134,6 @@ def save_predictions_to_csv(predictions, filename):
         df = pd.concat([existing_df, df], ignore_index=True)
     df.to_csv(filename, index=False)
     return df
-
 def get_latest_prediction(predictions_file, target_symbol):
     if not os.path.exists(predictions_file):
         return pd.Series(dtype='float64')
