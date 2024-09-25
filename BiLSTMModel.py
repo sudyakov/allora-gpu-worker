@@ -1,19 +1,31 @@
 import os
 import logging
 from time import sleep
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from rich.console import Console
+from tqdm import tqdm
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+import joblib
+
 from config import *
 from download_data import DownloadData
 from utils import *
 from visualize import create_visualization
-from tqdm import tqdm
+from dataset_utils import *
+
 
 console = Console()
 MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
 download_data = DownloadData()
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class Attention(nn.Module):
     def __init__(self, hidden_layer_size):
@@ -27,10 +39,12 @@ class Attention(nn.Module):
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
 
+
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(self, input_size, hidden_layer_size, num_layers, dropout):
         super(EnhancedBiLSTMModel, self).__init__()
-        self.lstm = nn.LSTM(input_size, hidden_layer_size, num_layers=num_layers, dropout=dropout, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(input_size, hidden_layer_size, num_layers=num_layers,
+                            dropout=dropout, batch_first=True, bidirectional=True)
         self.attention = Attention(hidden_layer_size)
         self.linear = nn.Linear(hidden_layer_size * 2, input_size)
 
@@ -42,8 +56,10 @@ class EnhancedBiLSTMModel(nn.Module):
         predictions = self.linear(context_vector)
         return predictions
 
+
 def get_device():
     return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def train_model(model, dataloader, device, differences_data, val_dataloader=None):
     model.train()
@@ -63,19 +79,19 @@ def train_model(model, dataloader, device, differences_data, val_dataloader=None
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
-            
+
             target_timestamps = targets[:, -1].cpu().numpy()
             differences = differences_data[differences_data['timestamp'].isin(target_timestamps)]
             if not differences.empty:
                 differences = torch.FloatTensor(differences[list(FEATURE_NAMES.keys())].values).to(device)
                 loss += criterion(outputs, differences)
-            
+
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-            
+
             progress_bar.set_postfix(loss=loss.item())
-        
+
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch {epoch+1}/{TRAINING_PARAMS['initial_epochs']}, Loss: {avg_loss:.4f}")
 
@@ -99,6 +115,7 @@ def train_model(model, dataloader, device, differences_data, val_dataloader=None
 
     return model
 
+
 def validate_model(model, dataloader, device, criterion):
     model.eval()
     total_loss = 0
@@ -111,33 +128,11 @@ def validate_model(model, dataloader, device, criterion):
     avg_loss = total_loss / len(dataloader)
     return avg_loss
 
-def predict_future_price(model, last_sequence, scaler, steps=1):
-    model.eval()
-    with torch.no_grad():
-        if last_sequence.dim() == 2:
-            last_sequence = last_sequence.unsqueeze(0)
-        
-        input_sequence = last_sequence.to(next(model.parameters()).device)
-        predictions = model(input_sequence)
-        
-        numeric_columns = scaler.feature_names_in_
-        scaled_predictions = predictions.cpu().numpy()[:, [list(FEATURE_NAMES.keys()).index(col) for col in numeric_columns]]
-        inverse_scaled = scaler.inverse_transform(scaled_predictions)
-        
-        predicted_data = predictions.cpu().numpy()
-        for i, col in enumerate(numeric_columns):
-            predicted_data[:, list(FEATURE_NAMES.keys()).index(col)] = inverse_scaled[:, i]
-        
-        predicted_data = np.abs(predicted_data)
-        
-        symbol_index = list(FEATURE_NAMES.keys()).index('symbol')
-        predicted_data[:, symbol_index] = np.round(predicted_data[:, symbol_index]).astype(int)
-    
-    return predicted_data
 
 def save_model(model, filepath):
     torch.save(model.state_dict(), filepath)
     console.print(f"Model saved to {filepath}", style="bold green")
+
 
 def load_model(model, filepath, device):
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
@@ -146,7 +141,143 @@ def load_model(model, filepath, device):
     else:
         console.print(f"No model found at {filepath}. Starting with a new model.", style="bold yellow")
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def predict_future_price(model, last_sequence, scaler, df):
+    model.eval()
+    with torch.no_grad():
+        if last_sequence.dim() == 2:
+            last_sequence = last_sequence.unsqueeze(0)
+
+        input_sequence = last_sequence.to(next(model.parameters()).device)
+        predictions = model(input_sequence)
+
+        numeric_columns = scaler.feature_names_in_
+        indices = [list(FEATURE_NAMES.keys()).index(col) for col in numeric_columns]
+        scaled_predictions = predictions.cpu()[:, indices]
+        scaled_predictions_df = pd.DataFrame(scaled_predictions.numpy(), columns=numeric_columns)
+
+        inverse_scaled_numeric = scaler.inverse_transform(scaled_predictions_df[numeric_columns])
+        inverse_scaled_df = pd.DataFrame(inverse_scaled_numeric, columns=numeric_columns)
+
+        symbol_code = df['symbol'].astype('category').cat.categories.get_loc(TARGET_SYMBOL)
+        interval_code = PREDICTION_MINUTES
+        inverse_scaled_df['symbol'] = symbol_code
+        inverse_scaled_df['interval'] = interval_code
+
+    for col in FEATURE_NAMES.keys():
+        idx = list(FEATURE_NAMES.keys()).index(col)
+        predictions[:, idx] = torch.tensor(inverse_scaled_df[col].values, dtype=torch.float32)
+    predictions = predictions.abs()
+
+    symbol_index = list(FEATURE_NAMES.keys()).index('symbol')
+    predictions[:, symbol_index] = predictions[:, symbol_index].int()
+
+    predictions_df = pd.DataFrame(predictions.cpu().numpy(), columns=list(FEATURE_NAMES.keys()))
+    return predictions_df
+
+
+def fill_missing_predictions_to_csv(filename, model, scaler, df):
+    # Получаем последний timestamp из архива Binance
+    latest_binance_timestamp = get_latest_timestamp(PATHS['combined_dataset'], TARGET_SYMBOL, PREDICTION_MINUTES)
+    if latest_binance_timestamp is None or pd.isna(latest_binance_timestamp):
+        logging.warning("Не удалось получить последний timestamp из архива Binance.")
+        return
+
+    prediction_milliseconds = INTERVALS_PERIODS[get_interval(PREDICTION_MINUTES)]['milliseconds']
+    next_prediction_timestamp = latest_binance_timestamp + prediction_milliseconds
+
+    if os.path.exists(filename) and os.path.getsize(filename) > 0:
+        existing_df = pd.read_csv(filename)
+        existing_df['timestamp'] = existing_df['timestamp'].astype(int)
+        latest_prediction_time = existing_df['timestamp'].max()
+
+        if latest_prediction_time >= next_prediction_timestamp:
+            logging.info("Нет необходимости в новых предсказаниях.")
+            return existing_df
+    else:
+        existing_df = pd.DataFrame(columns=list(FEATURE_NAMES.keys()) + ['timestamp', 'symbol', 'interval'])
+        latest_prediction_time = None
+
+    logging.info(f"Создание предсказания для timestamp: {next_prediction_timestamp}")
+
+    # Получаем последовательность для предсказания
+    sequence = get_sequence_for_timestamp(latest_binance_timestamp, TARGET_SYMBOL, PREDICTION_MINUTES)
+    if sequence is not None:
+        sequence = np.array(sequence)
+
+        # Если sequence одномерный, преобразуем его в двумерный
+        if sequence.ndim == 1:
+            sequence = sequence.reshape(1, -1)
+
+        # Определяем категориальные колонки
+        categorical_columns = [col for col, dtype in FEATURE_NAMES.items() if dtype == str]
+
+        # Создаём директорию для энкодеров, если она не существует
+        encoders_dir = 'encoders'
+        os.makedirs(encoders_dir, exist_ok=True)
+
+        # Обучаем и сохраняем энкодеры, если они ещё не обучены
+        label_encoders = {}
+        for col in categorical_columns:
+            encoder_path = os.path.join(encoders_dir, f"{col}_encoder.joblib")
+            if os.path.exists(encoder_path):
+                try:
+                    label_encoders[col] = joblib.load(encoder_path)
+                except Exception as e:
+                    logging.error(f"Не удалось загрузить энкодер для {col}: {e}")
+                    return
+            else:
+                # Обучаем энкодер на всей доступной информации
+                unique_values = df[col].unique()
+                if len(unique_values) == 0:
+                    logging.error(f"Нет уникальных значений для колоноки {col}, невозможно обучить энкодер.")
+                    return
+                le = LabelEncoder()
+                le.fit(unique_values)
+                label_encoders[col] = le
+                joblib.dump(le, encoder_path)
+                logging.info(f"Энкодер для {col} обучен и сохранён по пути {encoder_path}.")
+
+        try:
+            # Кодирование категориальных признаков
+            for col in categorical_columns:
+                col_idx = list(FEATURE_NAMES.keys()).index(col)
+                sequence[:, col_idx] = label_encoders[col].transform(sequence[:, col_idx])
+        except Exception as e:
+            logging.error(f"Ошибка при кодировании колонок: {e}")
+            return
+
+        # Преобразование sequence в float32
+        try:
+            sequence = sequence.astype(np.float32)
+        except ValueError as ve:
+            logging.error(f"Ошибка преобразования типов: {ve}")
+            return
+
+        # Предсказание
+        predictions = predict_future_price(model, torch.tensor(sequence), scaler, df)
+        df_predictions = pd.DataFrame(predictions, columns=list(FEATURE_NAMES.keys()))
+        df_predictions['timestamp'] = next_prediction_timestamp
+        df_predictions['symbol'] = TARGET_SYMBOL
+        df_predictions['interval'] = PREDICTION_MINUTES
+
+        # Приведение типов данных
+        for col, dtype in FEATURE_NAMES.items():
+            if col in df_predictions.columns:
+                df_predictions[col] = df_predictions[col].astype(dtype)
+                logging.debug(f"Column {col} value: {df_predictions[col].iloc[0]}, type: {type(df_predictions[col].iloc[0])}")
+                if dtype == str:
+                    assert is_string_dtype(df_predictions[col]), f"Column {col} has incorrect type {df_predictions[col].dtype}, expected {dtype}"
+                else:
+                    assert df_predictions[col].dtype.type == np.dtype(dtype).type, f"Column {col} has incorrect type {df_predictions[col].dtype}, expected {dtype}"
+
+        # Добавляем предсказание в существующий DataFrame
+        existing_df = pd.concat([existing_df, df_predictions], ignore_index=True)
+
+    existing_df.to_csv(filename, index=False)
+    logging.info(f"Предсказания сохранены в файл: {filename}")
+    return existing_df
+
 
 def main():
     device = get_device()
@@ -181,32 +312,19 @@ def main():
         logging.error("No data found for the specified symbol and interval.")
         return
 
-    last_sequence = dataset[-1][0]
-    predictions = predict_future_price(model, last_sequence, scaler)
-    logging.info(f"Predictions: {predictions}")
-
     readable_server_time = get_current_time()
     logging.info(f"Current Binance server time: {readable_server_time}")
 
-    saved_prediction = save_predictions_to_csv(predictions, PATHS['predictions'], current_time)
+    saved_prediction = fill_missing_predictions_to_csv(PATHS['predictions'], model, scaler, df)
     logging.info(f"Saved predictions to CSV: {saved_prediction}")
 
     current_value_row = get_latest_value(PATHS['combined_dataset'], TARGET_SYMBOL)
     latest_prediction_row = get_latest_prediction(PATHS['predictions'], TARGET_SYMBOL)
     difference_row = get_difference_row(current_time, TARGET_SYMBOL)
 
-    if not current_value_row.empty and not latest_prediction_row.empty:
-        actuals = current_value_row[list(FEATURE_NAMES.keys())].values
-        predictions = latest_prediction_row[list(FEATURE_NAMES.keys())].values
-        save_difference_to_csv(predictions, actuals, PATHS['differences'], current_time)
-        logging.info("Difference between current value and previous prediction saved.")
-
-        difference_row = get_difference_row(current_time, TARGET_SYMBOL)
-    else:
-        logging.warning("Unable to compare current value with previous prediction due to missing data.")
-
     print_combined_row(current_value_row, difference_row, latest_prediction_row)
-    logging.info("Completed printing combined row.")
+    logging.info("Завершено отображение объединённой строки.")
+
 
 if __name__ == "__main__":
     while True:
