@@ -2,18 +2,17 @@ import logging
 import os
 import pickle
 
-import joblib
 import pandas as pd
 import torch
 import torch.nn as nn
 from rich.console import Console
+from rich.table import Table
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
 from config import *
 from download_data import DownloadData
 from utils import *
-from visualize import create_visualization
 
 console = Console()
 
@@ -54,6 +53,7 @@ class EnhancedBiLSTMModel(nn.Module):
         )
         self.attention = Attention(hidden_layer_size)
         self.linear = nn.Linear(hidden_layer_size * 2, input_size)
+        self.relu = nn.ReLU()  # Добавляем ReLU
         self.apply(self._initialize_weights)
 
     def forward(self, x):
@@ -72,6 +72,7 @@ class EnhancedBiLSTMModel(nn.Module):
         lstm_out, _ = self.lstm(x, (h_0, c_0))
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
+        predictions = self.relu(predictions)  # Применяем ReLU к выходу
         return predictions
 
     def _initialize_weights(self, module):
@@ -175,7 +176,7 @@ def load_and_prepare_data():
 
 
 class CustomMinMaxScaler:
-    def __init__(self, feature_range=(-1, 1)):
+    def __init__(self, feature_range=(0, 1)):  # Изменение диапазона на (0, 1)
         self.min = None
         self.max = None
         self.feature_range = feature_range
@@ -214,19 +215,19 @@ class CustomLabelEncoder:
 def prepare_dataset(df, seq_length, scaler: CustomMinMaxScaler):
     df['symbol'] = df['symbol'].map(SYMBOL_MAPPING).fillna(-1).astype(int)
     assert df['symbol'].dtype == int, "Столбец 'symbol' должен быть числовым"
-    
+
     # Сохраняем столбец 'symbol'
     symbol_column = df['symbol']
-    
-    numeric_columns = [
+
+    numerical_columns = [
         col for col, dtype in FEATURE_NAMES.items() if dtype in [float, int] and col != 'symbol'
     ]
 
-    scaled_numeric_data = scaler.transform(df[numeric_columns])
+    scaled_numeric_data = scaler.transform(df[numerical_columns])
 
     # Добавляем 'symbol' обратно к масштабированным данным
     scaled_data = pd.concat([scaled_numeric_data, symbol_column], axis=1)
-    
+
     # Убедимся, что порядок столбцов соответствует FEATURE_NAMES
     scaled_data = scaled_data[list(FEATURE_NAMES.keys())]
 
@@ -308,6 +309,9 @@ def predict_future_price(model, last_sequence, scaler: CustomMinMaxScaler):
         scaled_predictions = scaler.inverse_transform(predictions_df)
         predictions_df = pd.DataFrame(scaled_predictions, columns=list(FEATURE_NAMES.keys()))
 
+        # Убираем возможность отрицательных значений
+        predictions_df = predictions_df.clip(lower=0)
+
         predictions_df['symbol'] = TARGET_SYMBOL
         predictions_df['interval'] = PREDICTION_MINUTES
 
@@ -370,11 +374,11 @@ def fill_missing_predictions_to_csv(filename, model, scaler: CustomMinMaxScaler,
         numerical_columns = [col for col in FEATURE_NAMES if FEATURE_NAMES[col] != str]
         sequence_df[numerical_columns] = sequence_df[numerical_columns].astype("float32")
 
-        # Изменено: Преобразование в списки перед созданием тензора
+        # Преобразование в тензор перед созданием предсказания
         predictions = predict_future_price(model, torch.tensor(sequence_df.values.tolist(), dtype=torch.float32), scaler)
         df_predictions = pd.DataFrame(predictions, columns=list(FEATURE_NAMES.keys()))
 
-        # Установите 'symbol' вручную, не используя предсказание модели
+        # Установите 'symbol' и другие поля вручную
         df_predictions['timestamp'] = next_prediction_timestamp
         df_predictions['symbol'] = TARGET_SYMBOL  # Присваиваем строковое значение
         df_predictions['interval'] = PREDICTION_MINUTES
@@ -401,7 +405,8 @@ def fill_missing_predictions_to_csv(filename, model, scaler: CustomMinMaxScaler,
         # Обеспечьте наличие всех столбцов перед конкатенацией
         df_predictions = df_predictions.reindex(columns=existing_df.columns, fill_value=None)
 
-        existing_df = pd.concat([existing_df, df_predictions], ignore_index=True)
+        # Добавляем новые предсказания в начало DataFrame
+        existing_df = pd.concat([df_predictions, existing_df], ignore_index=True)
         existing_df['symbol'] = existing_df['symbol'].map(ID_TO_SYMBOL).fillna(TARGET_SYMBOL)
         existing_df.to_csv(filename, index=False)
         logging.info(f"Предсказания сохранены в файл: {filename}")
@@ -503,6 +508,7 @@ def main():
 
     print_combined_row(current_value_row, difference_row, latest_prediction_row)
     logging.info("Завершено отображение объединённой строки.")
+
 
 if __name__ == "__main__":
     while True:
