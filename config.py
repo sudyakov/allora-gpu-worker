@@ -16,19 +16,17 @@ RETRY_DELAY = 5
 BINANCE_LIMIT_STRING = 1000
 BINANCE_INTERVAL_REQUEST = 1
 REQUEST_DELAY = 1
-
-# Целевая и дополнительные торговые пары
-TARGET_SYMBOL = 'ETHUSDT'
-#SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ARBUSDT"]
-SYMBOLS = ["BTCUSDT", "ETHUSDT"]
-
+# Временной интевал, выражает текушее время в минутах
+CURRENT_MINUTES = 1
 # Длина последовательности для модели
 SEQ_LENGTH = 30
 
+# Целевая и дополнительные торговые пары
+TARGET_SYMBOL = 'ETHUSDT'
+SYMBOLS = ["BTCUSDT", "ETHUSDT"]
+
 # Временные интервалы для прогнозирования
 PREDICTION_MINUTES = 5
-# Временной интевал, выражает текушее время в минутах
-CURRENT_MINUTES = 1
 
 # Периоды для различных интервалов
 INTERVALS_PERIODS = {

@@ -13,7 +13,6 @@ from utils import preprocess_binance_data, get_current_time, ensure_file_exists,
 
 LOG_FILE = 'download_data.log'
 
-
 class DownloadData:
     def __init__(self):
         self.API_BASE_URL = API_BASE_URL
