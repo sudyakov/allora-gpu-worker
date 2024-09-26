@@ -13,14 +13,25 @@ from config import (
     BINANCE_LIMIT_STRING,
     BINANCE_API_COLUMNS,
     INTERVAL_MAPPING,
-    SYMBOL_MAPPING,  # Заменено
+    SYMBOL_MAPPING,
     PATHS,
     RAW_FEATURES,
-    DATETIME_FORMAT
+    DATETIME_FORMAT,
+    PREDICTION_MINUTES,
+    MODEL_FEATURES
 )
-from utils import preprocess_binance_data, get_current_time, ensure_file_exists, sort_dataframe, timestamp_to_readable_time
+from utils import (
+    preprocess_binance_data,
+    get_current_time,
+    ensure_file_exists,
+    sort_dataframe,
+    timestamp_to_readable_time,
+    fill_missing_model_features
+)
+
 
 LOG_FILE = 'download_data.log'
+
 
 class DownloadData:
     def __init__(self):
@@ -28,13 +39,14 @@ class DownloadData:
         self.BINANCE_LIMIT_STRING = BINANCE_LIMIT_STRING
         self.BINANCE_API_COLUMNS = BINANCE_API_COLUMNS
         self.INTERVAL_MAPPING = INTERVAL_MAPPING
-        self.SYMBOL_MAPPING = SYMBOL_MAPPING  # Заменено
+        self.SYMBOL_MAPPING = SYMBOL_MAPPING
         self.PATHS = PATHS
-        self.FEATURE_NAMES = RAW_FEATURES
+        self.FEATURE_NAMES = MODEL_FEATURES
         self.logger = logging.getLogger("DownloadData")
         self.configure_logging()
 
     def configure_logging(self):
+        """Настройка логирования."""
         logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
         file_handler = logging.FileHandler(LOG_FILE)
         file_handler.setLevel(logging.INFO)
@@ -43,19 +55,21 @@ class DownloadData:
         self.logger.addHandler(file_handler)
 
     def get_interval_info(self, interval: int) -> Dict[str, Union[str, int]]:
+        """Получение информации об интервале."""
         for key, value in self.INTERVAL_MAPPING.items():
             if value['minutes'] == interval:
                 return value
         raise KeyError(f"Invalid interval value: {interval}")
 
-    def get_binance_data(self, symbol: str, interval: int, start_time: Optional[int] = None, end_time: Optional[int] = None, limit: int = BINANCE_LIMIT_STRING) -> pd.DataFrame:
+    def get_binance_data(self, symbol: str, interval: int, start_time: Optional[int] = None, end_time: Optional[int] = None) -> pd.DataFrame:
+        """Получение данных с Binance API."""
         interval_info = self.get_interval_info(interval)
         interval_str = next(key for key, value in self.INTERVAL_MAPPING.items() if value['minutes'] == interval)
         all_data = []
         current_start = start_time
 
-        while current_start is None or current_start < end_time:
-            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit={limit}"
+        while current_start is None or (end_time is not None and current_start < end_time):
+            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit={self.BINANCE_LIMIT_STRING}"
             if current_start:
                 url += f"&startTime={current_start}"
             if end_time:
@@ -72,12 +86,8 @@ class DownloadData:
                 df = df.drop(columns=['close_time', 'ignore'])
                 df['symbol'] = symbol
                 df['interval'] = interval_info['minutes']
-                df = df.rename(columns={
-                    'quote_asset_volume': 'quote_asset_volume',
-                    'taker_buy_base_asset_volume': 'taker_buy_base_asset_volume',
-                    'taker_buy_quote_asset_volume': 'taker_buy_quote_asset_volume'
-                })
                 df = preprocess_binance_data(df)
+                df = fill_missing_model_features(df)
                 all_data.append(df)
                 current_start = int(df['timestamp'].iloc[-1]) + 1
             except RequestException as e:
@@ -91,9 +101,11 @@ class DownloadData:
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
 
         combined_df = pd.concat(all_data, ignore_index=True)
+        combined_df = fill_missing_model_features(combined_df)
         return combined_df[list(self.FEATURE_NAMES.keys())]
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
+        """Получение текущей цены."""
         interval_info = self.get_interval_info(interval)
         interval_str = next(key for key, value in self.INTERVAL_MAPPING.items() if value['minutes'] == interval)
         url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit=1"
@@ -109,22 +121,22 @@ class DownloadData:
             df = df.drop(columns=['close_time', 'ignore'])
             df['symbol'] = symbol
             df['interval'] = interval_info['minutes']
-            df = df.rename(columns={
-                'quote_asset_volume': 'quote_asset_volume',
-                'taker_buy_base_asset_volume': 'taker_buy_base_asset_volume',
-                'taker_buy_quote_asset_volume': 'taker_buy_quote_asset_volume'
-            })
-            return preprocess_binance_data(df)
+            df = preprocess_binance_data(df)
+            df = fill_missing_model_features(df)
+            return df[list(self.FEATURE_NAMES.keys())]
         except RequestException as e:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
             return pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Подготовка DataFrame для сохранения."""
         current_time, _ = get_current_time()
         df = preprocess_binance_data(df[df['timestamp'] <= current_time])
+        df = fill_missing_model_features(df)
         return sort_dataframe(df)
 
     def save_to_csv(self, df: pd.DataFrame, filename: str):
+        """Сохранение DataFrame в CSV."""
         ensure_file_exists(filename)
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
@@ -132,6 +144,7 @@ class DownloadData:
         self.logger.info(f"Data saved to {filename}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
+        """Сохранение объединенного набора данных."""
         if data:
             ensure_file_exists(filename)
             if os.path.exists(filename) and os.path.getsize(filename) > 0:
@@ -147,6 +160,7 @@ class DownloadData:
             else:
                 combined_data = pd.concat(data.values(), ignore_index=True)
 
+            combined_data = fill_missing_model_features(combined_data)
             prepared_df = self.prepare_dataframe_for_save(combined_data)
             prepared_df.to_csv(filename, index=False)
             self.logger.info(f"Combined dataset updated: {filename}")
@@ -154,6 +168,7 @@ class DownloadData:
             self.logger.warning("No data to save to combined dataset.")
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
+        """Вывод сводки данных."""
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
         summary += f"{'Timestamp':<20} {' '.join([f'{feature.capitalize():<10}' for feature in self.FEATURE_NAMES])}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
@@ -164,13 +179,15 @@ class DownloadData:
         self.logger.info(summary)
 
     def update_data(self, symbol: str, interval: int):
+        """Обновление данных для заданного символа и интервала."""
         interval_info = self.get_interval_info(interval)
-        filename = f"{self.PATHS['data_dir']}/{symbol}_{interval_info['minutes']}_data.csv"
+        filename = os.path.join(self.PATHS['data_dir'], f"{symbol}_{interval_info['minutes']}_data.csv")
         server_time, _ = get_current_time()
         df_existing = pd.DataFrame(columns=list(self.FEATURE_NAMES.keys()))
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             df_existing = pd.read_csv(filename, dtype=self.FEATURE_NAMES)
+            df_existing = fill_missing_model_features(df_existing)
 
         last_timestamp = df_existing['timestamp'].max() if not df_existing.empty else server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
         last_timestamp = int(last_timestamp)
@@ -191,6 +208,7 @@ class DownloadData:
                 )
                 df_updated = df_updated.drop_duplicates(subset=['timestamp'], keep='first')
                 df_updated = sort_dataframe(df_updated)
+                df_updated = fill_missing_model_features(df_updated)
                 self.save_to_csv(df_updated, filename)
                 self.save_combined_dataset({f"{symbol}_{interval_info['minutes']}": df_updated}, self.PATHS['combined_dataset'])
                 df_existing = df_updated
@@ -206,6 +224,7 @@ class DownloadData:
 
 
 def main():
+    """Основная функция скрипта."""
     download_data = DownloadData()
     download_data.logger.info("Script started")
 
@@ -220,7 +239,7 @@ def main():
         return
 
     binance_data = {}
-    for symbol, symbol_id in download_data.SYMBOL_MAPPING.items():  # Обновлено
+    for symbol, _ in download_data.SYMBOL_MAPPING.items():
         for interval in [value['minutes'] for value in download_data.INTERVAL_MAPPING.values()]:
             try:
                 updated_data, start_time, end_time = download_data.update_data(symbol, interval)

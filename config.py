@@ -21,9 +21,12 @@ CURRENT_MINUTES = 1
 # Длина последовательности для модели
 SEQ_LENGTH = 100
 
+
+# Временные интервалы для прогнозирования
+PREDICTION_MINUTES = 5
+
 # Целевая и дополнительные торговые пары
 TARGET_SYMBOL = 'ETHUSDT'
-
 # Маппинги символов
 SYMBOL_MAPPING = {
     "BTCUSDT": 0,
@@ -31,18 +34,12 @@ SYMBOL_MAPPING = {
     # Добавьте другие символы по необходимости
 }
 ID_TO_SYMBOL = {v: k for k, v in SYMBOL_MAPPING.items()}
-
-# Временные интервалы для прогнозирования
-PREDICTION_MINUTES = 5
-
 # Периоды для различных интервалов
 INTERVAL_MAPPING = {
     "1m": {"days": 7, "minutes": 1, "milliseconds": 1 * 60 * 1000},
     "5m": {"days": 14, "minutes": 5, "milliseconds": 5 * 60 * 1000},
     "15m": {"days": 28, "minutes": 15, "milliseconds": 15 * 60 * 1000},
 }
-
-
 # Сырые признаки, получаемые из Binance API с указанием типов данных
 RAW_FEATURES = {
     'symbol': str,
@@ -58,7 +55,6 @@ RAW_FEATURES = {
     'taker_buy_base_asset_volume': float,
     'taker_buy_quote_asset_volume': float
 }
-
 # Признаки, используемые моделью (включают дополнительные признаки) с указанием типов данных
 MODEL_FEATURES = {
     **RAW_FEATURES,
@@ -69,7 +65,6 @@ MODEL_FEATURES = {
     'sin_day': float,
     'cos_day': float
 }
-
 # Столбцы, возвращаемые API Binance
 BINANCE_API_COLUMNS = [
     'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
