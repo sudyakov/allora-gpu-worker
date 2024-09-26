@@ -13,10 +13,12 @@ from rich.table import Table
 console = Console()
 
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
+    # Убедитесь, что 'timestamp' остается целым числом
+    df['timestamp'] = df['timestamp'].astype(int)
     df = df.replace([float('inf'), float('-inf')], pd.NA).dropna()
     if 'interval' in df.columns:
         df['interval'] = df['interval'].astype(int)
-    for col, dtype in FEATURE_NAMES.items():
+    for col, dtype in RAW_FEATURES.items():
         if col in df.columns:
             if dtype == str:
                 df[col] = df[col].astype(str)
@@ -44,7 +46,7 @@ def ensure_file_exists(filepath):
     if directory and not os.path.exists(directory):
         os.makedirs(directory)
     if not os.path.exists(filepath):
-        df = pd.DataFrame(columns=list(FEATURE_NAMES.keys()))
+        df = pd.DataFrame(columns=list(RAW_FEATURES.keys()))
         df.to_csv(filepath, index=False)
 
 def clear_cache(paths):
@@ -54,18 +56,26 @@ def clear_cache(paths):
     logging.info("Cache cleared")
 
 def get_latest_value(data_file, target_symbol):
+    if target_symbol not in SYMBOL_MAPPING:
+        console.print(f"Символ {target_symbol} не найден в SYMBOL_MAPPING", style="red")
+        return pd.DataFrame(columns=RAW_FEATURES.keys())
+    
     df = pd.read_csv(data_file)
     df = preprocess_binance_data(df)
-    filtered_df = df[(df['symbol'] == target_symbol) & (df['interval'] == PREDICTION_MINUTES)]
-    if filtered_df.empty:
+    df = df[(df['symbol'] == target_symbol) & (df['interval'] == PREDICTION_MINUTES)]
+    if df.empty:
         console.print(f"No data found for symbol: {target_symbol}", style="blue")
-        return pd.DataFrame(columns=FEATURE_NAMES.keys())
-    latest_value_row = filtered_df.sort_values('timestamp', ascending=False).iloc[0]
+        return pd.DataFrame(columns=RAW_FEATURES.keys())
+    latest_value_row = df.sort_values('timestamp', ascending=False).iloc[0]
     return latest_value_row.to_frame().T
 
 def get_difference_row(current_time: int, symbol: str) -> pd.Series:
+    if symbol not in SYMBOL_MAPPING:
+        console.print(f"Символ {symbol} не найден в SYMBOL_MAPPING", style="red")
+        return pd.Series([None] * len(RAW_FEATURES), index=RAW_FEATURES.keys())
+    
     if not os.path.exists(PATHS['differences']):
-        return pd.Series([None] * len(FEATURE_NAMES), index=FEATURE_NAMES.keys())
+        return pd.Series([None] * len(RAW_FEATURES), index=RAW_FEATURES.keys())
     differences_data = pd.read_csv(PATHS['differences'])
     differences_data = preprocess_binance_data(differences_data)
     difference_row = differences_data[
@@ -76,9 +86,12 @@ def get_difference_row(current_time: int, symbol: str) -> pd.Series:
     if not difference_row.empty:
         return difference_row.iloc[0]
     else:
-        return pd.Series([None] * len(FEATURE_NAMES), index=FEATURE_NAMES.keys())
+        return pd.Series([None] * len(RAW_FEATURES), index=RAW_FEATURES.keys())
 
 def get_latest_timestamp(data_file, target_symbol, prediction_minutes):
+    if target_symbol not in SYMBOL_MAPPING:
+        console.print(f"Символ {target_symbol} не найден в SYMBOL_MAPPING", style="red")
+        return None
     if not os.path.exists(data_file):
         return None
     df = pd.read_csv(data_file)
@@ -89,19 +102,24 @@ def get_latest_timestamp(data_file, target_symbol, prediction_minutes):
     return filtered_df['timestamp'].max()
 
 def get_sequence_for_timestamp(timestamp, target_symbol, prediction_minutes):
+    if target_symbol not in SYMBOL_MAPPING:
+        console.print(f"Символ {target_symbol} не найден в SYMBOL_MAPPING", style="red")
+        return None
     df = pd.read_csv(PATHS['combined_dataset'])
     df = preprocess_binance_data(df)
-    filtered_df = df[(df['symbol'] == target_symbol) &
-                    (df['interval'] == PREDICTION_MINUTES) &
-                    (df['timestamp'] <= timestamp)]
+    filtered_df = df[
+        (df['symbol'] == target_symbol) &
+        (df['interval'] == PREDICTION_MINUTES) &
+        (df['timestamp'] <= timestamp)
+    ]
     if len(filtered_df) >= SEQ_LENGTH:
         sequence = filtered_df.sort_values('timestamp', ascending=False).head(SEQ_LENGTH)
-        sequence = sequence[list(FEATURE_NAMES.keys())].values[::-1]
+        sequence = sequence[list(RAW_FEATURES.keys())].values[::-1]
         return sequence
     return None
 
 def get_interval(minutes):
-    return next((k for k, v in INTERVALS_PERIODS.items() if v['minutes'] == minutes), None)
+    return next((k for k, v in INTERVAL_MAPPING.items() if v['minutes'] == minutes), None)
 
 def get_device():
     return torch.device('cuda' if torch.cuda.is_available() else 'cpu')

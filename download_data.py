@@ -8,7 +8,16 @@ import pandas as pd
 import requests
 from requests.exceptions import RequestException
 
-from config import API_BASE_URL, BINANCE_LIMIT_STRING, BINANCE_API_COLUMNS, INTERVALS_PERIODS, SYMBOLS, PATHS, FEATURE_NAMES, DATETIME_FORMAT
+from config import (
+    API_BASE_URL,
+    BINANCE_LIMIT_STRING,
+    BINANCE_API_COLUMNS,
+    INTERVAL_MAPPING,
+    SYMBOL_MAPPING,  # Заменено
+    PATHS,
+    RAW_FEATURES,
+    DATETIME_FORMAT
+)
 from utils import preprocess_binance_data, get_current_time, ensure_file_exists, sort_dataframe, timestamp_to_readable_time
 
 LOG_FILE = 'download_data.log'
@@ -18,10 +27,10 @@ class DownloadData:
         self.API_BASE_URL = API_BASE_URL
         self.BINANCE_LIMIT_STRING = BINANCE_LIMIT_STRING
         self.BINANCE_API_COLUMNS = BINANCE_API_COLUMNS
-        self.INTERVALS_PERIODS = INTERVALS_PERIODS
-        self.SYMBOLS = SYMBOLS
+        self.INTERVAL_MAPPING = INTERVAL_MAPPING
+        self.SYMBOL_MAPPING = SYMBOL_MAPPING  # Заменено
         self.PATHS = PATHS
-        self.FEATURE_NAMES = FEATURE_NAMES
+        self.FEATURE_NAMES = RAW_FEATURES
         self.logger = logging.getLogger("DownloadData")
         self.configure_logging()
 
@@ -34,14 +43,14 @@ class DownloadData:
         self.logger.addHandler(file_handler)
 
     def get_interval_info(self, interval: int) -> Dict[str, Union[str, int]]:
-        for key, value in self.INTERVALS_PERIODS.items():
+        for key, value in self.INTERVAL_MAPPING.items():
             if value['minutes'] == interval:
                 return value
         raise KeyError(f"Invalid interval value: {interval}")
 
     def get_binance_data(self, symbol: str, interval: int, start_time: Optional[int] = None, end_time: Optional[int] = None, limit: int = BINANCE_LIMIT_STRING) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval)
-        interval_str = next(key for key, value in self.INTERVALS_PERIODS.items() if value['minutes'] == interval)
+        interval_str = next(key for key, value in self.INTERVAL_MAPPING.items() if value['minutes'] == interval)
         all_data = []
         current_start = start_time
 
@@ -86,7 +95,7 @@ class DownloadData:
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval)
-        interval_str = next(key for key, value in self.INTERVALS_PERIODS.items() if value['minutes'] == interval)
+        interval_str = next(key for key, value in self.INTERVAL_MAPPING.items() if value['minutes'] == interval)
         url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit=1"
 
         try:
@@ -131,7 +140,10 @@ class DownloadData:
                     symbol, interval = key.split('_')
                     mask = (existing_data['symbol'] == symbol) & (existing_data['interval'] == int(interval))
                     existing_data = existing_data[~mask]
-                combined_data = pd.concat([existing_data, *data.values()], ignore_index=True)
+                combined_data = pd.concat(
+                    [existing_data.dropna(axis=1, how='all')] + [df.dropna(axis=1, how='all') for df in data.values()],
+                    ignore_index=True
+                )
             else:
                 combined_data = pd.concat(data.values(), ignore_index=True)
 
@@ -173,7 +185,10 @@ class DownloadData:
                 self.logger.info(
                     f"Updating data for {symbol} from {start_time} to {newest_timestamp} ({timestamp_to_readable_time(start_time)} to {timestamp_to_readable_time(newest_timestamp)})"
                 )
-                df_updated = pd.concat([df_new, df_existing], ignore_index=True)
+                df_updated = pd.concat(
+                    [df_new.dropna(axis=1, how='all'), df_existing.dropna(axis=1, how='all')],
+                    ignore_index=True
+                )
                 df_updated = df_updated.drop_duplicates(subset=['timestamp'], keep='first')
                 df_updated = sort_dataframe(df_updated)
                 self.save_to_csv(df_updated, filename)
@@ -205,8 +220,8 @@ def main():
         return
 
     binance_data = {}
-    for symbol in download_data.SYMBOLS:
-        for interval in [value['minutes'] for value in download_data.INTERVALS_PERIODS.values()]:
+    for symbol, symbol_id in download_data.SYMBOL_MAPPING.items():  # Обновлено
+        for interval in [value['minutes'] for value in download_data.INTERVAL_MAPPING.values()]:
             try:
                 updated_data, start_time, end_time = download_data.update_data(symbol, interval)
                 if updated_data is not None and not updated_data.empty:

@@ -23,20 +23,28 @@ SEQ_LENGTH = 100
 
 # Целевая и дополнительные торговые пары
 TARGET_SYMBOL = 'ETHUSDT'
-SYMBOLS = ["BTCUSDT", "ETHUSDT"]
+
+# Маппинги символов
+SYMBOL_MAPPING = {
+    "BTCUSDT": 0,
+    "ETHUSDT": 1,
+    # Добавьте другие символы по необходимости
+}
+ID_TO_SYMBOL = {v: k for k, v in SYMBOL_MAPPING.items()}
 
 # Временные интервалы для прогнозирования
 PREDICTION_MINUTES = 5
 
 # Периоды для различных интервалов
-INTERVALS_PERIODS = {
+INTERVAL_MAPPING = {
     "1m": {"days": 7, "minutes": 1, "milliseconds": 1 * 60 * 1000},
     "5m": {"days": 14, "minutes": 5, "milliseconds": 5 * 60 * 1000},
     "15m": {"days": 28, "minutes": 15, "milliseconds": 15 * 60 * 1000},
 }
 
-# Определение типов данных для признаков
-FEATURE_NAMES: Dict[str, Union[type, str]] = {
+
+# Сырые признаки, получаемые из Binance API с указанием типов данных
+RAW_FEATURES = {
     'symbol': str,
     'interval': int,
     'timestamp': int,
@@ -51,6 +59,16 @@ FEATURE_NAMES: Dict[str, Union[type, str]] = {
     'taker_buy_quote_asset_volume': float
 }
 
+# Признаки, используемые моделью (включают дополнительные признаки) с указанием типов данных
+MODEL_FEATURES = {
+    **RAW_FEATURES,
+    'hour': int,
+    'dayofweek': int,
+    'sin_hour': float,
+    'cos_hour': float,
+    'sin_day': float,
+    'cos_day': float
+}
 
 # Столбцы, возвращаемые API Binance
 BINANCE_API_COLUMNS = [
@@ -61,11 +79,15 @@ BINANCE_API_COLUMNS = [
 
 # Версия и параметры модели
 MODEL_VERSION = "2.0"
+# config.py или другой файл конфигурации
+
+# Параметры модели
 MODEL_PARAMS = {
-    'input_size': len(FEATURE_NAMES),
+    'input_size': len(MODEL_FEATURES),
     'hidden_layer_size': 256,
     'num_layers': 4,
-    'dropout': 0.2
+    'dropout': 0.2,
+    'embedding_dim': 128  # Добавьте подходящее значение
 }
 
 # Параметры для обучения модели
@@ -78,6 +100,7 @@ TRAINING_PARAMS = {
     'use_mixed_precision': True,
     'num_workers': 8
 }
+
 
 # Пути к файлам и директориям
 PATHS = {
