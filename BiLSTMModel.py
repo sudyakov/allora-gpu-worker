@@ -11,8 +11,30 @@ from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
 from config import *
-from download_data import DownloadData
-from utils import *
+
+# Версия и параметры модели
+MODEL_VERSION = "2.0"
+# config.py или другой файл конфигурации
+
+# Параметры модели
+MODEL_PARAMS = {
+    'input_size': len(MODEL_FEATURES),
+    'hidden_layer_size': 256,
+    'num_layers': 4,
+    'dropout': 0.2,
+    'embedding_dim': 128  # Добавьте подходящее значение
+}
+
+# Параметры для обучения модели
+TRAINING_PARAMS = {
+    'batch_size': 512,
+    'initial_epochs': 10,
+    'initial_lr': 0.0005,
+    'max_epochs': 100,
+    'min_lr': 0.00001,
+    'use_mixed_precision': True,
+    'num_workers': 8
+}
 
 console = Console()
 
@@ -22,7 +44,7 @@ SYMBOL_MAPPING = {symbol: idx for idx, symbol in enumerate(SYMBOLS)}
 ID_TO_SYMBOL = {idx: symbol for symbol, idx in SYMBOL_MAPPING.items()}
 
 MODEL_FILENAME = os.path.join(PATHS['models_dir'], f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth')
-download_data = DownloadData()
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
