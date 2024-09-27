@@ -1,0 +1,152 @@
+INFO - Скрипт запущен
+INFO - Binance API доступен. Время сервера: 2024-09-27 10:24:09
+INFO - Обновление данных для BTCUSDT с 1726827849798 до 1727432640000 (2024-09-20 10:24:09 до 2024-09-27 10:24:00)
+INFO - Данные сохранены в data/BTCUSDT_1_data.csv
+INFO - Объединенный набор данных обновлен: data/combined_dataset.csv
+INFO - Сводка данных для BTCUSDT (1 минут):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+Первый               1727432640000        BTCUSDT 1 1727432640000 65534.88   65534.89   65523.10   65523.10   2.94       192708.33  435 1.94       127000.28  10 4 0.50       -0.87      -0.43      -0.90     
+Последний            1726827900000        BTCUSDT 1 1726827900000 63509.99   63510.00   63506.82   63506.83   3.02       191940.71  299 0.93       59040.49   10 4 0.50       -0.87      -0.43      -0.90     
+
+INFO - Текущая цена для BTCUSDT (1 минут):
+    symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727432640000  65534.88  65534.89  65520.14  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Обновление данных для BTCUSDT с 1726223057065 до 1727432400000 (2024-09-13 10:24:17 до 2024-09-27 10:20:00)
+INFO - Данные сохранены в data/BTCUSDT_5_data.csv
+INFO - Объединенный набор данных обновлен: data/combined_dataset.csv
+INFO - Сводка данных для BTCUSDT (5 минут):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+Первый               1727432400000        BTCUSDT 5 1727432400000 65527.84   65556.78   65500.00   65510.83   68.27      4473640.37 11031 28.95      1896823.87 10 4 0.50       -0.87      -0.43      -0.90     
+Последний            1726223100000        BTCUSDT 5 1726223100000 58171.42   58191.10   58156.00   58159.83   56.80      3304670.03 5842 23.66      1376562.52 10 4 0.50       -0.87      -0.43      -0.90     
+
+INFO - Текущая цена для BTCUSDT (5 минут):
+    symbol  interval      timestamp      open      high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727432400000  65527.84  65556.78  65500.0  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Обновление данных для BTCUSDT с 1725013461918 до 1727432100000 (2024-08-30 10:24:21 до 2024-09-27 10:15:00)
+INFO - Данные сохранены в data/BTCUSDT_15_data.csv
+INFO - Объединенный набор данных обновлен: data/combined_dataset.csv
+INFO - Сводка данных для BTCUSDT (15 минут):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+Первый               1727432100000        BTCUSDT 15 1727432100000 65626.04   65629.20   65500.00   65508.89   134.72     8830428.63 23080 51.86      3399124.61 10 4 0.50       -0.87      -0.43      -0.90     
+Последний            1725013800000        BTCUSDT 15 1725013800000 59575.00   59636.88   59426.50   59529.00   214.23     12753350.00 20058 101.94     6070471.82 10 4 0.50       -0.87      -0.43      -0.90     
+
+INFO - Текущая цена для BTCUSDT (15 минут):
+    symbol  interval      timestamp      open     high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727432100000  65626.04  65629.2  65500.0  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Обновление данных для ETHUSDT с 1726827865983 до 1727432640000 (2024-09-20 10:24:25 до 2024-09-27 10:24:00)
+INFO - Данные сохранены в data/ETHUSDT_1_data.csv
+INFO - Объединенный набор данных обновлен: data/combined_dataset.csv
+INFO - Сводка данных для ETHUSDT (1 минут):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+Первый               1727432640000        ETHUSDT 1 1727432640000 2644.21    2644.40    2642.74    2642.75    126.16     333564.28  1334 58.63      155041.00  10 4 0.50       -0.87      -0.43      -0.90     
+Последний            1726827900000        ETHUSDT 1 1726827900000 2548.95    2549.32    2548.35    2548.36    51.66      131656.78  580 26.61      67807.62   10 4 0.50       -0.87      -0.43      -0.90     
+
+INFO - Текущая цена для ETHUSDT (1 минут):
+    symbol  interval      timestamp     open    high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727432640000  2644.21  2644.4  2642.74  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Обновление данных для ETHUSDT с 1726223073317 до 1727432400000 (2024-09-13 10:24:33 до 2024-09-27 10:20:00)
+INFO - Данные сохранены в data/ETHUSDT_5_data.csv
+INFO - Объединенный набор данных обновлен: data/combined_dataset.csv
+INFO - Сводка данных для ETHUSDT (5 минут):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+Первый               1727432400000        ETHUSDT 5 1727432400000 2645.69    2645.70    2641.38    2642.96    1441.26    3809978.96 14298 723.93     1913615.74 10 4 0.50       -0.87      -0.43      -0.90     
+Последний            1726223100000        ETHUSDT 5 1726223100000 2357.19    2357.89    2355.89    2357.59    473.38     1115657.33 3825 161.42     380492.10  10 4 0.50       -0.87      -0.43      -0.90     
+
+INFO - Текущая цена для ETHUSDT (5 минут):
+    symbol  interval      timestamp     open    high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727432400000  2645.69  2645.7  2641.38  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Обновление данных для ETHUSDT с 1725013478477 до 1727432100000 (2024-08-30 10:24:38 до 2024-09-27 10:15:00)
+INFO - Данные сохранены в data/ETHUSDT_15_data.csv
+INFO - Объединенный набор данных обновлен: data/combined_dataset.csv
+INFO - Сводка данных для ETHUSDT (15 минут):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+Первый               1727432100000        ETHUSDT 15 1727432100000 2649.79    2651.19    2641.38    2643.02    2956.18    7819859.02 28089 1328.36    3513843.36 10 4 0.50       -0.87      -0.43      -0.90     
+Последний            1725013800000        ETHUSDT 15 1725013800000 2520.03    2522.26    2510.41    2515.18    2303.77    5794097.97 14584 887.58     2231920.86 10 4 0.50       -0.87      -0.43      -0.90     
+
+INFO - Текущая цена для ETHUSDT (15 минут):
+    symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727432100000  2649.79  2651.19  2641.38  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Объединенный набор данных обновлен: data/combined_dataset.csv
+INFO - Все файлы обновлены с последними ценами.
+INFO - Выполнение методов get_current_price и get_latest_price для всех символов и интервалов.
+INFO - Текущая цена для BTCUSDT (1 минут):
+    symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727432640000  65534.88  65534.89  65504.87  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Последняя цена для BTCUSDT (1 минут):
+    symbol  interval      timestamp      open      high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+1  BTCUSDT         1  1727432640000  65534.88  65534.89  65523.1  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Текущая цена для BTCUSDT (5 минут):
+    symbol  interval      timestamp      open      high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727432400000  65527.84  65556.78  65500.0  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Последняя цена для BTCUSDT (5 минут):
+    symbol  interval      timestamp      open      high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+9  BTCUSDT         5  1727432400000  65527.84  65556.78  65500.0  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Текущая цена для BTCUSDT (15 минут):
+    symbol  interval      timestamp      open     high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727432100000  65626.04  65629.2  65500.0  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Последняя цена для BTCUSDT (15 минут):
+     symbol  interval      timestamp      open     high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+23  BTCUSDT        15  1727432100000  65626.04  65629.2  65500.0  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Текущая цена для ETHUSDT (1 минут):
+    symbol  interval      timestamp     open    high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727432640000  2644.21  2644.4  2642.74  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Последняя цена для ETHUSDT (1 минут):
+    symbol  interval      timestamp     open    high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727432640000  2644.21  2644.4  2642.74  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Текущая цена для ETHUSDT (5 минут):
+    symbol  interval      timestamp     open    high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727432400000  2645.69  2645.7  2641.38  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Последняя цена для ETHUSDT (5 минут):
+     symbol  interval      timestamp     open    high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+11  ETHUSDT         5  1727432400000  2645.69  2645.7  2641.38  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Текущая цена для ETHUSDT (15 минут):
+    symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727432100000  2649.79  2651.19  2641.38  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Последняя цена для ETHUSDT (15 минут):
+     symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+25  ETHUSDT        15  1727432100000  2649.79  2651.19  2641.38  ...    10          4       0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Данные сохранены в data/predictions.csv
+INFO - Данные сохранены в data/differences.csv
+INFO - Данные сохранены в data/differences.csv
