@@ -23,7 +23,7 @@ SYMBOL_MAPPING: Dict[str, int] = {
     "ETHUSDT": 1,
 }
 
-TARGET_SYMBOL: Union[str, Dict[str, int]] = "ETHUSDT"
+TARGET_SYMBOL: str = "ETHUSDT"
 
 IntervalKey = Literal["1m", "5m", "15m"]
 
@@ -483,19 +483,30 @@ class DataFetcher:
         combined_data = pd.read_csv(self.combined_path)
         combined_data = data_processor.preprocess_binance_data(combined_data)
         combined_data = data_processor.prepare_data(combined_data)
+        
+        # Получаем числовой код символа
+        if 'symbol' in data_processor.label_encoders:
+            symbol_code = data_processor.label_encoders['symbol'].transform(pd.Series([target_symbol])).iloc[0]
+        else:
+            logging.error("Label encoder for 'symbol' not found.")
+            return None
+
+        interval = PREDICTION_MINUTES
 
         filtered_df = combined_data[
-            (combined_data['symbol'] == TARGET_SYMBOL) &
-            (combined_data['interval'] == PREDICTION_MINUTES) &
+            (combined_data['symbol'] == symbol_code) &
+            (combined_data['interval'] == interval) &
             (combined_data['timestamp'] <= timestamp)
         ].sort_values('timestamp')
 
-        
         if len(filtered_df) >= SEQ_LENGTH:
             sequence = filtered_df.iloc[-SEQ_LENGTH:]
             sequence_values = sequence[data_processor.numerical_columns + data_processor.categorical_columns].values
             return torch.tensor(sequence_values, dtype=torch.float32)
+        else:
+            logging.warning("Недостаточно данных после фильтрации для создания последовательности.")
         return None
+
 
     def get_difference_row(self, current_time: int, symbol: str) -> pd.Series:
         if symbol not in SYMBOL_MAPPING:
@@ -530,34 +541,34 @@ def main() -> None:
     ensure_file_exists(PATHS['differences'])
 
     load_model(model, optimizer, MODEL_FILENAME, device)
-    
+   
     data_fetcher = DataFetcher()
     combined_data, predictions_data, differences_data = data_fetcher.load_data()
-    
+   
     data_processor = DataProcessor()
     combined_data = data_processor.prepare_data(combined_data)
-    
+   
     if not predictions_data.empty:
         predictions_data = data_processor.prepare_data(predictions_data)
     if not differences_data.empty:
         differences_data = data_processor.prepare_data(differences_data)
-    
+   
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS['batch_size'])
-    
+   
     model, optimizer = train_and_save_model(model, dataloader, device, differences_data)
-    
+   
     current_time = data_fetcher.get_latest_timestamp(TARGET_SYMBOL)
     if current_time is None:
         logging.error("No data found for the specified symbol and interval.")
         return
-    
+   
     saved_prediction = fill_missing_predictions_to_csv(PATHS['predictions'], model, data_processor)
     if saved_prediction is not None:
         logging.info(f"Predictions updated: {PATHS['predictions']}")
-    
+   
     current_value_row = data_fetcher.get_latest_value(TARGET_SYMBOL)
-    latest_prediction_row = saved_prediction.iloc[0] if saved_prediction is not None else pd.Series({})
+    latest_prediction_row = saved_prediction.iloc[0] if saved_prediction is not None and not saved_prediction.empty else pd.Series({})
     difference_row = data_fetcher.get_difference_row(current_time, TARGET_SYMBOL)
     print_combined_row(current_value_row, difference_row, latest_prediction_row)
 

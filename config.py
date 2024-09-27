@@ -14,7 +14,7 @@ RETRY_DELAY: int = 5  # Задержка между попытками в сек
 BINANCE_LIMIT_STRING: int = 1000
 
 # Длина последовательности для модели
-SEQ_LENGTH: int = 100
+SEQ_LENGTH: int = 60
 
 # Временные интервалы для прогнозирования
 PREDICTION_MINUTES: int = 5
@@ -25,7 +25,8 @@ SYMBOL_MAPPING: Dict[str, int] = {
     "ETHUSDT": 1,
 }
 
-TARGET_SYMBOL: Union[str, Dict[str, int]] = "ETHUSDT"
+TARGET_SYMBOL: str = "ETHUSDT"
+
 
 # Определение ключей и структуры для INTERVAL_MAPPING
 IntervalKey = Literal["1m", "5m", "15m"]
