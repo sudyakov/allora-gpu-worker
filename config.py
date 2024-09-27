@@ -37,9 +37,9 @@ class IntervalConfig(TypedDict):
 
 # Периоды для различных интервалов
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    "1m": {"days": 7, "minutes": 1, "milliseconds": 1 * 60 * 1000},
-    "5m": {"days": 14, "minutes": 5, "milliseconds": 5 * 60 * 1000},
-    "15m": {"days": 28, "minutes": 15, "milliseconds": 15 * 60 * 1000},
+    "1m": {"days": 30, "minutes": 1, "milliseconds": 1 * 60 * 1000},
+    "5m": {"days": 90, "minutes": 5, "milliseconds": 5 * 60 * 1000},
+    "15m": {"days": 180, "minutes": 15, "milliseconds": 15 * 60 * 1000},
 }
 # Сырые признаки, получаемые из Binance API с указанием типов данных
 RAW_FEATURES: Dict[str, type] = {

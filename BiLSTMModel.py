@@ -87,7 +87,7 @@ TRAINING_PARAMS: Dict[str, Any] = {
 }
 
 MODEL_FILENAME = os.path.join(
-    PATHS['models_dir'], 
+    PATHS['models_dir'],
     f'enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth'
 )
 
@@ -108,12 +108,12 @@ class Attention(nn.Module):
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
-        self, 
-        input_size: int, 
-        hidden_layer_size: int, 
-        num_layers: int, 
-        dropout: float, 
-        embedding_dim: int, 
+        self,
+        input_size: int,
+        hidden_layer_size: int,
+        num_layers: int,
+        dropout: float,
+        embedding_dim: int,
         num_symbols: int
     ):
         super(EnhancedBiLSTMModel, self).__init__()
@@ -204,13 +204,10 @@ class DataProcessor:
         tensor_dataset = TensorDataset(sequences, targets, timestamps)
         return tensor_dataset
 
-def ensure_file_exists(filepath: str) -> None:
+def ensure_directory_exists(filepath: str) -> None:
     directory = os.path.dirname(filepath)
     if directory and not os.path.exists(directory):
         os.makedirs(directory)
-    if not os.path.exists(filepath):
-        df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
-        df.to_csv(filepath, index=False)
 
 class CustomMinMaxScaler:
     def __init__(self, feature_range: tuple = (-1, 1)):
@@ -264,9 +261,9 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=TRAINING_PARAMS['num_workers'])
 
 def train_and_save_model(
-    model: nn.Module, 
-    dataloader: DataLoader, 
-    device: torch.device, 
+    model: nn.Module,
+    dataloader: DataLoader,
+    device: torch.device,
     differences_data: pd.DataFrame
 ) -> tuple:
     model.train()
@@ -330,7 +327,7 @@ def train_and_save_model(
 
 def save_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str) -> None:
     try:
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        ensure_directory_exists(filepath)
         # Сохранение state_dict модели и оптимизатора отдельно
         torch.save(model.state_dict(), filepath)
         optimizer_filepath = filepath.replace('.pth', '_optimizer.pth')
@@ -344,7 +341,7 @@ def load_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str
     try:
         if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
             # Загрузка state_dict модели
-            state_dict = torch.load(filepath, map_location=device, weights_only=True)
+            state_dict = torch.load(filepath, map_location=device)
             model.load_state_dict(state_dict)
             model.to(device)
             # Загрузка state_dict оптимизатора
@@ -354,11 +351,10 @@ def load_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str
                 optimizer.load_state_dict(optimizer_state_dict)
             logging.info(f"Model and optimizer loaded: {filepath}, {optimizer_filepath}")
         else:
-            logging.info(f"Model not found, creating new one: {filepath}")
+            logging.info(f"Model not found, создаётся новая модель: {filepath}")
     except Exception as e:
         logging.error(f"Error loading model: {e}")
         raise
-
 
 def predict_future_price(model: nn.Module, last_sequence: torch.Tensor, data_processor: DataProcessor) -> pd.DataFrame:
     model.eval()
@@ -420,6 +416,7 @@ def fill_missing_predictions_to_csv(filename: str, model: nn.Module, data_proces
         predictions['symbol'] = TARGET_SYMBOL
         predictions['interval'] = PREDICTION_MINUTES
         existing_df = pd.concat([predictions, existing_df], ignore_index=True)
+        ensure_directory_exists(filename)
         existing_df.to_csv(filename, index=False)
         logging.info(f"Predictions saved: {filename}")
         return existing_df
@@ -454,19 +451,19 @@ class DataFetcher:
         data_processor = DataProcessor()
         combined_data = pd.read_csv(self.combined_path)
         combined_data = data_processor.preprocess_binance_data(combined_data)
-        
+
         if os.path.exists(self.predictions_path):
             predictions_data = pd.read_csv(self.predictions_path)
             predictions_data = data_processor.preprocess_binance_data(predictions_data)
         else:
             predictions_data = pd.DataFrame(columns=RAW_FEATURES.keys())
-        
+
         if os.path.exists(self.differences_path):
             differences_data = pd.read_csv(self.differences_path)
             differences_data = data_processor.preprocess_binance_data(differences_data)
         else:
             differences_data = pd.DataFrame(columns=RAW_FEATURES.keys())
-        
+
         return combined_data, predictions_data, differences_data
 
     def get_latest_value(self, target_symbol: str) -> pd.DataFrame:
@@ -483,7 +480,7 @@ class DataFetcher:
         combined_data = pd.read_csv(self.combined_path)
         combined_data = data_processor.preprocess_binance_data(combined_data)
         combined_data = data_processor.prepare_data(combined_data)
-        
+
         # Получаем числовой код символа
         if 'symbol' in data_processor.label_encoders:
             symbol_code = data_processor.label_encoders['symbol'].transform(pd.Series([target_symbol])).iloc[0]
@@ -506,7 +503,6 @@ class DataFetcher:
         else:
             logging.warning("Недостаточно данных после фильтрации для создания последовательности.")
         return None
-
 
     def get_difference_row(self, current_time: int, symbol: str) -> pd.Series:
         if symbol not in SYMBOL_MAPPING:
@@ -537,36 +533,35 @@ def main() -> None:
     ).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS['initial_lr'])
 
-    ensure_file_exists(PATHS['predictions'])
-    ensure_file_exists(PATHS['differences'])
+    # Удалены вызовы ensure_file_exists(PATHS['predictions']) и ensure_file_exists(PATHS['differences'])
 
     load_model(model, optimizer, MODEL_FILENAME, device)
-   
+
     data_fetcher = DataFetcher()
     combined_data, predictions_data, differences_data = data_fetcher.load_data()
-   
+
     data_processor = DataProcessor()
     combined_data = data_processor.prepare_data(combined_data)
-   
+
     if not predictions_data.empty:
         predictions_data = data_processor.prepare_data(predictions_data)
     if not differences_data.empty:
         differences_data = data_processor.prepare_data(differences_data)
-   
+
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS['batch_size'])
-   
+
     model, optimizer = train_and_save_model(model, dataloader, device, differences_data)
-   
+
     current_time = data_fetcher.get_latest_timestamp(TARGET_SYMBOL)
     if current_time is None:
         logging.error("No data found for the specified symbol and interval.")
         return
-   
+
     saved_prediction = fill_missing_predictions_to_csv(PATHS['predictions'], model, data_processor)
-    if saved_prediction is not None:
+    if saved_prediction is not None and not saved_prediction.empty:
         logging.info(f"Predictions updated: {PATHS['predictions']}")
-   
+
     current_value_row = data_fetcher.get_latest_value(TARGET_SYMBOL)
     latest_prediction_row = saved_prediction.iloc[0] if saved_prediction is not None and not saved_prediction.empty else pd.Series({})
     difference_row = data_fetcher.get_difference_row(current_time, TARGET_SYMBOL)
