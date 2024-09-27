@@ -150,3 +150,397 @@ INFO - Последняя цена для ETHUSDT (15 минут):
 INFO - Данные сохранены в data/predictions.csv
 INFO - Данные сохранены в data/differences.csv
 INFO - Данные сохранены в data/differences.csv
+WARNING - Данные для символа {'ETHUSDT': 1} и интервала 5 не найдены в combined_dataset.
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-09-27 14:36:08
+INFO - Updating data for BTCUSDT from 1726842968411 to 1727447760000 (2024-09-20 14:36:08 to 2024-09-27 14:36:00)
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for BTCUSDT (1 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727447760000        BTCUSDT 1 1727447760000 66423.99   66442.73   66423.99   66426.00   10.79      716504.40  2198 7.32       486369.52  14 4 -0.50      -0.87      -0.43      -0.90     
+Last                 1726843020000        BTCUSDT 1 1726843020000 63375.99   63450.00   63350.00   63414.00   35.15      2229127.66 10819 20.57      1304075.52 14 4 -0.50      -0.87      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp      open      high       low    close   volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727447760000  66423.99  66442.73  66399.98  66400.0  24.4752  ...                      10.5248                 699086.724631    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1726238176702 to 1727447700000 (2024-09-13 14:36:16 to 2024-09-27 14:35:00)
+INFO - Data saved to data/BTCUSDT_5_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for BTCUSDT (5 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727447700000        BTCUSDT 5 1727447700000 66338.00   66442.73   66337.20   66410.18   108.14     7180559.55 14619 76.39      5072339.33 14 4 -0.50      -0.87      -0.43      -0.90     
+Last                 1726238400000        BTCUSDT 5 1726238400000 58196.01   58333.00   58174.00   58305.99   128.92     7512577.50 20616 68.03      3964101.35 14 4 -0.50      -0.87      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp     open      high      low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727447700000  66338.0  66442.73  66337.2  66423.99  110.31498  ...                     76.92782                  5.108037e+06    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1725028582272 to 1727447400000 (2024-08-30 14:36:22 to 2024-09-27 14:30:00)
+INFO - Data saved to data/BTCUSDT_15_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for BTCUSDT (15 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727447400000        BTCUSDT 15 1727447400000 66280.10   66442.73   66102.01   66414.00   405.18     26857584.99 64195 205.67     13639096.50 14 4 -0.50      -0.87      -0.43      -0.90     
+Last                 1725029100000        BTCUSDT 15 1725029100000 58860.15   58974.88   58441.31   58462.89   1181.45    69353040.61 95537 516.84     30349125.57 14 4 -0.50      -0.87      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp     open      high       low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727447400000  66280.1  66442.73  66102.01  66410.01  405.50483  ...                    205.69117                  1.364019e+07    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1726842986571 to 1727447760000 (2024-09-20 14:36:26 to 2024-09-27 14:36:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (1 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727447760000        ETHUSDT 1 1727447760000 2693.34    2693.47    2691.01    2691.13    118.27     318454.00  2557 40.66      109485.92  14 4 -0.50      -0.87      -0.43      -0.90     
+Last                 1726843020000        ETHUSDT 1 1726843020000 2559.67    2565.50    2557.50    2562.83    1069.56    2740434.49 7216 646.79     1657193.95 14 4 -0.50      -0.87      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high     low    close   volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727447760000  2693.34  2693.47  2691.0  2691.01  124.309       334696.917754              2588                      40.6746                 109533.276842    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1726238195047 to 1727447700000 (2024-09-13 14:36:35 to 2024-09-27 14:35:00)
+INFO - Data saved to data/ETHUSDT_5_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (5 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727447700000        ETHUSDT 5 1727447700000 2690.50    2694.30    2690.49    2690.61    483.53     1301885.80 9699 251.04     675967.31  14 4 -0.50      -0.87      -0.43      -0.90     
+Last                 1726238400000        ETHUSDT 5 1726238400000 2357.80    2365.68    2357.40    2364.56    1213.08    2864605.46 11040 652.48     1540721.98 14 4 -0.50      -0.87      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp    open    high      low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727447700000  2690.5  2694.3  2690.49  2690.61  489.4353        1.317768e+06              9713                     256.9252                  691803.16584    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1725028600275 to 1727447400000 (2024-08-30 14:36:40 to 2024-09-27 14:30:00)
+INFO - Data saved to data/ETHUSDT_15_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (15 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727447400000        ETHUSDT 15 1727447400000 2691.40    2695.61    2680.69    2690.50    2809.69    7553883.72 43820 1260.94    3390650.76 14 4 -0.50      -0.87      -0.43      -0.90     
+Last                 1725029100000        ETHUSDT 15 1725029100000 2486.17    2491.49    2462.04    2462.72    10438.73   25852979.42 53927 4551.23    11272744.52 14 4 -0.50      -0.87      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (15 minutes):
+    symbol  interval      timestamp    open     high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727447400000  2691.4  2695.61  2680.69  2691.43  2816.8363        7.573117e+06             44135                    1268.0732                  3.409831e+06    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - All files updated with the latest prices.
+INFO - Executing get_current_price and get_latest_price methods for all symbols and intervals.
+INFO - Current price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp      open      high      low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727447760000  66423.99  66442.73  66372.0  66418.03  51.07079  ...                     28.30115                  1.879419e+06    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp      open      high       low    close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727447760000  66423.99  66442.73  66423.99  66426.0  10.78528  ...                      7.32125                 486369.524774    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp     open      high      low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727447700000  66338.0  66442.73  66337.2  66418.04  124.95836  ...                     84.50598                  5.611203e+06    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp     open      high      low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+4  BTCUSDT         5  1727447700000  66338.0  66442.73  66337.2  66410.18  108.13815  ...                     76.39036                  5.072339e+06    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp     open      high       low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727447400000  66280.1  66442.73  66102.01  66417.55  418.89487  ...                     212.6727                  1.410372e+07    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (15 minutes):
+     symbol  interval      timestamp     open      high       low    close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+15  BTCUSDT        15  1727447400000  66280.1  66442.73  66102.01  66414.0  405.17886  ...                    205.67468                  1.363910e+07    14          4      -0.5 -0.866025 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high      low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727447760000  2693.34  2693.47  2690.21  2691.76  208.9756       562543.964751              4649                      77.1387                 207665.249323    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high      low    close   volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+1  ETHUSDT         1  1727447760000  2693.34  2693.47  2691.01  2691.13  118.273        318453.99995              2557                       40.657                 109485.915066    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp    open    high      low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727447700000  2690.5  2694.3  2690.21  2691.81  528.6762        1.423379e+06             11408                     283.9893                 764643.086549    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp    open    high      low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+3  ETHUSDT         5  1727447700000  2690.5  2694.3  2690.49  2690.61  483.5323        1.301886e+06              9699                     251.0396                 675967.311624    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - Current price for ETHUSDT (15 minutes):
+    symbol  interval      timestamp    open     high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727447400000  2691.4  2695.61  2680.69  2692.08  2844.1168        7.646550e+06             45647                    1288.1899                  3.463980e+06    14          4      -0.5 -0.866025 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (15 minutes):
+     symbol  interval      timestamp    open     high      low   close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+19  ETHUSDT        15  1727447400000  2691.4  2695.61  2680.69  2690.5  2809.6883        7.553884e+06             43820                    1260.9448                  3.390651e+06    14          4      -0.5 -0.866025 -0.433884 -0.900969
+WARNING - No data found for symbol {'ETHUSDT': 1} and interval 5 in combined_dataset.
+WARNING - No data found for symbol {'ETHUSDT': 1} and interval 5 in combined_dataset.
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-09-27 15:03:01
+INFO - Updating data for BTCUSDT from 1726844581666 to 1727449380000 (2024-09-20 15:03:01 to 2024-09-27 15:03:00)
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for BTCUSDT (1 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449380000        BTCUSDT 1 1727449380000 66252.00   66260.00   66248.00   66260.00   1.04       68597.64   899 0.76       50520.80   15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726844640000        BTCUSDT 1 1726844640000 62826.01   62856.00   62703.00   62764.00   65.92      4136653.34 14091 24.05      1509476.43 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp     open     high      low    close   volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727449380000  66252.0  66260.0  66248.0  66260.0  1.44817        95949.763807               936                      1.01679                  67368.733144    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1726239789120 to 1727449200000 (2024-09-13 15:03:09 to 2024-09-27 15:00:00)
+INFO - Data saved to data/BTCUSDT_5_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for BTCUSDT (5 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        BTCUSDT 5 1727449200000 66242.65   66264.00   66161.44   66263.99   80.67      5340952.74 22434 39.95      2645129.81 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726239900000        BTCUSDT 5 1726239900000 58435.87   58503.16   58362.00   58498.01   155.71     9102419.37 21397 89.61      5238647.91 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp      open     high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727449200000  66242.65  66270.0  66161.44  66269.99  81.35554  ...                     40.63632                  2.690383e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1725030194113 to 1727449200000 (2024-08-30 15:03:14 to 2024-09-27 15:00:00)
+INFO - Data saved to data/BTCUSDT_15_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for BTCUSDT (15 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        BTCUSDT 15 1727449200000 66242.65   66272.73   66161.44   66272.73   82.07      5433569.52 22753 41.17      2725744.44 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1725030900000        BTCUSDT 15 1725030900000 58596.99   58624.14   58032.72   58094.00   857.12     49927962.52 84932 370.89     21608518.63 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp      open      high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727449200000  66242.65  66272.73  66161.44  66264.01  89.44793  ...                     41.24662                  2.730829e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1726844598331 to 1727449380000 (2024-09-20 15:03:18 to 2024-09-27 15:03:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (1 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449380000        ETHUSDT 1 1727449380000 2685.63    2686.71    2685.20    2686.71    160.01     429810.71  617 143.24     384785.96  15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726844640000        ETHUSDT 1 1726844640000 2532.20    2532.95    2523.35    2529.40    1177.26    2975310.77 13279 423.07     1069158.90 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high     low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727449380000  2685.63  2686.92  2685.2  2686.91  165.3773       444237.724019               646                     147.7052                 396774.337969    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1726239805960 to 1727449200000 (2024-09-13 15:03:25 to 2024-09-27 15:00:00)
+INFO - Data saved to data/ETHUSDT_5_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (5 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        ETHUSDT 5 1727449200000 2681.97    2686.92    2679.73    2686.91    1304.12    3498398.64 8775 897.78     2408611.99 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726239900000        ETHUSDT 5 1726239900000 2370.01    2375.53    2367.60    2370.06    1999.40    4742690.18 12615 1001.51    2375155.31 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp     open     high      low    close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727449200000  2681.97  2686.92  2679.73  2686.92  1304.2478  ...                     897.8057                  2.408682e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1725030212219 to 1727449200000 (2024-08-30 15:03:32 to 2024-09-27 15:00:00)
+INFO - Data saved to data/ETHUSDT_15_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (15 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        ETHUSDT 15 1727449200000 2681.97    2686.92    2679.73    2686.91    1305.87    3503103.69 8791 898.08     2409426.67 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1725030900000        ETHUSDT 15 1725030900000 2469.34    2470.21    2448.25    2453.92    10268.10   25227395.94 40422 5110.74    12555330.66 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (15 minutes):
+    symbol  interval      timestamp     open     high      low    close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727449200000  2681.97  2686.92  2679.73  2686.71  1309.9783  ...                     898.2127                  2.409775e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - All files updated with the latest prices.
+INFO - Executing get_current_price and get_latest_price methods for all symbols and intervals.
+INFO - Current price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp     open     high      low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727449380000  66252.0  66292.0  66248.0  66291.99  15.00206  ...                      5.90601                 391392.556464    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp     open     high      low    close   volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727449380000  66252.0  66260.0  66248.0  66260.0  1.03537        68597.637392               899                      0.76252                  50520.802944    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Current price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp      open      high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727449200000  66242.65  66302.33  66161.44  66302.33  95.12129  ...                     45.76994                  3.030649e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp      open     high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+7  BTCUSDT         5  1727449200000  66242.65  66264.0  66161.44  66263.99  80.67128  ...                     39.95342                  2.645130e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp      open      high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727449200000  66242.65  66302.33  66161.44  66302.33  95.31189  ...                     45.95902                  3.043186e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp      open      high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+6  BTCUSDT        15  1727449200000  66242.65  66272.73  66161.44  66272.73  82.06887  ...                      41.1699                  2.725744e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open    high     low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727449380000  2685.63  2687.5  2685.2  2687.48  205.7402       552692.371881               933                     176.2942                 473590.772609    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high     low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+1  ETHUSDT         1  1727449380000  2685.63  2686.71  2685.2  2686.71  160.0076        429810.70963               617                     143.2431                 384785.963096    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp     open    high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727449200000  2681.97  2687.5  2679.73  2686.95  1326.2876        3.557962e+06              9102                     902.2569                  2.420642e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (5 minutes):
+     symbol  interval      timestamp     open     high      low    close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+10  ETHUSDT         5  1727449200000  2681.97  2686.92  2679.73  2686.91  1304.1219  ...                     897.7798                  2.408612e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for ETHUSDT (15 minutes):
+    symbol  interval      timestamp     open    high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727449200000  2681.97  2687.5  2679.73  2686.95  1329.7316        3.567215e+06              9115                     902.2625                  2.420657e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (15 minutes):
+    symbol  interval      timestamp     open     high      low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+8  ETHUSDT        15  1727449200000  2681.97  2686.92  2679.73  2686.91  1305.873        3.503104e+06              8791                      898.083                  2.409427e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-09-27 15:04:24
+INFO - Updating data for BTCUSDT from 1727449380001 to 1727449440000 (2024-09-27 15:03:00 to 2024-09-27 15:04:00)
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for BTCUSDT (1 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449440000        BTCUSDT 1 1727449440000 66282.01   66282.01   66220.00   66226.64   9.16       606576.38  2556 1.25       83051.84   15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726844640000        BTCUSDT 1 1726844640000 62826.01   62856.00   62703.00   62764.00   65.92      4136653.34 14091 24.05      1509476.43 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp      open      high      low     close   volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727449440000  66282.01  66282.01  66220.0  66229.99  9.31085  ...                      1.36134                  90169.957289    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data summary for BTCUSDT (5 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        BTCUSDT 5 1727449200000 66242.65   66264.00   66161.44   66263.99   80.67      5340952.74 22434 39.95      2645129.81 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726239900000        BTCUSDT 5 1726239900000 58435.87   58503.16   58362.00   58498.01   155.71     9102419.37 21397 89.61      5238647.91 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp      open      high       low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727449200000  66242.65  66306.24  66161.44  66229.99  112.86359  ...                     52.63277                  3.485527e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data summary for BTCUSDT (15 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        BTCUSDT 15 1727449200000 66242.65   66272.73   66161.44   66272.73   82.07      5433569.52 22753 41.17      2725744.44 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1725030900000        BTCUSDT 15 1725030900000 58596.99   58624.14   58032.72   58094.00   857.12     49927962.52 84932 370.89     21608518.63 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp      open      high       low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727449200000  66242.65  66306.24  66161.44  66229.98  112.89757  ...                     52.66478                  3.487647e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1727449380001 to 1727449440000 (2024-09-27 15:03:00 to 2024-09-27 15:04:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (1 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449440000        ETHUSDT 1 1727449440000 2685.02    2685.02    2682.50    2682.95    162.24     435322.74  1165 103.72     278285.64  15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726844640000        ETHUSDT 1 1726844640000 2532.20    2532.95    2523.35    2529.40    1177.26    2975310.77 13279 423.07     1069158.90 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high     low   close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727449440000  2685.02  2685.02  2682.5  2683.5  165.4718        444007.00379              1288                     106.0748                 284614.870997    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (5 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        ETHUSDT 5 1727449200000 2681.97    2686.92    2679.73    2686.91    1304.12    3498398.64 8775 897.78     2408611.99 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1726239900000        ETHUSDT 5 1726239900000 2370.01    2375.53    2367.60    2370.06    1999.40    4742690.18 12615 1001.51    2375155.31 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp     open    high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727449200000  2681.97  2687.5  2679.73  2683.73  1547.3594        4.151338e+06             10892                    1016.7166                  2.727781e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (15 minutes):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727449200000        ETHUSDT 15 1727449200000 2681.97    2686.92    2679.73    2686.91    1305.87    3503103.69 8791 898.08     2409426.67 15 4 -0.71      -0.71      -0.43      -0.90     
+Last                 1725030900000        ETHUSDT 15 1725030900000 2469.34    2470.21    2448.25    2453.92    10268.10   25227395.94 40422 5110.74    12555330.66 15 4 -0.71      -0.71      -0.43      -0.90     
+
+INFO - Current price for ETHUSDT (15 minutes):
+    symbol  interval      timestamp     open    high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727449200000  2681.97  2687.5  2679.73  2683.99  1548.2725        4.153789e+06             10976                    1017.1812                  2.729028e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - ------------------------
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - All files updated with the latest prices.
+INFO - Executing get_current_price and get_latest_price methods for all symbols and intervals.
+INFO - Current price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp      open      high      low    close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727449440000  66282.01  66282.01  66220.0  66243.6  10.60709  ...                      2.06644                 136873.017786    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (1 minutes):
+    symbol  interval      timestamp      open      high      low     close   volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         1  1727449440000  66282.01  66282.01  66220.0  66226.64  9.15664  ...                      1.25386                  83051.835056    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for BTCUSDT (5 minutes):
+    symbol  interval      timestamp      open      high       low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT         5  1727449200000  66242.65  66306.24  66161.44  66247.99  114.57973  ...                     53.75796                  3.560059e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (5 minutes):
+     symbol  interval      timestamp      open     high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+12  BTCUSDT         5  1727449200000  66242.65  66264.0  66161.44  66263.99  80.67128  ...                     39.95342                  2.645130e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp      open      high       low     close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  BTCUSDT        15  1727449200000  66242.65  66306.24  66161.44  66249.99  114.73869  ...                     53.91012                  3.570139e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Latest price for BTCUSDT (15 minutes):
+    symbol  interval      timestamp      open      high       low     close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+9  BTCUSDT        15  1727449200000  66242.65  66272.73  66161.44  66272.73  82.06887  ...                      41.1699                  2.725744e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high     low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         1  1727449440000  2685.02  2685.02  2682.5  2683.98  173.2366       464848.096865              1603                     109.9648                 295055.627881    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (1 minutes):
+    symbol  interval      timestamp     open     high     low    close    volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+1  ETHUSDT         1  1727449440000  2685.02  2685.02  2682.5  2682.95  162.2354       435322.744637              1165                      103.716                 278285.641813    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp     open    high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT         5  1727449200000  2681.97  2687.5  2679.73  2683.98  1554.9326        4.171665e+06             11150                    1020.3849                  2.737626e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (5 minutes):
+    symbol  interval      timestamp     open     high      low    close     volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+8  ETHUSDT         5  1727449200000  2681.97  2686.92  2679.73  2686.91  1304.1219  ...                     897.7798                  2.408612e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]
+INFO - Current price for ETHUSDT (15 minutes):
+    symbol  interval      timestamp     open    high      low    close     volume  quote_asset_volume  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0  ETHUSDT        15  1727449200000  2681.97  2687.5  2679.73  2683.98  1555.2667        4.172562e+06             11151                    1020.3849                  2.737626e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+INFO - Latest price for ETHUSDT (15 minutes):
+     symbol  interval      timestamp     open     high      low    close    volume  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+13  ETHUSDT        15  1727449200000  2681.97  2686.92  2679.73  2686.91  1305.873  ...                      898.083                  2.409427e+06    15          4 -0.707107 -0.707107 -0.433884 -0.900969
+
+[1 rows x 18 columns]

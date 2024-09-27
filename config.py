@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Literal, TypedDict
+from typing import Optional, Dict, Literal, TypedDict, Union
 
 import requests
 import time
@@ -19,14 +19,13 @@ SEQ_LENGTH: int = 100
 # Временные интервалы для прогнозирования
 PREDICTION_MINUTES: int = 5
 
-# Целевая и дополнительные торговые пары
-TARGET_SYMBOL: str = 'ETHUSDT'
-
 # Маппинги символов
 SYMBOL_MAPPING: Dict[str, int] = {
     "BTCUSDT": 0,
     "ETHUSDT": 1,
 }
+
+TARGET_SYMBOL: Union[str, Dict[str, int]] = "ETHUSDT"
 
 # Определение ключей и структуры для INTERVAL_MAPPING
 IntervalKey = Literal["1m", "5m", "15m"]
@@ -41,7 +40,6 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
     "5m": {"days": 14, "minutes": 5, "milliseconds": 5 * 60 * 1000},
     "15m": {"days": 28, "minutes": 15, "milliseconds": 15 * 60 * 1000},
 }
-
 # Сырые признаки, получаемые из Binance API с указанием типов данных
 RAW_FEATURES: Dict[str, type] = {
     'symbol': str,
@@ -57,7 +55,6 @@ RAW_FEATURES: Dict[str, type] = {
     'taker_buy_base_asset_volume': float,
     'taker_buy_quote_asset_volume': float
 }
-
 # Признаки, используемые моделью (включают дополнительные признаки) с указанием типов данных
 MODEL_FEATURES: Dict[str, type] = {
     **RAW_FEATURES,
