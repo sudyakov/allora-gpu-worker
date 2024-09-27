@@ -26,7 +26,6 @@ TARGET_SYMBOL: str = 'ETHUSDT'
 SYMBOL_MAPPING: Dict[str, int] = {
     "BTCUSDT": 0,
     "ETHUSDT": 1,
-    # Добавьте другие символы по необходимости
 }
 
 # Определение ключей и структуры для INTERVAL_MAPPING
