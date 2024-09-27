@@ -16,6 +16,7 @@ from config import (
     SEQ_LENGTH,
     DATETIME_FORMAT
 )
+
 from rich.console import Console
 
 console = Console()

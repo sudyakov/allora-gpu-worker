@@ -10,7 +10,42 @@ from rich.table import Table
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
-from config import *
+from config import (
+    SEQ_LENGTH,          # Длина последовательности для модели
+    PREDICTION_MINUTES,  # Время предсказания в минутах
+    TARGET_SYMBOL,       # Целевой символ для прогнозирования
+    SYMBOL_MAPPING,      # Сопоставление символов
+    INTERVAL_MAPPING,    # Сопоставление интервалов
+    PATHS,               # Пути к необходимым ресурсам
+)
+
+
+# Сырые признаки, получаемые из Binance API с указанием типов данных
+RAW_FEATURES = {
+    'symbol': str,
+    'interval': int,
+    'timestamp': int,
+    'open': float,
+    'high': float,
+    'low': float,
+    'close': float,
+    'volume': float,
+    'quote_asset_volume': float,
+    'number_of_trades': int,
+    'taker_buy_base_asset_volume': float,
+    'taker_buy_quote_asset_volume': float
+}
+
+# Признаки, используемые моделью (включают дополнительные признаки) с указанием типов данных
+MODEL_FEATURES = {
+    **RAW_FEATURES,
+    'hour': int,
+    'dayofweek': int,
+    'sin_hour': float,
+    'cos_hour': float,
+    'sin_day': float,
+    'cos_day': float
+}
 
 # Версия и параметры модели
 MODEL_VERSION = "2.0"
