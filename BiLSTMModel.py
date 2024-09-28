@@ -1,19 +1,21 @@
 import os
 import logging
 from typing import Optional, Dict, Literal, TypedDict, Any
+
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
+
 from get_binance_data import DownloadData
 from config import (
     SEQ_LENGTH,
     PREDICTION_MINUTES,
-    RAW_FEATURES,
-    MODEL_FEATURES,
     PATHS,
 )
+
+SEQ_LENGTH: int = 60
 
 SYMBOL_MAPPING: Dict[str, int] = {
     "BTCUSDT": 0,
@@ -23,7 +25,6 @@ SYMBOL_MAPPING: Dict[str, int] = {
 TARGET_SYMBOL: str = "ETHUSDT"
 
 IntervalKey = Literal["1m", "5m", "15m"]
-
 class IntervalConfig(TypedDict):
     days: int
     minutes: int
@@ -36,18 +37,19 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
 }
 
 RAW_FEATURES: Dict[str, type] = {
-    "symbol": str,
-    "interval": int,
-    "timestamp": int,
-    "open": float,
-    "high": float,
-    "low": float,
-    "close": float,
-    "volume": float,
-    "quote_asset_volume": float,
-    "number_of_trades": int,
-    "taker_buy_base_asset_volume": float,
-    "taker_buy_quote_asset_volume": float,
+    'symbol': str,
+    'interval_str': str,
+    'interval': int,
+    'timestamp': int,
+    'open': float,
+    'high': float,
+    'low': float,
+    'close': float,
+    'volume': float,
+    'quote_asset_volume': float,
+    'number_of_trades': int,
+    'taker_buy_base_asset_volume': float,
+    'taker_buy_quote_asset_volume': float
 }
 
 MODEL_FEATURES: Dict[str, type] = {
@@ -69,6 +71,7 @@ MODEL_PARAMS: Dict[str, Any] = {
     "dropout": 0.2,
     "embedding_dim": 128,
     "num_symbols": len(SYMBOL_MAPPING),
+    "num_intervals": 3,  # Добавлено количество уникальных interval_str
 }
 
 TRAINING_PARAMS: Dict[str, Any] = {
@@ -110,12 +113,17 @@ class EnhancedBiLSTMModel(nn.Module):
         dropout: float,
         embedding_dim: int,
         num_symbols: int,
+        num_intervals: int,  # Добавлено количество interval_str
     ):
         super(EnhancedBiLSTMModel, self).__init__()
-        self.embedding = nn.Embedding(
+        self.symbol_embedding = nn.Embedding(
             num_embeddings=num_symbols, embedding_dim=embedding_dim
         )
-        self.lstm_input_size = input_size - 1 + embedding_dim
+        self.interval_embedding = nn.Embedding(
+            num_embeddings=num_intervals, embedding_dim=embedding_dim
+        )
+        # Предполагая, что 'symbol' и 'interval_str' занимают последние два столбца
+        self.lstm_input_size = input_size - 2 + (2 * embedding_dim)
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
             hidden_size=hidden_layer_size,
@@ -130,10 +138,14 @@ class EnhancedBiLSTMModel(nn.Module):
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        numerical_data = x[:, :, :-1]
-        symbols = x[:, :, -1].long()
-        embeddings = self.embedding(symbols)
-        lstm_input = torch.cat((numerical_data, embeddings), dim=2)
+        numerical_data = x[:, :, :-2]  # Обновлено для исключения двух категориальных признаков
+        symbols = x[:, :, -2].long()    # Предполагается, что 'symbol' на предпоследнем месте
+        intervals = x[:, :, -1].long()  # 'interval_str' на последнем месте
+
+        symbol_embeddings = self.symbol_embedding(symbols)
+        interval_embeddings = self.interval_embedding(intervals)
+
+        lstm_input = torch.cat((numerical_data, symbol_embeddings, interval_embeddings), dim=2)
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
@@ -161,7 +173,7 @@ class DataProcessor:
     def __init__(self):
         self.scaler = CustomMinMaxScaler(feature_range=(-1, 1))
         self.label_encoders: Dict[str, "CustomLabelEncoder"] = {}
-        self.categorical_columns = ["symbol"]
+        self.categorical_columns = ["symbol", "interval_str"]  # Добавлен 'interval_str'
         self.numerical_columns = [
             col for col in MODEL_FEATURES.keys() if col not in self.categorical_columns
         ]
@@ -190,15 +202,12 @@ class DataProcessor:
         data_tensor = torch.tensor(df.values, dtype=torch.float32)
         sequences = []
         targets = []
-        timestamps = []
         for i in range(len(data_tensor) - seq_length):
             sequences.append(data_tensor[i : i + seq_length])
             targets.append(data_tensor[i + seq_length])
-            timestamps.append(df.iloc[i + seq_length]["timestamp"])
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
-        timestamps = torch.tensor(timestamps, dtype=torch.float32)
-        tensor_dataset = TensorDataset(sequences, targets, timestamps)
+        tensor_dataset = TensorDataset(sequences, targets)
         return tensor_dataset
 
 def ensure_directory_exists(filepath: str) -> None:
@@ -207,7 +216,7 @@ def ensure_directory_exists(filepath: str) -> None:
         os.makedirs(directory)
 
 class CustomMinMaxScaler:
-    def __init__(self, feature_range: tuple = (-1, 1)):
+    def __init__(self, feature_range: tuple = (0, 1)):
         self.min: Optional[pd.Series] = None
         self.max: Optional[pd.Series] = None
         self.feature_range = feature_range
@@ -268,7 +277,6 @@ def train_and_save_model(
     model: nn.Module,
     dataloader: DataLoader,
     device: torch.device,
-    differences_data: pd.DataFrame,
 ) -> tuple:
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
@@ -285,7 +293,7 @@ def train_and_save_model(
             unit="batch",
             leave=False,
         )
-        for inputs, targets, timestamps in progress_bar:
+        for inputs, targets in progress_bar:
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -295,17 +303,6 @@ def train_and_save_model(
                 )
                 continue
             loss = criterion(outputs, targets)
-            if timestamps is not None:
-                target_timestamps = timestamps.cpu().tolist()
-                diff_data = differences_data[
-                    differences_data["timestamp"].isin(target_timestamps)
-                ]
-                if not diff_data.empty:
-                    diff_tensor = torch.tensor(
-                        diff_data[list(MODEL_FEATURES.keys())].values,
-                        dtype=torch.float32,
-                    ).to(device)
-                    loss += criterion(outputs, diff_tensor)
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
@@ -362,7 +359,7 @@ def load_model(
                 f"Model and optimizer loaded: {filepath}, {optimizer_filepath}"
             )
         else:
-            logging.info(f"Model не найден, создаётся новая модель: {filepath}")
+            logging.info(f"Model not found, creating a new model: {filepath}")
     except Exception as e:
         logging.error(f"Error loading model: {e}")
         raise
@@ -377,7 +374,7 @@ def predict_future_price(
     with torch.no_grad():
         processed_df = data_processor.prepare_data(latest_df)
         if len(processed_df) < SEQ_LENGTH:
-            logging.warning("Недостаточно данных для предсказания.")
+            logging.warning("Insufficient data for prediction.")
             return pd.DataFrame()
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
         sequence_values = last_sequence_df[
@@ -402,7 +399,7 @@ def predict_future_price(
         last_timestamp = latest_df["timestamp"].iloc[-1]
         interval_key = get_interval(prediction_minutes)
         if interval_key is None:
-            logging.error(f"Неизвестный интервал: {prediction_minutes} минут.")
+            logging.error(f"Unknown interval: {prediction_minutes} minutes.")
             return pd.DataFrame()
         prediction_milliseconds = INTERVAL_MAPPING[interval_key]["milliseconds"]
         next_timestamp = last_timestamp + prediction_milliseconds
@@ -411,75 +408,11 @@ def predict_future_price(
         scaled_predictions["interval"] = prediction_minutes
     return scaled_predictions
 
-def fill_missing_predictions_to_csv(
-    filename: str, model: nn.Module, data_processor: DataProcessor
-) -> Optional[pd.DataFrame]:
-    data_fetcher = DataFetcher()
-    latest_binance_timestamp = data_fetcher.get_latest_timestamp(TARGET_SYMBOL)
-    if latest_binance_timestamp is None:
-        logging.warning("Latest timestamp не найден в архиве Binance.")
-        return None
-    interval_key = get_interval(PREDICTION_MINUTES)
-    if interval_key is None:
-        logging.error(f"Интервал для {PREDICTION_MINUTES} минут не найден.")
-        return None
-    prediction_milliseconds = INTERVAL_MAPPING[interval_key]["milliseconds"]
-    next_prediction_timestamp = latest_binance_timestamp + prediction_milliseconds
-    if os.path.exists(filename) and os.path.getsize(filename) > 0:
-        existing_df = pd.read_csv(filename)
-        latest_prediction_time = existing_df["timestamp"].max()
-        if latest_prediction_time >= next_prediction_timestamp:
-            logging.info("Новые предсказания не требуются.")
-            return existing_df
-    else:
-        existing_df = pd.DataFrame(
-            columns=list(MODEL_FEATURES.keys()) + ["timestamp", "symbol", "interval"]
-        )
-    logging.info(f"Создание предсказания для таймстампа: {next_prediction_timestamp}")
-    sequence = data_fetcher.get_sequence_for_timestamp(
-        latest_binance_timestamp, TARGET_SYMBOL
-    )
-    if sequence is not None:
-        predictions = predict_future_price(model, sequence, data_processor)
-        predictions["timestamp"] = next_prediction_timestamp
-        predictions["symbol"] = TARGET_SYMBOL
-        predictions["interval"] = PREDICTION_MINUTES
-        existing_df = pd.concat([predictions, existing_df], ignore_index=True)
-        ensure_directory_exists(filename)
-        existing_df.to_csv(filename, index=False)
-        logging.info(f"Предсказания сохранены: {filename}")
-        return existing_df
-    logging.warning("Последовательность данных для предсказания не найдена.")
-    return existing_df
-
-def print_combined_row(
-    current_row: pd.DataFrame, difference_row: pd.Series, predicted_next_row: pd.Series
-) -> None:
-    print("Текущее значение vs Предсказанное")
-    print(
-        "{:<20} {:<20} {:<20} {:<20}".format(
-            "Поле", "Текущее значение", "Разница", "Следующее предсказание"
-        )
-    )
-    for col in MODEL_FEATURES:
-        current_value = (
-            str(current_row[col].values[0]) if not current_row.empty else "N/A"
-        )
-        difference_value = str(difference_row[col]) if col in difference_row else "N/A"
-        predicted_value = (
-            str(predicted_next_row[col]) if col in predicted_next_row else "N/A"
-        )
-        print(
-            "{:<20} {:<20} {:<20} {:<20}".format(
-                col, current_value, difference_value, predicted_value
-            )
-        )
-
 def get_interval(minutes: int) -> Optional[str]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
-    logging.error(f"Интервал для {minutes} минут не найден в INTERVAL_MAPPING.")
+    logging.error(f"Interval for {minutes} minutes not found in INTERVAL_MAPPING.")
     return None
 
 class DataFetcher:
@@ -487,7 +420,6 @@ class DataFetcher:
         self.download_data = DownloadData()
         self.combined_path = PATHS["combined_dataset"]
         self.predictions_path = PATHS["predictions"]
-        self.differences_path = PATHS["differences"]
 
     def load_data(self) -> tuple:
         data_processor = DataProcessor()
@@ -498,73 +430,10 @@ class DataFetcher:
             predictions_data = data_processor.preprocess_binance_data(predictions_data)
         else:
             predictions_data = pd.DataFrame(columns=RAW_FEATURES.keys())
-        if os.path.exists(self.differences_path):
-            differences_data = pd.read_csv(self.differences_path)
-            differences_data = data_processor.preprocess_binance_data(differences_data)
-        else:
-            differences_data = pd.DataFrame(columns=RAW_FEATURES.keys())
-        return combined_data, predictions_data, differences_data
+        return combined_data, predictions_data
 
     def get_latest_value(self, target_symbol: str) -> pd.DataFrame:
         return self.download_data.get_latest_price(target_symbol, PREDICTION_MINUTES)
-
-    def get_latest_timestamp(self, target_symbol: str) -> Optional[int]:
-        latest_row = self.download_data.get_latest_price(
-            target_symbol, PREDICTION_MINUTES
-        )
-        if latest_row.empty:
-            return None
-        return int(latest_row["timestamp"].iloc[0])
-
-    def get_sequence_for_timestamp(
-        self, timestamp: int, target_symbol: str
-    ) -> Optional[torch.Tensor]:
-        data_processor = DataProcessor()
-        combined_data = pd.read_csv(self.combined_path)
-        combined_data = data_processor.preprocess_binance_data(combined_data)
-        combined_data = data_processor.prepare_data(combined_data)
-        if "symbol" in data_processor.label_encoders:
-            symbol_code = (
-                data_processor.label_encoders["symbol"]
-                .transform(pd.Series([target_symbol]))
-                .iloc[0]
-            )
-        else:
-            logging.error("Label encoder для 'symbol' не найден.")
-            return None
-        interval = PREDICTION_MINUTES
-        filtered_df = combined_data[
-            (combined_data["symbol"] == symbol_code)
-            & (combined_data["interval"] == interval)
-            & (combined_data["timestamp"] <= timestamp)
-        ].sort_values("timestamp")
-        if len(filtered_df) >= SEQ_LENGTH:
-            sequence = filtered_df.iloc[-SEQ_LENGTH:]
-            sequence_values = sequence[
-                data_processor.numerical_columns + data_processor.categorical_columns
-            ].values
-            return torch.tensor(sequence_values, dtype=torch.float32)
-        logging.warning(
-            "Недостаточно данных после фильтрации для создания последовательности."
-        )
-        return None
-
-    def get_difference_row(self, current_time: int, symbol: str) -> pd.Series:
-        if symbol not in SYMBOL_MAPPING:
-            logging.error(f"Symbol {symbol} не найден в SYMBOL_MAPPING")
-            return pd.Series([None] * len(RAW_FEATURES), index=RAW_FEATURES.keys())
-        if not os.path.exists(self.differences_path):
-            return pd.Series([None] * len(RAW_FEATURES), index=RAW_FEATURES.keys())
-        differences_data = pd.read_csv(self.differences_path)
-        differences_data = DataProcessor().preprocess_binance_data(differences_data)
-        difference_row = differences_data[
-            (differences_data["symbol"] == symbol)
-            & (differences_data["interval"] == PREDICTION_MINUTES)
-            & (differences_data["timestamp"] == current_time)
-        ]
-        if not difference_row.empty:
-            return difference_row.iloc[0]
-        return pd.Series([None] * len(RAW_FEATURES), index=RAW_FEATURES.keys())
 
 def main() -> None:
     device = get_device()
@@ -575,26 +444,20 @@ def main() -> None:
         dropout=MODEL_PARAMS["dropout"],
         embedding_dim=MODEL_PARAMS["embedding_dim"],
         num_symbols=MODEL_PARAMS["num_symbols"],
+        num_intervals=MODEL_PARAMS["num_intervals"],  # Передача количества interval_str
     ).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     load_model(model, optimizer, MODEL_FILENAME, device)
     data_fetcher = DataFetcher()
-    combined_data, predictions_data, differences_data = data_fetcher.load_data()
+    combined_data, _ = data_fetcher.load_data()
     data_processor = DataProcessor()
     combined_data = data_processor.prepare_data(combined_data)
-    if not predictions_data.empty:
-        predictions_data = data_processor.prepare_data(predictions_data)
-    if not differences_data.empty:
-        differences_data = data_processor.prepare_data(differences_data)
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
-    model, optimizer = train_and_save_model(model, dataloader, device, differences_data)
+    model, optimizer = train_and_save_model(model, dataloader, device)
     latest_df = data_fetcher.get_latest_value(TARGET_SYMBOL)
     predicted_df = predict_future_price(model, latest_df, data_processor)
-    if not predicted_df.empty:
-        ensure_directory_exists(PATHS["predictions"])
-        predicted_df.to_csv(PATHS["predictions"], mode='a', header=False, index=False)
-        logging.info("Предсказания успешно сохранены.")
+    print(predicted_df)
 
 if __name__ == "__main__":
     while True:

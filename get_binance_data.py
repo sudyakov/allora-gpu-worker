@@ -85,6 +85,7 @@ class DownloadData:
                 df = df.drop(columns=['close_time', 'ignore'])
                 df['symbol'] = symbol
                 df['interval'] = interval_info['minutes']
+                df['interval_str'] = interval_str
                 df = preprocess_binance_data(df)
                 df = fill_missing_model_features(df)
                 all_data.append(df)
@@ -121,6 +122,7 @@ class DownloadData:
             df = df.drop(columns=['close_time', 'ignore'])
             df['symbol'] = symbol
             df['interval'] = interval_info['minutes']
+            df['interval_str'] = interval_str
             df = preprocess_binance_data(df)
             df = fill_missing_model_features(df)
             return df[list(self.MODEL_FEATURES.keys())]

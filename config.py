@@ -44,6 +44,7 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
 # Сырые признаки, получаемые из Binance API с указанием типов данных
 RAW_FEATURES: Dict[str, type] = {
     'symbol': str,
+    'interval_str': str,
     'interval': int,
     'timestamp': int,
     'open': float,
