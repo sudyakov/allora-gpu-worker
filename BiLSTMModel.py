@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Optional, Dict, Literal, TypedDict, Any
+from typing import Optional, Dict, Literal, TypedDict, Any, Tuple
 
 import pandas as pd
 import torch
@@ -71,7 +71,7 @@ MODEL_PARAMS: Dict[str, Any] = {
     "dropout": 0.2,
     "embedding_dim": 128,
     "num_symbols": len(SYMBOL_MAPPING),
-    "num_intervals": 3,  # Добавлено количество уникальных interval_str
+    "num_intervals": 3, # 3 intervals: 1m, 5m, 15m
 }
 
 TRAINING_PARAMS: Dict[str, Any] = {
@@ -107,13 +107,13 @@ class Attention(nn.Module):
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
         self,
-        input_size: int,
-        hidden_layer_size: int,
-        num_layers: int,
-        dropout: float,
-        embedding_dim: int,
-        num_symbols: int,
-        num_intervals: int,  # Добавлено количество interval_str
+        input_size: int = MODEL_PARAMS["input_size"],
+        hidden_layer_size: int = MODEL_PARAMS["hidden_layer_size"],
+        num_layers: int = MODEL_PARAMS["num_layers"],
+        dropout: float = MODEL_PARAMS["dropout"],
+        embedding_dim: int = MODEL_PARAMS["embedding_dim"],
+        num_symbols: int = MODEL_PARAMS["num_symbols"],
+        num_intervals: int = MODEL_PARAMS["num_intervals"],  # Передача количества interval_str
     ):
         super(EnhancedBiLSTMModel, self).__init__()
         self.symbol_embedding = nn.Embedding(
@@ -139,7 +139,7 @@ class EnhancedBiLSTMModel(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         numerical_data = x[:, :, :-2]  # Обновлено для исключения двух категориальных признаков
-        symbols = x[:, :, -2].long()    # Предполагается, что 'symbol' на предпоследнем месте
+        symbols = x[:, :, -2].long()   # Предполагается, что 'symbol' на предпоследнем месте
         intervals = x[:, :, -1].long()  # 'interval_str' на последнем месте
 
         symbol_embeddings = self.symbol_embedding(symbols)
@@ -172,8 +172,8 @@ def get_device() -> torch.device:
 class DataProcessor:
     def __init__(self):
         self.scaler = CustomMinMaxScaler(feature_range=(-1, 1))
-        self.label_encoders: Dict[str, "CustomLabelEncoder"] = {}
-        self.categorical_columns = ["symbol", "interval_str"]  # Добавлен 'interval_str'
+        self.label_encoders: Dict[str, CustomLabelEncoder] = {}
+        self.categorical_columns = ["symbol", "interval_str"]
         self.numerical_columns = [
             col for col in MODEL_FEATURES.keys() if col not in self.categorical_columns
         ]
@@ -198,7 +198,7 @@ class DataProcessor:
         df = df[self.numerical_columns + self.categorical_columns]
         return df
 
-    def prepare_dataset(self, df: pd.DataFrame, seq_length: int) -> TensorDataset:
+    def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         data_tensor = torch.tensor(df.values, dtype=torch.float32)
         sequences = []
         targets = []
@@ -263,6 +263,30 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
+class CustomLabelEncoder:
+    def __init__(self):
+        self.classes_: Dict[Any, int] = {}
+        self.classes_reverse: Dict[int, Any] = {}
+
+    def fit(self, data: pd.Series) -> None:
+        unique_classes = data.dropna().unique()
+        self.classes_ = {cls: idx for idx, cls in enumerate(unique_classes)}
+        self.classes_reverse = {idx: cls for cls, idx in self.classes_.items()}
+
+    def transform(self, data: pd.Series) -> pd.Series:
+        if not self.classes_:
+            raise ValueError("LabelEncoder has not been fitted yet.")
+        return data.map(self.classes_).fillna(-1).astype(int)
+
+    def inverse_transform(self, data: pd.Series) -> pd.Series:
+        if not self.classes_reverse:
+            raise ValueError("LabelEncoder has not been fitted yet.")
+        return data.map(self.classes_reverse)
+
+    def fit_transform(self, data: pd.Series) -> pd.Series:
+        self.fit(data)
+        return self.transform(data)
+
 def create_dataloader(
     dataset: TensorDataset, batch_size: int, shuffle: bool = True
 ) -> DataLoader:
@@ -277,7 +301,7 @@ def train_and_save_model(
     model: nn.Module,
     dataloader: DataLoader,
     device: torch.device,
-) -> tuple:
+) -> Tuple[nn.Module, torch.optim.Optimizer]:
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     criterion = nn.MSELoss()
@@ -365,7 +389,7 @@ def load_model(
         raise
 
 def predict_future_price(
-    model: nn.Module,
+    model: EnhancedBiLSTMModel,
     latest_df: pd.DataFrame,
     data_processor: DataProcessor,
     prediction_minutes: int = PREDICTION_MINUTES
@@ -374,7 +398,7 @@ def predict_future_price(
     with torch.no_grad():
         processed_df = data_processor.prepare_data(latest_df)
         if len(processed_df) < SEQ_LENGTH:
-            logging.warning("Insufficient data for prediction.")
+            logging.warning("Недостаточно данных для предсказания.")
             return pd.DataFrame()
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
         sequence_values = last_sequence_df[
@@ -399,7 +423,7 @@ def predict_future_price(
         last_timestamp = latest_df["timestamp"].iloc[-1]
         interval_key = get_interval(prediction_minutes)
         if interval_key is None:
-            logging.error(f"Unknown interval: {prediction_minutes} minutes.")
+            logging.error(f"Неизвестный интервал: {prediction_minutes} минут.")
             return pd.DataFrame()
         prediction_milliseconds = INTERVAL_MAPPING[interval_key]["milliseconds"]
         next_timestamp = last_timestamp + prediction_milliseconds
@@ -435,17 +459,15 @@ class DataFetcher:
     def get_latest_value(self, target_symbol: str) -> pd.DataFrame:
         return self.download_data.get_latest_price(target_symbol, PREDICTION_MINUTES)
 
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+
 def main() -> None:
+    setup_logging()
     device = get_device()
-    model = EnhancedBiLSTMModel(
-        input_size=MODEL_PARAMS["input_size"],
-        hidden_layer_size=MODEL_PARAMS["hidden_layer_size"],
-        num_layers=MODEL_PARAMS["num_layers"],
-        dropout=MODEL_PARAMS["dropout"],
-        embedding_dim=MODEL_PARAMS["embedding_dim"],
-        num_symbols=MODEL_PARAMS["num_symbols"],
-        num_intervals=MODEL_PARAMS["num_intervals"],  # Передача количества interval_str
-    ).to(device)
+    model = EnhancedBiLSTMModel().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     load_model(model, optimizer, MODEL_FILENAME, device)
     data_fetcher = DataFetcher()
@@ -458,6 +480,10 @@ def main() -> None:
     latest_df = data_fetcher.get_latest_value(TARGET_SYMBOL)
     predicted_df = predict_future_price(model, latest_df, data_processor)
     print(predicted_df)
+
+if __name__ == "__main__":
+    while True:
+        main()
 
 if __name__ == "__main__":
     while True:
