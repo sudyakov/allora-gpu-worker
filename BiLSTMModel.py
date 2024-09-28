@@ -7,7 +7,9 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 from get_binance_data import DownloadData
-from config import SEQ_LENGTH, PREDICTION_MINUTES, PATHS
+from config import PATHS
+
+SEQ_LENGTH: int = 60
 
 class IntervalConfig(TypedDict):
     days: int
@@ -22,6 +24,7 @@ SYMBOL_MAPPING: Dict[str, int] = {
 }
 
 TARGET_SYMBOL: str = "ETHUSDT"
+PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
     "1m": {"days": 7, "minutes": 1, "milliseconds": 60000},
