@@ -229,20 +229,19 @@ class DownloadData:
             self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
 
-    def get_latest_price(self, symbol: str, interval: int) -> pd.DataFrame:
+    def get_latest_prices(self, symbol: str, interval: int, count: int = 1) -> pd.DataFrame:
         combined_dataset_path = self.PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
             df_combined = pd.read_csv(combined_dataset_path)
             df_filtered = df_combined[(df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)]
             if not df_filtered.empty:
-                df_filtered = df_filtered.sort_values('timestamp', ascending=False)
-                latest_row = df_filtered.head(1)
-                return latest_row
+                df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
+                return df_filtered
             else:
-                self.logger.warning(f"No data found for symbol {symbol} and interval {interval} in combined_dataset.")
+                self.logger.warning(f"Нет данных для символа {symbol} и интервала {interval} в combined_dataset.")
                 return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
         else:
-            self.logger.warning(f"combined_dataset.csv not found at path {combined_dataset_path}")
+            self.logger.warning(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
             return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:

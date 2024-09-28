@@ -1,4 +1,5 @@
 import os
+import pickle
 import logging
 from typing import Optional, Dict, Literal, TypedDict, Tuple, Union, List
 import pandas as pd
@@ -99,6 +100,7 @@ TRAINING_PARAMS: TrainingParams = {
 }
 
 MODEL_FILENAME = os.path.join(PATHS["models_dir"], f"enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth")
+DATA_PROCESSOR_FILENAME = os.path.join(PATHS["models_dir"], f"data_processor_{TARGET_SYMBOL}_v{MODEL_VERSION}.pkl")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -132,10 +134,13 @@ class EnhancedBiLSTMModel(nn.Module):
         self.numerical_columns = numerical_columns
         self.categorical_columns = categorical_columns
         self.column_name_to_index = column_name_to_index
+
         self.symbol_embedding = nn.Embedding(num_embeddings=num_symbols, embedding_dim=embedding_dim)
         self.interval_embedding = nn.Embedding(num_embeddings=num_intervals, embedding_dim=embedding_dim)
+
         numerical_input_size = len(numerical_columns)
         self.lstm_input_size = numerical_input_size + (2 * embedding_dim)
+
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
             hidden_size=hidden_layer_size,
@@ -152,10 +157,13 @@ class EnhancedBiLSTMModel(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
+
         symbols = x[:, :, self.column_name_to_index['symbol']].long()
         intervals = x[:, :, self.column_name_to_index['interval_str']].long()
+
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
+
         lstm_input = torch.cat((numerical_data, symbol_embeddings, interval_embeddings), dim=2)
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
@@ -197,16 +205,39 @@ class DataProcessor:
                 df[col] = df[col].astype(dtype)
         return df
 
-    def prepare_data(self, df: pd.DataFrame) -> pd.DataFrame:
+    def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Закодировать категориальные колонки и масштабировать числовые
         for col in self.categorical_columns:
             le = CustomLabelEncoder()
             df[col] = le.fit_transform(df[col])
             self.label_encoders[col] = le
+
         for col in self.numerical_columns:
             df[col] = df[col].astype(MODEL_FEATURES[col])
+
         self.scaler.fit(df[self.numerical_columns])
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
-        df = df[self.numerical_columns + self.categorical_columns]
+
+        # Сохранение порядка столбцов согласно RAW_FEATURES
+        df = df[list(RAW_FEATURES.keys()) + ["hour", "dayofweek", "sin_hour", "cos_hour", "sin_day", "cos_day"]]
+        return df
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Только преобразовать без обучения
+        for col in self.categorical_columns:
+            le = self.label_encoders.get(col)
+            if le is None:
+                logging.error(f"LabelEncoder для колонки {col} не обучен.")
+                raise ValueError(f"LabelEncoder для колонки {col} не обучен.")
+            df[col] = le.transform(df[col])
+
+        for col in self.numerical_columns:
+            df[col] = df[col].astype(MODEL_FEATURES[col])
+
+        df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
+
+        # Сохранение порядка столбцов согласно RAW_FEATURES
+        df = df[list(RAW_FEATURES.keys()) + ["hour", "dayofweek", "sin_hour", "cos_hour", "sin_day", "cos_day"]]
         return df
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
@@ -220,6 +251,27 @@ class DataProcessor:
         targets = torch.stack(targets)
         tensor_dataset = TensorDataset(sequences, targets)
         return tensor_dataset
+
+    def save(self, filepath: str) -> None:
+        try:
+            ensure_directory_exists(filepath)
+            with open(filepath, 'wb') as f:
+                pickle.dump(self, f)
+            logging.info(f"DataProcessor сохранен: {filepath}")
+        except Exception as e:
+            logging.error(f"Ошибка при сохранении DataProcessor: {e}")
+            raise
+
+    @staticmethod
+    def load(filepath: str) -> 'DataProcessor':
+        try:
+            with open(filepath, 'rb') as f:
+                processor = pickle.load(f)
+            logging.info(f"DataProcessor загружен: {filepath}")
+            return processor
+        except Exception as e:
+            logging.error(f"Ошибка при загрузке DataProcessor: {e}")
+            raise
 
 def ensure_directory_exists(filepath: str) -> None:
     directory = os.path.dirname(filepath)
@@ -294,6 +346,7 @@ def train_and_save_model(
     epochs_no_improve = 0
     n_epochs_stop = 5
     min_lr = TRAINING_PARAMS["min_lr"]
+
     for epoch in range(TRAINING_PARAMS["initial_epochs"]):
         total_loss = 0.0
         progress_bar = tqdm(
@@ -381,42 +434,65 @@ def predict_future_price(
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
-        processed_df = data_processor.prepare_data(latest_df)
+        try:
+            processed_df = data_processor.transform(latest_df)
+        except Exception as e:
+            logging.error(f"Ошибка при обработке latest_df: {e}")
+            return pd.DataFrame()
+
         if len(processed_df) < SEQ_LENGTH:
             logging.warning("Недостаточно данных для предсказания.")
             logging.info(f"Текущего количества строк: {len(processed_df)}, требуется: {SEQ_LENGTH}")
             return pd.DataFrame()
+
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
         sequence_values = last_sequence_df[
             data_processor.numerical_columns + data_processor.categorical_columns
         ].values
         last_sequence = torch.tensor(sequence_values, dtype=torch.float32).unsqueeze(0).to(next(model.parameters()).device)
         predictions = model(last_sequence).cpu().numpy()
+
         numeric_features = data_processor.numerical_columns
         categorical_features = data_processor.categorical_columns
+
         predictions_df = pd.DataFrame(
             predictions, columns=numeric_features + categorical_features
         )
-        scaled_predictions = data_processor.scaler.inverse_transform(
+
+        scaled_numeric = data_processor.scaler.inverse_transform(
             predictions_df[numeric_features]
         )
+
         for col in categorical_features:
-            scaled_predictions[col] = predictions_df[col].astype(int)
+            predictions_df[col] = predictions_df[col].astype(int)
             le = data_processor.label_encoders.get(col)
             if le:
-                scaled_predictions[col] = le.inverse_transform(scaled_predictions[col])
-        scaled_predictions = scaled_predictions.clip(lower=0)
+                predictions_df[col] = le.inverse_transform(predictions_df[col])
+
+        # Применяем clip только к числовым столбцам
+        scaled_numeric = scaled_numeric.clip(lower=0)
+        predictions_df[numeric_features] = scaled_numeric
+
+        # Сохранение порядка столбцов согласно RAW_FEATURES
+        predictions_df = predictions_df[list(RAW_FEATURES.keys())]
+
         last_timestamp = latest_df["timestamp"].iloc[-1]
         interval_key = get_interval(prediction_minutes)
         if interval_key is None:
             logging.error(f"Неизвестный интервал: {prediction_minutes} минут.")
             return pd.DataFrame()
+
         prediction_milliseconds = INTERVAL_MAPPING[interval_key]["milliseconds"]
         next_timestamp = last_timestamp + prediction_milliseconds
-        scaled_predictions["timestamp"] = next_timestamp
-        scaled_predictions["symbol"] = TARGET_SYMBOL
-        scaled_predictions["interval"] = prediction_minutes
-    return scaled_predictions
+
+        predictions_df["timestamp"] = next_timestamp
+        predictions_df["symbol"] = TARGET_SYMBOL
+        predictions_df["interval"] = prediction_minutes
+
+        # Переупорядочивание столбцов согласно RAW_FEATURES
+        predictions_df = predictions_df[list(RAW_FEATURES.keys())]
+
+    return predictions_df
 
 def get_interval(minutes: int) -> Optional[str]:
     for key, config in INTERVAL_MAPPING.items():
@@ -432,18 +508,12 @@ class DataFetcher:
         self.predictions_path = PATHS["predictions"]
 
     def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        data_processor = DataProcessor()
         combined_data = pd.read_csv(self.combined_path)
-        combined_data = data_processor.preprocess_binance_data(combined_data)
-        if os.path.exists(self.predictions_path):
-            predictions_data = pd.read_csv(self.predictions_path)
-            predictions_data = data_processor.preprocess_binance_data(predictions_data)
-        else:
-            predictions_data = pd.DataFrame(columns=RAW_FEATURES.keys())
+        predictions_data = pd.read_csv(self.predictions_path) if os.path.exists(self.predictions_path) else pd.DataFrame(columns=RAW_FEATURES.keys())
         return combined_data, predictions_data
 
     def get_latest_binances_value(self, target_symbol: str) -> pd.DataFrame:
-        return self.download_data.get_latest_price(target_symbol, PREDICTION_MINUTES)
+        return self.download_data.get_latest_prices(target_symbol, PREDICTION_MINUTES, SEQ_LENGTH)
 
 def setup_logging():
     logging.basicConfig(
@@ -453,9 +523,22 @@ def setup_logging():
 def main() -> None:
     setup_logging()
     device = get_device()
-    data_processor = DataProcessor()
+
+    # Попытка загрузить существующий DataProcessor
+    if os.path.exists(DATA_PROCESSOR_FILENAME):
+        data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
+    else:
+        data_processor = DataProcessor()
+
     combined_data, _ = DataFetcher().load_data()
-    combined_data = data_processor.prepare_data(combined_data)
+    combined_data = data_processor.preprocess_binance_data(combined_data)
+
+    if not os.path.exists(DATA_PROCESSOR_FILENAME):
+        combined_data = data_processor.fit_transform(combined_data)
+        data_processor.save(DATA_PROCESSOR_FILENAME)
+    else:
+        combined_data = data_processor.transform(combined_data)
+
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
     model = EnhancedBiLSTMModel(
         numerical_columns=data_processor.numerical_columns,
@@ -468,8 +551,8 @@ def main() -> None:
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
     model, optimizer = train_and_save_model(model, dataloader, device)
     latest_df = DataFetcher().get_latest_binances_value(TARGET_SYMBOL)
-    predicted_df = predict_future_price(model, latest_df, data_processor)
     print(latest_df)
+    predicted_df = predict_future_price(model, latest_df, data_processor)
     print(predicted_df)
 
 if __name__ == "__main__":
