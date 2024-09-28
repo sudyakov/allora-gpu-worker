@@ -352,13 +352,13 @@ def load_model(
 ) -> None:
     try:
         if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
-            state_dict = torch.load(filepath, map_location=device, weights_only=True)
+            state_dict = torch.load(filepath, map_location=device)
             model.load_state_dict(state_dict)
             model.to(device)
             optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
             if os.path.exists(optimizer_filepath):
                 optimizer_state_dict = torch.load(
-                    optimizer_filepath, map_location=device, weights_only=True
+                    optimizer_filepath, map_location=device
                 )
                 optimizer.load_state_dict(optimizer_state_dict)
             logging.info(
@@ -440,8 +440,6 @@ class DataFetcher:
         return combined_data, predictions_data
 
     def get_latest_binances_value(self, target_symbol: str) -> pd.DataFrame:
-        return self.download_data.get_latest_price(target_symbol, PREDICTION_MINUTES)
-    def get_latest_predictions_value(self, target_symbol: str) -> pd.DataFrame:
         return self.download_data.get_latest_price(target_symbol, PREDICTION_MINUTES)
 
 def setup_logging():
