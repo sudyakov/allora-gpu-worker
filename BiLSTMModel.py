@@ -179,7 +179,7 @@ def get_device() -> torch.device:
 
 class DataProcessor:
     def __init__(self):
-        self.scaler = CustomMinMaxScaler(feature_range=(-1, 1))
+        self.scaler = CustomMinMaxScaler(feature_range=(0, 1))
         self.label_encoders: Dict[str, 'CustomLabelEncoder'] = {}
         self.categorical_columns: List[str] = ["symbol", "interval_str"]
         self.numerical_columns: List[str] = [
@@ -381,6 +381,7 @@ def predict_future_price(
         processed_df = data_processor.prepare_data(latest_df)
         if len(processed_df) < SEQ_LENGTH:
             logging.warning("Недостаточно данных для предсказания.")
+            logging.info(f"Текущего количества строк: {len(processed_df)}, требуется: {SEQ_LENGTH}")
             return pd.DataFrame()
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
         sequence_values = last_sequence_df[
@@ -467,6 +468,7 @@ def main() -> None:
     model, optimizer = train_and_save_model(model, dataloader, device)
     latest_df = DataFetcher().get_latest_binances_value(TARGET_SYMBOL)
     predicted_df = predict_future_price(model, latest_df, data_processor)
+    print(latest_df)
     print(predicted_df)
 
 if __name__ == "__main__":
