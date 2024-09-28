@@ -1,6 +1,7 @@
+#BiLSTMModel.py
 import os
 import logging
-from typing import Optional, Dict, Literal, TypedDict, Any, Tuple
+from typing import Optional, Dict, Literal, TypedDict, Tuple, Union
 
 import pandas as pd
 import torch
@@ -15,7 +16,12 @@ from config import (
     PATHS,
 )
 
-SEQ_LENGTH: int = 60
+class IntervalConfig(TypedDict):
+    days: int
+    minutes: int
+    milliseconds: int
+
+IntervalKey = Literal["1m", "5m", "15m"]
 
 SYMBOL_MAPPING: Dict[str, int] = {
     "BTCUSDT": 0,
@@ -23,12 +29,6 @@ SYMBOL_MAPPING: Dict[str, int] = {
 }
 
 TARGET_SYMBOL: str = "ETHUSDT"
-
-IntervalKey = Literal["1m", "5m", "15m"]
-class IntervalConfig(TypedDict):
-    days: int
-    minutes: int
-    milliseconds: int
 
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
     "1m": {"days": 7, "minutes": 1, "milliseconds": 60000},
@@ -64,17 +64,35 @@ MODEL_FEATURES: Dict[str, type] = {
 
 MODEL_VERSION = "2.0"
 
-MODEL_PARAMS: Dict[str, Any] = {
+class ModelParams(TypedDict):
+    input_size: int
+    hidden_layer_size: int
+    num_layers: int
+    dropout: float
+    embedding_dim: int
+    num_symbols: int
+    num_intervals: int
+
+MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES),
     "hidden_layer_size": 256,
     "num_layers": 4,
     "dropout": 0.2,
     "embedding_dim": 128,
     "num_symbols": len(SYMBOL_MAPPING),
-    "num_intervals": 3, # 3 intervals: 1m, 5m, 15m
+    "num_intervals": 3,  # 3 intervals: 1m, 5m, 15m
 }
 
-TRAINING_PARAMS: Dict[str, Any] = {
+class TrainingParams(TypedDict):
+    batch_size: int
+    initial_epochs: int
+    initial_lr: float
+    max_epochs: int
+    min_lr: float
+    use_mixed_precision: bool
+    num_workers: int
+
+TRAINING_PARAMS: TrainingParams = {
     "batch_size": 512,
     "initial_epochs": 10,
     "initial_lr": 0.0005,
@@ -172,9 +190,9 @@ def get_device() -> torch.device:
 class DataProcessor:
     def __init__(self):
         self.scaler = CustomMinMaxScaler(feature_range=(-1, 1))
-        self.label_encoders: Dict[str, CustomLabelEncoder] = {}
-        self.categorical_columns = ["symbol", "interval_str"]
-        self.numerical_columns = [
+        self.label_encoders: Dict[str, 'CustomLabelEncoder'] = {}
+        self.categorical_columns: list[str] = ["symbol", "interval_str"]
+        self.numerical_columns: list[str] = [
             col for col in MODEL_FEATURES.keys() if col not in self.categorical_columns
         ]
 
@@ -195,7 +213,8 @@ class DataProcessor:
             df[col] = df[col].astype(MODEL_FEATURES[col])
         self.scaler.fit(df[self.numerical_columns])
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
-        df = df[self.numerical_columns + self.categorical_columns]
+        # Обеспечиваем, чтобы 'symbol' и 'interval_str' были первыми столбцами
+        df = df[self.categorical_columns + self.numerical_columns]
         return df
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
@@ -241,32 +260,8 @@ class CustomMinMaxScaler:
 
 class CustomLabelEncoder:
     def __init__(self):
-        self.classes_: Dict[Any, int] = {}
-        self.classes_reverse: Dict[int, Any] = {}
-
-    def fit(self, data: pd.Series) -> None:
-        unique_classes = data.dropna().unique()
-        self.classes_ = {cls: idx for idx, cls in enumerate(unique_classes)}
-        self.classes_reverse = {idx: cls for cls, idx in self.classes_.items()}
-
-    def transform(self, data: pd.Series) -> pd.Series:
-        if not self.classes_:
-            raise ValueError("LabelEncoder has not been fitted yet.")
-        return data.map(self.classes_).fillna(-1).astype(int)
-
-    def inverse_transform(self, data: pd.Series) -> pd.Series:
-        if not self.classes_reverse:
-            raise ValueError("LabelEncoder has not been fitted yet.")
-        return data.map(self.classes_reverse)
-
-    def fit_transform(self, data: pd.Series) -> pd.Series:
-        self.fit(data)
-        return self.transform(data)
-
-class CustomLabelEncoder:
-    def __init__(self):
-        self.classes_: Dict[Any, int] = {}
-        self.classes_reverse: Dict[int, Any] = {}
+        self.classes_: Dict[Union[str, int, float], int] = {}
+        self.classes_reverse: Dict[int, Union[str, int, float]] = {}
 
     def fit(self, data: pd.Series) -> None:
         unique_classes = data.dropna().unique()
@@ -402,7 +397,7 @@ def predict_future_price(
             return pd.DataFrame()
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
         sequence_values = last_sequence_df[
-            data_processor.numerical_columns + data_processor.categorical_columns
+            data_processor.categorical_columns + data_processor.numerical_columns
         ].values
         last_sequence = torch.tensor(sequence_values, dtype=torch.float32).unsqueeze(0).to(next(model.parameters()).device)
         predictions = model(last_sequence).cpu().numpy()
@@ -430,6 +425,10 @@ def predict_future_price(
         scaled_predictions["timestamp"] = next_timestamp
         scaled_predictions["symbol"] = TARGET_SYMBOL
         scaled_predictions["interval"] = prediction_minutes
+    # Переставляем столбцы, чтобы 'symbol' и 'interval_str' были первыми
+    cols = ["symbol", "interval_str"] + [col for col in scaled_predictions.columns if col not in ["symbol", "interval_str", "timestamp"]]
+    cols.append("timestamp")
+    scaled_predictions = scaled_predictions[cols]
     return scaled_predictions
 
 def get_interval(minutes: int) -> Optional[str]:
@@ -445,7 +444,7 @@ class DataFetcher:
         self.combined_path = PATHS["combined_dataset"]
         self.predictions_path = PATHS["predictions"]
 
-    def load_data(self) -> tuple:
+    def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         data_processor = DataProcessor()
         combined_data = pd.read_csv(self.combined_path)
         combined_data = data_processor.preprocess_binance_data(combined_data)
@@ -455,9 +454,6 @@ class DataFetcher:
         else:
             predictions_data = pd.DataFrame(columns=RAW_FEATURES.keys())
         return combined_data, predictions_data
-
-    def get_latest_value(self, target_symbol: str) -> pd.DataFrame:
-        return self.download_data.get_latest_price(target_symbol, PREDICTION_MINUTES)
 
 def setup_logging():
     logging.basicConfig(
@@ -477,13 +473,10 @@ def main() -> None:
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
     model, optimizer = train_and_save_model(model, dataloader, device)
-    latest_df = data_fetcher.get_latest_value(TARGET_SYMBOL)
+    # Используем метод get_latest_price напрямую из DownloadData
+    latest_df = data_fetcher.download_data.get_latest_price(TARGET_SYMBOL, PREDICTION_MINUTES)
     predicted_df = predict_future_price(model, latest_df, data_processor)
     print(predicted_df)
-
-if __name__ == "__main__":
-    while True:
-        main()
 
 if __name__ == "__main__":
     while True:
