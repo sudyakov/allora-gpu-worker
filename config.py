@@ -13,35 +13,29 @@ RETRY_DELAY: int = 5  # Задержка между попытками в сек
 # Ограничения Binance API
 BINANCE_LIMIT_STRING: int = 1000
 
-# Длина последовательности для модели
 SEQ_LENGTH: int = 60
 
-# Временные интервалы для прогнозирования
-PREDICTION_MINUTES: int = 5
+class IntervalConfig(TypedDict):
+    days: int
+    minutes: int
+    milliseconds: int
 
-# Маппинги символов
+IntervalKey = Literal["1m", "5m", "15m"]
+
 SYMBOL_MAPPING: Dict[str, int] = {
     "BTCUSDT": 0,
     "ETHUSDT": 1,
 }
 
 TARGET_SYMBOL: str = "ETHUSDT"
+PREDICTION_MINUTES: int = 5
 
-
-# Определение ключей и структуры для INTERVAL_MAPPING
-IntervalKey = Literal["1m", "5m", "15m"]
-class IntervalConfig(TypedDict):
-    days: int          # Количество дней истории данных
-    minutes: int       # Размер временного интервала в минутах
-    milliseconds: int  # Длительность интервала в миллисекундах
-
-# Периоды для различных интервалов
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    "1m": {"days": 30, "minutes": 1, "milliseconds": 1 * 60 * 1000},
-    "5m": {"days": 90, "minutes": 5, "milliseconds": 5 * 60 * 1000},
-    "15m": {"days": 180, "minutes": 15, "milliseconds": 15 * 60 * 1000},
+    "1m": {"days": 7, "minutes": 1, "milliseconds": 60000},
+    "5m": {"days": 14, "minutes": 5, "milliseconds": 300000},
+    "15m": {"days": 28, "minutes": 15, "milliseconds": 900000},
 }
-# Сырые признаки, получаемые из Binance API с указанием типов данных
+
 RAW_FEATURES: Dict[str, type] = {
     'symbol': str,
     'interval_str': str,
@@ -57,15 +51,15 @@ RAW_FEATURES: Dict[str, type] = {
     'taker_buy_base_asset_volume': float,
     'taker_buy_quote_asset_volume': float
 }
-# Признаки, используемые моделью (включают дополнительные признаки) с указанием типов данных
+
 MODEL_FEATURES: Dict[str, type] = {
     **RAW_FEATURES,
-    'hour': int,
-    'dayofweek': int,
-    'sin_hour': float,
-    'cos_hour': float,
-    'sin_day': float,
-    'cos_day': float
+    "hour": int,
+    "dayofweek": int,
+    "sin_hour": float,
+    "cos_hour": float,
+    "sin_day": float,
+    "cos_day": float,
 }
 
 # Пути к файлам и директориям

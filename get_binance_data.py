@@ -332,14 +332,14 @@ def main():
     else:
         download_data.logger.warning("No data to update.")
 
-    download_data.logger.info("Executing get_current_price and get_latest_price methods for all symbols and intervals.")
+    download_data.logger.info("Executing get_current_price and get_latest_prices methods for all symbols and intervals.")
     for symbol in symbols:
         for interval in intervals:
             try:
                 current_price_df = download_data.get_current_price(symbol, interval)
                 download_data.logger.info(f"Current price for {symbol} ({interval} minutes):\n{current_price_df}")
 
-                latest_price_df = download_data.get_latest_price(symbol, interval)
+                latest_price_df = download_data.get_latest_prices(symbol, interval)
                 download_data.logger.info(f"Latest price for {symbol} ({interval} minutes):\n{latest_price_df}")
 
                 time.sleep(1)
