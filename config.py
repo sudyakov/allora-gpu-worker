@@ -3,17 +3,14 @@ from typing import Optional, Dict, Literal, TypedDict, Union
 import requests
 import time
 
-# Базовый URL для API Binance
 API_BASE_URL: str = "https://api.binance.com/api/v3"
 
-# Параметры для повторных попыток запросов
 MAX_RETRIES: int = 3
-RETRY_DELAY: int = 5  # Задержка между попытками в секундах
+RETRY_DELAY: int = 5
 
-# Ограничения Binance API
 BINANCE_LIMIT_STRING: int = 1000
 
-SEQ_LENGTH: int = 60
+SEQ_LENGTH: int = 100
 
 class IntervalConfig(TypedDict):
     days: int
@@ -23,8 +20,8 @@ class IntervalConfig(TypedDict):
 IntervalKey = Literal["1m", "5m", "15m"]
 
 SYMBOL_MAPPING: Dict[str, int] = {
-    "BTCUSDT": 0,
-    "ETHUSDT": 1,
+    "ETHUSDT": 0,
+    "BTCUSDT": 1,
 }
 
 TARGET_SYMBOL: str = "ETHUSDT"
@@ -62,7 +59,6 @@ MODEL_FEATURES: Dict[str, type] = {
     "cos_day": float,
 }
 
-# Пути к файлам и директориям
 PATHS: Dict[str, str] = {
     'combined_dataset': 'data/combined_dataset.csv',
     'predictions': 'data/predictions.csv',
@@ -72,10 +68,8 @@ PATHS: Dict[str, str] = {
     'data_dir': 'data',
 }
 
-# Формат даты и времени
 DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
-# Функция для получения разницы во времени между локальным и серверным временем Binance
 def get_binance_time_offset() -> Optional[int]:
     try:
         response = requests.get(f"{API_BASE_URL}/time")
@@ -85,5 +79,4 @@ def get_binance_time_offset() -> Optional[int]:
     except requests.RequestException:
         return None
 
-# Получение разницы во времени
 TIME_OFFSET: Optional[int] = get_binance_time_offset()

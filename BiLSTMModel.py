@@ -7,60 +7,18 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
+from get_binance_data import DownloadData, main as binance_main
 
-from get_binance_data import DownloadData, main as binance_main  # Добавлен импорт main
-from config import PATHS
-
-from datetime import datetime, timedelta
-
-SEQ_LENGTH: int = 60
-
-class IntervalConfig(TypedDict):
-    days: int
-    minutes: int
-    milliseconds: int
-
-IntervalKey = Literal["1m", "5m", "15m"]
-
-SYMBOL_MAPPING: Dict[str, int] = {
-    "BTCUSDT": 0,
-    "ETHUSDT": 1,
-}
-
-TARGET_SYMBOL: str = "ETHUSDT"
-PREDICTION_MINUTES: int = 5
-
-INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    "1m": {"days": 7, "minutes": 1, "milliseconds": 60000},
-    "5m": {"days": 14, "minutes": 5, "milliseconds": 300000},
-    "15m": {"days": 28, "minutes": 15, "milliseconds": 900000},
-}
-
-RAW_FEATURES: Dict[str, type] = {
-    'symbol': str,
-    'interval_str': str,
-    'interval': int,
-    'timestamp': int,  # Оставляем без изменений
-    'open': float,
-    'high': float,
-    'low': float,
-    'close': float,
-    'volume': float,
-    'quote_asset_volume': float,
-    'number_of_trades': int,
-    'taker_buy_base_asset_volume': float,
-    'taker_buy_quote_asset_volume': float
-}
-
-MODEL_FEATURES: Dict[str, type] = {
-    **RAW_FEATURES,
-    "hour": int,
-    "dayofweek": int,
-    "sin_hour": float,
-    "cos_hour": float,
-    "sin_day": float,
-    "cos_day": float,
-}
+from config import (
+    PATHS,
+    MODEL_FEATURES,
+    SYMBOL_MAPPING,
+    TARGET_SYMBOL,
+    RAW_FEATURES,
+    SEQ_LENGTH,
+    PREDICTION_MINUTES,
+    INTERVAL_MAPPING
+)
 
 MODEL_VERSION = "2.0"
 
@@ -72,17 +30,17 @@ class ModelParams(TypedDict):
     embedding_dim: int
     num_symbols: int
     num_intervals: int
-    timestamp_embedding_dim: int  # Добавлено для timestamp
+    timestamp_embedding_dim: int
 
 MODEL_PARAMS: ModelParams = {
-    "input_size": len(MODEL_FEATURES) - 1,  # Исключаем timestamp
+    "input_size": len(MODEL_FEATURES) - 1,
     "hidden_layer_size": 256,
     "num_layers": 4,
     "dropout": 0.2,
     "embedding_dim": 128,
     "num_symbols": len(SYMBOL_MAPPING),
     "num_intervals": 3,
-    "timestamp_embedding_dim": 64,  # Размерность embedding для timestamp
+    "timestamp_embedding_dim": 64,
 }
 
 class TrainingParams(TypedDict):
@@ -96,7 +54,7 @@ class TrainingParams(TypedDict):
 
 TRAINING_PARAMS: TrainingParams = {
     "batch_size": 512,
-    "initial_epochs": 3,
+    "initial_epochs": 5,
     "initial_lr": 0.0005,
     "max_epochs": 100,
     "min_lr": 0.00001,
@@ -134,7 +92,7 @@ class EnhancedBiLSTMModel(nn.Module):
         embedding_dim: int = MODEL_PARAMS["embedding_dim"],
         num_symbols: int = MODEL_PARAMS["num_symbols"],
         num_intervals: int = MODEL_PARAMS["num_intervals"],
-        timestamp_embedding_dim: int = MODEL_PARAMS["timestamp_embedding_dim"],  # Добавлено
+        timestamp_embedding_dim: int = MODEL_PARAMS["timestamp_embedding_dim"],
     ):
         super(EnhancedBiLSTMModel, self).__init__()
         self.numerical_columns = numerical_columns
@@ -143,12 +101,10 @@ class EnhancedBiLSTMModel(nn.Module):
 
         self.symbol_embedding = nn.Embedding(num_embeddings=num_symbols, embedding_dim=embedding_dim)
         self.interval_embedding = nn.Embedding(num_embeddings=num_intervals, embedding_dim=embedding_dim)
-
-        # Добавляем embedding для timestamp
         self.timestamp_embedding = nn.Linear(1, timestamp_embedding_dim)
 
         numerical_input_size = len(numerical_columns)
-        self.lstm_input_size = numerical_input_size + (2 * embedding_dim) + timestamp_embedding_dim  # Учёт timestamp
+        self.lstm_input_size = numerical_input_size + (2 * embedding_dim) + timestamp_embedding_dim
 
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
@@ -166,14 +122,11 @@ class EnhancedBiLSTMModel(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
-
         symbols = x[:, :, self.column_name_to_index['symbol']].long()
         intervals = x[:, :, self.column_name_to_index['interval_str']].long()
 
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
-
-        # Обработка timestamp
         timestamp = x[:, :, self.column_name_to_index['timestamp']].unsqueeze(-1)
         timestamp_embedded = self.timestamp_embedding(timestamp)
 
@@ -215,14 +168,12 @@ class DataProcessor:
         for col, dtype in RAW_FEATURES.items():
             if col in df.columns:
                 if col == 'timestamp':
-                    # Преобразование 'timestamp' из миллисекунд в datetime
                     df[col] = pd.to_datetime(df[col], unit='ms')
                 else:
                     df[col] = df[col].astype(dtype)
         return df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Закодировать категориальные колонки и масштабировать числовые
         for col in self.categorical_columns:
             le = CustomLabelEncoder()
             df[col] = le.fit_transform(df[col])
@@ -234,16 +185,14 @@ class DataProcessor:
         self.scaler.fit(df[self.numerical_columns])
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
 
-        # Обработка timestamp отдельно (без масштабирования)
-        df['timestamp'] = df['timestamp'].astype('int64')  # Используем как целочисленный признак
+        df['timestamp'] = df['timestamp'].astype('int64')
 
-        # Сохранение порядка столбцов согласно RAW_FEATURES
         additional_features = ["hour", "dayofweek", "sin_hour", "cos_hour", "sin_day", "cos_day"]
         df = df[list(RAW_FEATURES.keys()) + additional_features]
+        logging.info(f"Порядок колонок после fit_transform: {df.columns.tolist()}")
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Только преобразовать без обучения
         for col in self.categorical_columns:
             le = self.label_encoders.get(col)
             if le is None:
@@ -256,18 +205,16 @@ class DataProcessor:
 
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
 
-        # Обработка timestamp отдельно (без масштабирования)
-        df['timestamp'] = df['timestamp'].astype('int64')  # Используем как целочисленный признак
+        df['timestamp'] = df['timestamp'].astype('int64')
 
-        # Сохранение порядка столбцов согласно RAW_FEATURES
         additional_features = ["hour", "dayofweek", "sin_hour", "cos_hour", "sin_day", "cos_day"]
         df = df[list(RAW_FEATURES.keys()) + additional_features]
+        logging.info(f"Порядок колонок после transform: {df.columns.tolist()}")
         return df
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
-        features = df.columns.tolist()
-        target_columns = features.copy()
-        target_columns.remove('timestamp')  # Удаляем 'timestamp' из целей
+        features = list(MODEL_FEATURES.keys())
+        target_columns = [col for col in features if col != 'timestamp']
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
         target_indices = [df.columns.get_loc(col) for col in target_columns]
@@ -277,10 +224,12 @@ class DataProcessor:
         for i in range(len(data_tensor) - seq_length):
             sequences.append(data_tensor[i : i + seq_length])
             targets.append(data_tensor[i + seq_length, target_indices])
+
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
         tensor_dataset = TensorDataset(sequences, targets)
         return tensor_dataset
+
 
     def save(self, filepath: str) -> None:
         try:
@@ -478,7 +427,7 @@ def predict_future_price(
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
         sequence_values = last_sequence_df[
             data_processor.numerical_columns + data_processor.categorical_columns + ['timestamp']
-        ].values  # Добавляем 'timestamp'
+        ].values
 
         last_sequence = torch.tensor(sequence_values, dtype=torch.float32).unsqueeze(0).to(next(model.parameters()).device)
         predictions = model(last_sequence).cpu().numpy()
@@ -500,12 +449,10 @@ def predict_future_price(
             if le:
                 predictions_df[col] = le.inverse_transform(predictions_df[col])
 
-        # Применяем clip только к числовым столбцам
         scaled_numeric = scaled_numeric.clip(lower=0)
         predictions_df[numeric_features] = scaled_numeric
 
-        # Добавляем необходимые столбцы перед выбором
-        last_timestamp = latest_df["timestamp"].max()  # Исправлено с .iloc[-1] на .max()
+        last_timestamp = latest_df["timestamp"].max()
         if pd.isna(last_timestamp):
             logging.error("Последний таймстамп отсутствует или некорректен.")
             return pd.DataFrame()
@@ -515,15 +462,13 @@ def predict_future_price(
             logging.error(f"Неизвестный интервал: {prediction_minutes} минут.")
             return pd.DataFrame()
 
-        # Если timestamp в миллисекундах
         next_timestamp = int(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
 
         predictions_df["timestamp"] = next_timestamp
         predictions_df["symbol"] = TARGET_SYMBOL
         predictions_df["interval"] = prediction_minutes
-        predictions_df["interval_str"] = interval_key  # Добавляем правильный interval_str
+        predictions_df["interval_str"] = interval_key
 
-        # Теперь можно выбрать столбцы согласно RAW_FEATURES
         try:
             predictions_df = predictions_df[list(RAW_FEATURES.keys())]
         except KeyError as e:
@@ -560,9 +505,9 @@ def setup_logging():
 
 def main() -> None:
     setup_logging()
+    binance_main()
     device = get_device()
 
-    # Попытка загрузить существующий DataProcessor
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
@@ -570,8 +515,6 @@ def main() -> None:
 
     combined_data, _ = DataFetcher().load_data()
     combined_data = data_processor.preprocess_binance_data(combined_data)
-
-    # Сортировка данных по timestamp в порядке возрастания
     combined_data = combined_data.sort_values(by='timestamp').reset_index(drop=True)
 
     if not os.path.exists(DATA_PROCESSOR_FILENAME):
@@ -592,15 +535,9 @@ def main() -> None:
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
     model, optimizer = train_and_save_model(model, dataloader, device)
 
-    # Обновление всех данных перед получением latest_df
-    binance_main()  # Добавленный вызов main из get_binance_data.py
-
-    # Обновляем latest_df (вызываем функцию с обновленным main из get_binance_data.py)
+    binance_main()
     latest_df = DataFetcher().get_latest_binances_value(TARGET_SYMBOL)
-
-    # Убедимся, что latest_df тоже отсортирован
     latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
-
     print(latest_df)
     predicted_df = predict_future_price(model, latest_df, data_processor)
     print(predicted_df)
