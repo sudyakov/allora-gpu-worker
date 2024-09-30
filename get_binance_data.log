@@ -1,0 +1,68 @@
+INFO - Script started
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-09-30 13:52:08
+INFO - Binance API is available. Server time: 2024-09-30 13:52:08
+INFO - Updating data for ETHUSDT from 1727704260001 to 1727704320000 (2024-09-30 13:51:00 to 2024-09-30 13:52:00)
+INFO - Updating data for ETHUSDT from 1727704260001 to 1727704320000 (2024-09-30 13:51:00 to 2024-09-30 13:52:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (1 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727704320000        ETHUSDT 1m 1 1727704320000 2628.30    2629.00    2628.10    2628.99    13.79      36244.28   541 11.04      29004.39   13 0 -0.26      -0.97      0.00       1.00      
+Last                 1727098620000        ETHUSDT 1m 1 1727098620000 2641.20    2643.06    2639.04    2639.40    1582.32    4177725.43 4851 65.69      173505.66  13 0 -0.26      -0.97      0.00       1.00      
+
+INFO - Data summary for ETHUSDT (1 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727704320000        ETHUSDT 1m 1 1727704320000 2628.30    2629.00    2628.10    2628.99    13.79      36244.28   541 11.04      29004.39   13 0 -0.26      -0.97      0.00       1.00      
+Last                 1727098620000        ETHUSDT 1m 1 1727098620000 2641.20    2643.06    2639.04    2639.40    1582.32    4177725.43 4851 65.69      173505.66  13 0 -0.26      -0.97      0.00       1.00      
+
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol interval_str  interval      timestamp    open    high     low   close   volume  ...  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  ETHUSDT           1m         1  1727704320000  2628.3  2629.0  2628.1  2629.0  14.7615  ...               547                      12.0069                  31559.511067    13          0 -0.258819 -0.965926      0.0      1.0
+
+[1 rows x 19 columns]
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol interval_str  interval      timestamp    open    high     low   close   volume  ...  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  ETHUSDT           1m         1  1727704320000  2628.3  2629.0  2628.1  2629.0  14.7615  ...               547                      12.0069                  31559.511067    13          0 -0.258819 -0.965926      0.0      1.0
+
+[1 rows x 19 columns]
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (5 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727704200000        ETHUSDT 5m 5 1727704200000 2629.00    2630.92    2629.00    2630.91    57.58      151424.60  1303 40.77      107210.75  13 0 -0.26      -0.97      0.00       1.00      
+Last                 1726494000000        ETHUSDT 5m 5 1726494000000 2293.37    2294.98    2289.18    2289.37    1105.59    2534222.69 12678 497.19     1139779.33 13 0 -0.26      -0.97      0.00       1.00      
+
+INFO - Data summary for ETHUSDT (5 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727704200000        ETHUSDT 5m 5 1727704200000 2629.00    2630.92    2629.00    2630.91    57.58      151424.60  1303 40.77      107210.75  13 0 -0.26      -0.97      0.00       1.00      
+Last                 1726494000000        ETHUSDT 5m 5 1726494000000 2293.37    2294.98    2289.18    2289.37    1105.59    2534222.69 12678 497.19     1139779.33 13 0 -0.26      -0.97      0.00       1.00      
+
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol interval_str  interval      timestamp    open     high      low   close   volume  ...  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  ETHUSDT           5m         5  1727704200000  2629.0  2630.92  2627.67  2629.0  161.491  ...              4038                      98.4174                 258779.438839    13          0 -0.258819 -0.965926      0.0      1.0
+
+[1 rows x 19 columns]
+INFO - Current price for ETHUSDT (5 minutes):
+    symbol interval_str  interval      timestamp    open     high      low   close   volume  ...  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  ETHUSDT           5m         5  1727704200000  2629.0  2630.92  2627.67  2629.0  161.491  ...              4038                      98.4174                 258779.438839    13          0 -0.258819 -0.965926      0.0      1.0
+
+[1 rows x 19 columns]
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (15 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727703900000        ETHUSDT 15m 15 1727703900000 2630.98    2632.01    2630.98    2632.01    41.91      110303.72  429 36.50      96069.78   13 0 -0.26      -0.97      0.00       1.00      
+Last                 1725284700000        ETHUSDT 15m 15 1725284700000 2506.80    2510.32    2505.20    2505.21    1198.73    3006367.05 10238 614.83     1542093.44 13 0 -0.26      -0.97      0.00       1.00      
+
+INFO - Data summary for ETHUSDT (15 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727703900000        ETHUSDT 15m 15 1727703900000 2630.98    2632.01    2630.98    2632.01    41.91      110303.72  429 36.50      96069.78   13 0 -0.26      -0.97      0.00       1.00      
+Last                 1725284700000        ETHUSDT 15m 15 1725284700000 2506.80    2510.32    2505.20    2505.21    1198.73    3006367.05 10238 614.83     1542093.44 13 0 -0.26      -0.97      0.00       1.00      
+
