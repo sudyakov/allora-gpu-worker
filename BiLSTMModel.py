@@ -2,13 +2,15 @@ import os
 import pickle
 import logging
 from typing import Optional, Dict, Literal, Tuple, Union, List
+
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-from get_binance_data import GetBinanceData
+
+from get_binance_data import GetBinanceData, sort_dataframe, ensure_file_exists
 from config import (
     INTERVAL_MAPPING,
     SYMBOL_MAPPING,
@@ -25,24 +27,9 @@ from config import (
     TRAINING_PARAMS,
     MODEL_FILENAME,
     DATA_PROCESSOR_FILENAME,
+    IntervalKey,
+    IntervalConfig,
 )
-
-IntervalKey = Literal['1m', '5m', '15m']
-
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler("BiLSTMModel.log")
-        ]
-    )
-
-def ensure_directory_exists(filepath: str) -> None:
-    directory = os.path.dirname(filepath)
-    if directory and not os.path.exists(directory):
-        os.makedirs(directory)
 
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -96,7 +83,7 @@ class EnhancedBiLSTMModel(nn.Module):
         )
 
         self.attention = Attention(hidden_layer_size)
-        self.linear = nn.Linear(self.lstm.hidden_size * 2, input_size)
+        self.linear = nn.Linear(hidden_layer_size * 2, input_size)
         self.relu = nn.ReLU()
         self.apply(self._initialize_weights)
 
@@ -188,7 +175,7 @@ class DataProcessor:
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: List[str] = ["symbol", "interval_str"]
         self.numerical_columns: List[str] = [
-            col for col in list(SCALABLE_FEATURES.keys()) 
+            col for col in SCALABLE_FEATURES.keys()
         ]
         print("Numerical columns for scaling:", self.numerical_columns)
 
@@ -197,7 +184,7 @@ class DataProcessor:
         for col, dtype in RAW_FEATURES.items():
             if col in df.columns:
                 if col == 'timestamp':
-                    df[col] = pd.to_datetime(df[col], unit='ms')
+                    df[col] = df[col].astype(int)
                 else:
                     df[col] = df[col].astype(dtype)
         return df
@@ -208,11 +195,11 @@ class DataProcessor:
             df[col] = le.fit_transform(df[col])
             self.label_encoders[col] = le
         for col in self.numerical_columns:
-            df[col] = df[col].astype(RAW_FEATURES[col])
+            df[col] = df[col].astype(SCALABLE_FEATURES[col])
         self.scaler.fit(df[self.numerical_columns])
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
         df['timestamp'] = df['timestamp'].astype('int64')
-        df = df[list(RAW_FEATURES.keys()) + list(ADD_FEATURES.keys())]
+        df = df[list(MODEL_FEATURES.keys())]
         logging.info(f"Column order after fit_transform: {df.columns.tolist()}")
         return df
 
@@ -224,10 +211,10 @@ class DataProcessor:
                 raise ValueError(f"LabelEncoder for column {col} is not fitted.")
             df[col] = le.transform(df[col])
         for col in self.numerical_columns:
-            df[col] = df[col].astype(RAW_FEATURES[col])
+            df[col] = df[col].astype(SCALABLE_FEATURES[col])
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
         df['timestamp'] = df['timestamp'].astype('int64')
-        df = df[list(RAW_FEATURES.keys()) + list(ADD_FEATURES.keys())]
+        df = df[list(MODEL_FEATURES.keys())]
         logging.info(f"Column order after transform: {df.columns.tolist()}")
         return df
 
@@ -255,7 +242,7 @@ class DataProcessor:
 
     def save(self, filepath: str) -> None:
         try:
-            ensure_directory_exists(filepath)
+            ensure_file_exists(filepath)
             with open(filepath, 'wb') as f:
                 pickle.dump(self, f)
             logging.info(f"DataProcessor saved: {filepath}")
@@ -274,20 +261,6 @@ class DataProcessor:
             logging.error(f"Error loading DataProcessor: {e}")
             raise
 
-class DataFetcher:
-    def __init__(self):
-        self.download_data = GetBinanceData()
-        self.combined_path = PATHS["combined_dataset"]
-        self.predictions_path = PATHS["predictions"]
-
-    def load_data(self) -> pd.DataFrame:
-        try:
-            combined_data = self.download_data.fetch_combined_data()
-            return combined_data
-        except Exception as e:
-            logging.error(f"Error loading data: {e}")
-            raise
-
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
     return DataLoader(
         dataset,
@@ -298,7 +271,7 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
 
 def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     try:
-        ensure_directory_exists(filepath)
+        ensure_file_exists(filepath)
         torch.save(model.state_dict(), filepath)
         optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
         torch.save(optimizer.state_dict(), optimizer_filepath)
@@ -412,7 +385,7 @@ def predict_future_price(
         categorical_features = data_processor.categorical_columns
         all_features: List[str] = numeric_features + categorical_features + list(ADD_FEATURES.keys())
 
-        predictions_df = pd.DataFrame(predictions, columns=list(all_features))
+        predictions_df = pd.DataFrame(predictions, columns=all_features)
         scaled_numeric = data_processor.scaler.inverse_transform(predictions_df[numeric_features])
         for col in categorical_features:
             predictions_df[col] = predictions_df[col].astype(int)
@@ -439,7 +412,7 @@ def predict_future_price(
         predictions_df["interval_str"] = interval_key
 
         try:
-            predictions_df = predictions_df[list(RAW_FEATURES.keys()) + list(ADD_FEATURES.keys())]
+            predictions_df = predictions_df[list(MODEL_FEATURES.keys())]
         except KeyError as e:
             logging.error(f"Missing required columns: {e}")
             return pd.DataFrame()
@@ -447,15 +420,16 @@ def predict_future_price(
     return predictions_df
 
 def main() -> None:
-    setup_logging()
+    # Используем configure_logging из get_binance_data.py
+    GetBinanceData().configure_logging()
     device = get_device()
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
         data_processor = DataProcessor()
 
-    data_fetcher = DataFetcher()
-    combined_data = data_fetcher.load_data()
+    get_binance_data = GetBinanceData()
+    combined_data = get_binance_data.fetch_combined_data()
     combined_data = data_processor.preprocess_binance_data(combined_data)
     combined_data = combined_data.sort_values(by='timestamp').reset_index(drop=True)
 
@@ -478,7 +452,7 @@ def main() -> None:
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS.get("batch_size", 32))
     model, optimizer = train_and_save_model(model, dataloader, device)
-    latest_df = GetBinanceData().get_latest_prices(TARGET_SYMBOL, PREDICTION_MINUTES)
+    latest_df = get_binance_data.get_latest_prices(TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH)
     latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
     print(latest_df)
     predicted_df = predict_future_price(model, latest_df, data_processor)
