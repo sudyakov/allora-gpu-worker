@@ -318,7 +318,7 @@ def train_and_save_model(
     criterion = nn.MSELoss()
     best_val_loss = float("inf")
     epochs_no_improve = 0
-    n_epochs_stop = 5
+    n_epochs_stop = 10
     min_lr = TRAINING_PARAMS.get("min_lr", 1e-6)
     for epoch in range(TRAINING_PARAMS.get("initial_epochs", 50)):
         total_loss = 0.0
