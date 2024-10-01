@@ -8,17 +8,63 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 from get_binance_data import DownloadData, main as binance_main
+SEQ_LENGTH: int = 100
 
-from config import (
-    PATHS,
-    MODEL_FEATURES,
-    SYMBOL_MAPPING,
-    TARGET_SYMBOL,
-    RAW_FEATURES,
-    SEQ_LENGTH,
-    PREDICTION_MINUTES,
-    INTERVAL_MAPPING
-)
+class IntervalConfig(TypedDict):
+    days: int
+    minutes: int
+    milliseconds: int
+
+IntervalKey = Literal["1m", "5m", "15m"]
+
+SYMBOL_MAPPING: Dict[str, int] = {
+    "ETHUSDT": 0,
+    "BTCUSDT": 1,
+}
+
+TARGET_SYMBOL: str = "ETHUSDT"
+PREDICTION_MINUTES: int = 5
+
+INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
+    "1m": {"days": 7, "minutes": 1, "milliseconds": 60000},
+    "5m": {"days": 14, "minutes": 5, "milliseconds": 300000},
+    "15m": {"days": 28, "minutes": 15, "milliseconds": 900000},
+}
+
+RAW_FEATURES: Dict[str, type] = {
+    'symbol': str,
+    'interval_str': str,
+    'interval': int,
+    'timestamp': int,
+    'open': float,
+    'high': float,
+    'low': float,
+    'close': float,
+    'volume': float,
+    'quote_asset_volume': float,
+    'number_of_trades': int,
+    'taker_buy_base_asset_volume': float,
+    'taker_buy_quote_asset_volume': float
+}
+
+MODEL_FEATURES: Dict[str, type] = {
+    **RAW_FEATURES,
+    "hour": int,
+    "dayofweek": int,
+    "sin_hour": float,
+    "cos_hour": float,
+    "sin_day": float,
+    "cos_day": float,
+}
+
+PATHS: Dict[str, str] = {
+    'combined_dataset': 'data/combined_dataset.csv',
+    'predictions': 'data/predictions.csv',
+    'differences': 'data/differences.csv',
+    'models_dir': 'models',
+    'visualization_dir': 'visualizations',
+    'data_dir': 'data',
+}
 
 MODEL_VERSION = "2.0"
 
@@ -505,7 +551,7 @@ def setup_logging():
 
 def main() -> None:
     setup_logging()
-    binance_main()
+    # binance_main()
     device = get_device()
 
     if os.path.exists(DATA_PROCESSOR_FILENAME):
@@ -535,7 +581,7 @@ def main() -> None:
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
     model, optimizer = train_and_save_model(model, dataloader, device)
 
-    binance_main()
+    # binance_main()
     latest_df = DataFetcher().get_latest_binances_value(TARGET_SYMBOL)
     latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
     print(latest_df)
