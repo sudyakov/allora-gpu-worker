@@ -88,6 +88,8 @@ class EnhancedBiLSTMModel(nn.Module):
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.to(next(self.parameters()).device)  # Перенос входного тензора на устройство модели
+
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
 
@@ -97,7 +99,9 @@ class EnhancedBiLSTMModel(nn.Module):
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
 
-        timestamp = x[:, :, self.column_name_to_index['timestamp']].unsqueeze(-1)
+        # Convert timestamp to float and ensure it's on the correct device
+        timestamp = x[:, :, self.column_name_to_index['timestamp']].unsqueeze(-1).float()
+
         timestamp_embedded = self.timestamp_embedding(timestamp)
 
         lstm_input = torch.cat((numerical_data, symbol_embeddings, interval_embeddings, timestamp_embedded), dim=2)
@@ -106,7 +110,6 @@ class EnhancedBiLSTMModel(nn.Module):
         predictions = self.linear(context_vector)
         predictions = self.relu(predictions)
         return predictions
-
     def _initialize_weights(self, module: nn.Module) -> None:
         if isinstance(module, nn.Linear):
             nn.init.xavier_uniform_(module.weight)
@@ -158,7 +161,10 @@ class CustomLabelEncoder:
     def transform(self, data: pd.Series) -> pd.Series:
         if not self.classes_:
             raise ValueError("LabelEncoder has not been fitted yet.")
-        return data.map(self.classes_).fillna(-1).astype(int)
+        unknown_categories = set(data.dropna().unique()) - set(self.classes_.keys())
+        if unknown_categories:
+            raise ValueError(f"Unknown categories found in column '{data.name}': {unknown_categories}")
+        return data.map(self.classes_).astype(int)
 
     def inverse_transform(self, data: pd.Series) -> pd.Series:
         if not self.classes_reverse:
@@ -405,11 +411,14 @@ def predict_future_price(
             logging.error(f"Unknown interval: {prediction_minutes} minutes.")
             return pd.DataFrame()
 
+        # Закодировать interval_key
+        interval_encoded = data_processor.label_encoders['interval_str'].transform(pd.Series([interval_key]))[0]
+
         next_timestamp = int(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
         predictions_df["timestamp"] = next_timestamp
-        predictions_df["symbol"] = TARGET_SYMBOL
+        predictions_df["symbol"] = data_processor.label_encoders['symbol'].transform(pd.Series([TARGET_SYMBOL]))[0]
         predictions_df["interval"] = prediction_minutes
-        predictions_df["interval_str"] = interval_key
+        predictions_df["interval_str"] = interval_encoded
 
         try:
             predictions_df = predictions_df[list(MODEL_FEATURES.keys())]
