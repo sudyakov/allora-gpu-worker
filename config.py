@@ -28,39 +28,48 @@ TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    "1m": {"days": 7, "minutes": 1, "milliseconds": 60000},
-    "5m": {"days": 14, "minutes": 5, "milliseconds": 300000},
-    "15m": {"days": 28, "minutes": 15, "milliseconds": 900000},
+    "1m": {"days": 30, "minutes": 1, "milliseconds": 60000},
+    "5m": {"days": 90, "minutes": 5, "milliseconds": 300000},
+    "15m": {"days": 180, "minutes": 15, "milliseconds": 900000},
 }
 
-RAW_FEATURES: Dict[str, type] = {
-    'symbol': str,
-    'interval_str': str,
-    'interval': int,
-    'timestamp': int,
-    'open': float,
-    'high': float,
-    'low': float,
-    'close': float,
-    'volume': float,
-    'quote_asset_volume': float,
-    'number_of_trades': int,
-    'taker_buy_base_asset_volume': float,
-    'taker_buy_quote_asset_volume': float
+class FeatureConfig(TypedDict, total=False):
+    type: type
+    precision: Optional[int]
+    rounding: Optional[str]  # Например, 'up', 'down', 'nearest'
+
+RAW_FEATURES: Dict[str, FeatureConfig] = {
+    'symbol': {'type': str},
+    'interval_str': {'type': str},
+    'interval': {'type': int},
+    'timestamp': {'type': int},
 }
 
-ADD_FEATURES: Dict[str, type] = {
-    "hour": int,
-    "dayofweek": int,
-    "sin_hour": float,
-    "cos_hour": float,
-    "sin_day": float,
-    "cos_day": float,
+SCALED_FEATURES: Dict[str, FeatureConfig] = {
+    'open': {'type': float, 'precision': 6, 'rounding': 'nearest'},
+    'high': {'type': float, 'precision': 6, 'rounding': 'nearest'},
+    'low': {'type': float, 'precision': 6, 'rounding': 'nearest'},
+    'close': {'type': float, 'precision': 6, 'rounding': 'nearest'},
+    'volume': {'type': float, 'precision': 6, 'rounding': 'down'},
+    'quote_asset_volume': {'type': float, 'precision': 6, 'rounding': 'down'},
+    'number_of_trades': {'type': int},
+    'taker_buy_base_asset_volume': {'type': float, 'precision': 6, 'rounding': 'down'},
+    'taker_buy_quote_asset_volume': {'type': float, 'precision': 6, 'rounding': 'down'},
 }
 
-MODEL_FEATURES: Dict[str, type] = {
+ADD_FEATURES: Dict[str, FeatureConfig] = {
+    "hour": {'type': int},
+    "dayofweek": {'type': int},
+    "sin_hour": {'type': float, 'precision': 6},
+    "cos_hour": {'type': float, 'precision': 6},
+    "sin_day": {'type': float, 'precision': 6},
+    "cos_day": {'type': float, 'precision': 6},
+}
+
+MODEL_FEATURES: Dict[str, FeatureConfig] = {
     **RAW_FEATURES,
-    **ADD_FEATURES,
+    **SCALED_FEATURES,
+    **ADD_FEATURES
 }
 
 PATHS: Dict[str, str] = {

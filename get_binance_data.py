@@ -2,7 +2,7 @@ import logging
 import os
 import time
 from datetime import datetime, timezone
-from typing import Dict, Optional, Union, Tuple
+from typing import Dict, Optional, Union, Tuple, TypedDict
 
 import numpy as np
 import pandas as pd
@@ -16,6 +16,8 @@ from config import (
     SYMBOL_MAPPING,
     PATHS,
     RAW_FEATURES,
+    SCALED_FEATURES,
+    ADD_FEATURES,
     MODEL_FEATURES
 )
 
@@ -27,7 +29,12 @@ BINANCE_API_COLUMNS = [
     'taker_buy_quote_asset_volume', 'ignore'
 ]
 
-class DownloadData:
+class FeatureConfig(TypedDict, total=False):
+    type: type
+    precision: Optional[int]
+    rounding: Optional[str]  # Например, 'up', 'down', 'nearest'
+
+class GetBinanceData:
     def __init__(self):
         self.API_BASE_URL = API_BASE_URL
         self.BINANCE_LIMIT_STRING = BINANCE_LIMIT_STRING
@@ -35,8 +42,8 @@ class DownloadData:
         self.INTERVAL_MAPPING = INTERVAL_MAPPING
         self.SYMBOL_MAPPING = SYMBOL_MAPPING
         self.PATHS = PATHS
-        self.MODEL_FEATURES = MODEL_FEATURES
-        self.logger = logging.getLogger("DownloadData")
+        self.BINANCE_FEATURES = MODEL_FEATURES
+        self.logger = logging.getLogger("GetBinanceData")
         self.configure_logging()
 
     def configure_logging(self):
@@ -86,6 +93,7 @@ class DownloadData:
                 df['symbol'] = symbol
                 df['interval'] = interval_info['minutes']
                 df['interval_str'] = interval_str
+                self.logger.debug(f"Raw DataFrame: {df.head()}")
                 df = preprocess_binance_data(df)
                 df = fill_missing_model_features(df)
                 all_data.append(df)
@@ -98,11 +106,11 @@ class DownloadData:
                 break
 
         if not all_data:
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
         combined_df = pd.concat(all_data, ignore_index=True)
         combined_df = fill_missing_model_features(combined_df)
-        return combined_df[list(self.MODEL_FEATURES.keys())]
+        return combined_df[list(self.BINANCE_FEATURES.keys())]
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval)
@@ -116,19 +124,20 @@ class DownloadData:
             response.raise_for_status()
             data = response.json()
             if not data:
-                return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+                return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
             df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
             df = df.drop(columns=['close_time', 'ignore'])
             df['symbol'] = symbol
             df['interval'] = interval_info['minutes']
             df['interval_str'] = interval_str
+            self.logger.debug(f"Raw DataFrame: {df.head()}")
             df = preprocess_binance_data(df)
             df = fill_missing_model_features(df)
-            return df[list(self.MODEL_FEATURES.keys())]
+            return df[list(self.BINANCE_FEATURES.keys())]
         except RequestException as e:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
@@ -140,7 +149,7 @@ class DownloadData:
         ensure_file_exists(filename)
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
-            prepared_df.to_csv(filename, index=False)
+            prepared_df.to_csv(filename, index=False, float_format='%.6f')
         self.logger.info(f"Data saved to {filename}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
@@ -162,21 +171,21 @@ class DownloadData:
 
             combined_data = fill_missing_model_features(combined_data)
             prepared_df = self.prepare_dataframe_for_save(combined_data)
-            prepared_df.to_csv(filename, index=False)
+            prepared_df.to_csv(filename, index=False, float_format='%.6f')
             self.logger.info(f"Combined dataset updated: {filename}")
         else:
             self.logger.warning("No data to save to combined dataset.")
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
-        summary += f"{'Timestamp':<20} {' '.join([f'{feature.capitalize():<10}' for feature in self.MODEL_FEATURES])}\n"
+        summary += f"{'Timestamp':<20} {' '.join([f'{feature.capitalize():<10}' for feature in self.BINANCE_FEATURES])}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
         for i, row in enumerate(rows_to_display):
             label = "First" if i == 0 else "Last"
             timestamp = row['timestamp']
             summary += (
                 f"{label:<20} {timestamp:<20} "
-                f"{' '.join([f'{row[feature]:<10.2f}' if isinstance(row[feature], float) else str(row[feature]) for feature in self.MODEL_FEATURES])}\n"
+                f"{' '.join([f'{row[feature]:<10.6f}' if isinstance(row[feature], float) else str(row[feature]) for feature in self.BINANCE_FEATURES])}\n"
             )
         self.logger.info(summary)
 
@@ -184,10 +193,10 @@ class DownloadData:
         interval_info = self.get_interval_info(interval)
         filename = os.path.join(self.PATHS['data_dir'], f"{symbol}_{interval_info['minutes']}_data.csv")
         server_time, _ = get_current_time()
-        df_existing = pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+        df_existing = pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            df_existing = pd.read_csv(filename, dtype=self.MODEL_FEATURES)
+            df_existing = pd.read_csv(filename, dtype=self.BINANCE_FEATURES)
             df_existing = fill_missing_model_features(df_existing)
 
         last_timestamp = (
@@ -239,19 +248,21 @@ class DownloadData:
                 return df_filtered
             else:
                 self.logger.warning(f"Нет данных для символа {symbol} и интервала {interval} в combined_dataset.")
-                return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+                return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
         else:
             self.logger.warning(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     df['timestamp'] = df['timestamp'].astype(int)
     df = df.replace([float('inf'), float('-inf')], pd.NA).dropna()
     if 'interval' in df.columns:
         df['interval'] = df['interval'].astype(int)
-    for col, dtype in RAW_FEATURES.items():
+    for col, config in RAW_FEATURES.items():
         if col in df.columns:
-            df[col] = df[col].astype(dtype)
+            df[col] = df[col].astype(config['type'])
+    float_cols = df.select_dtypes(include=['float', 'float64']).columns
+    df[float_cols] = df[float_cols].round(6)
     logging.debug(f"Preprocessed DataFrame: {df.head()}")
     return df
 
@@ -264,7 +275,7 @@ def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 def get_current_time() -> Tuple[int, str]:
-    response = requests.get("https://api.binance.com/api/v3/time")
+    response = requests.get(f"{API_BASE_URL}/time")
     response.raise_for_status()
     server_time = response.json().get('serverTime')
     readable_time = timestamp_to_readable_time(server_time)
@@ -288,10 +299,21 @@ def fill_missing_model_features(df: pd.DataFrame) -> pd.DataFrame:
         df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
         df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
     df = df.ffill().bfill()
+    for col, config in MODEL_FEATURES.items():
+        if col in df.columns and 'precision' in config:
+            precision = config['precision']
+            rounding = config.get('rounding', 'nearest')
+            if rounding == 'up':
+                df[col] = np.ceil(df[col] * 10**precision) / 10**precision
+            elif rounding == 'down':
+                df[col] = np.floor(df[col] * 10**precision) / 10**precision
+            else:
+                df[col] = df[col].round(precision)
+    logging.debug(f"Filled DataFrame: {df.head()}")
     return df
 
 def main():
-    download_data = DownloadData()
+    download_data = GetBinanceData()
     download_data.logger.info("Script started")
 
     try:
