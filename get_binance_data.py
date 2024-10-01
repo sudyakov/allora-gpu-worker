@@ -18,7 +18,9 @@ from config import (
     RAW_FEATURES,
     SCALABLE_FEATURES,
     ADD_FEATURES,
-    MODEL_FEATURES
+    MODEL_FEATURES,
+    IntervalConfig,
+    
 )
 
 LOG_FILE = 'get_binance_data.log'
@@ -49,7 +51,7 @@ class GetBinanceData:
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
 
-    def get_interval_info(self, interval: int) -> Dict[str, Union[str, int]]:
+    def get_interval_info(self, interval: int) -> IntervalConfig:
         for key, value in self.INTERVAL_MAPPING.items():
             if value['minutes'] == interval:
                 return value
