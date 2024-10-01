@@ -20,7 +20,6 @@ from config import (
     ADD_FEATURES,
     MODEL_FEATURES,
     IntervalConfig,
-    
 )
 
 LOG_FILE = 'get_binance_data.log'
@@ -173,6 +172,20 @@ class GetBinanceData:
         else:
             self.logger.warning("No data to save to combined dataset.")
 
+    def fetch_combined_data(self) -> pd.DataFrame:
+        combined_path = self.PATHS['combined_dataset']
+        if os.path.exists(combined_path) and os.path.getsize(combined_path) > 0:
+            try:
+                df = pd.read_csv(combined_path)
+                self.logger.info(f"Combined data loaded from {combined_path}")
+                return df
+            except Exception as e:
+                self.logger.error(f"Ошибка при загрузке комбинированных данных: {e}")
+                return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+        else:
+            self.logger.warning(f"Файл комбинированных данных не найден или пуст: {combined_path}")
+            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
         feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.BINANCE_FEATURES.keys()])
@@ -252,7 +265,6 @@ class GetBinanceData:
         else:
             self.logger.warning(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
-
 
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     df['timestamp'] = df['timestamp'].astype(int)

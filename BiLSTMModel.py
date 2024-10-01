@@ -6,11 +6,11 @@ from typing import Optional, Dict, Literal, Tuple, Union, List
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch.optim.adam import Adam  # Исправленный импорт
+from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
-from get_binance_data import GetBinanceData, main as binance_main
+from get_binance_data import GetBinanceData
 from config import (
     API_BASE_URL,
     BINANCE_LIMIT_STRING,
@@ -27,7 +27,9 @@ from config import (
     MODEL_VERSION,
     TRAINING_PARAMS,
     MODEL_FILENAME,
-    DATA_PROCESSOR_FILENAME
+    DATA_PROCESSOR_FILENAME,
+    DATETIME_FORMAT,
+    TIME_OFFSET
 )
 
 IntervalKey = Literal['1m', '5m', '15m']
@@ -36,7 +38,11 @@ IntervalKey = Literal['1m', '5m', '15m']
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler("BiLSTMModel.log")
+        ]
     )
 
 
@@ -289,15 +295,13 @@ class DataFetcher:
         self.download_data = GetBinanceData()
         self.combined_path = PATHS["combined_dataset"]
         self.predictions_path = PATHS["predictions"]
-
-    def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        combined_data = pd.read_csv(self.combined_path)
-        predictions_data = pd.read_csv(self.predictions_path) if os.path.exists(self.predictions_path) else pd.DataFrame(columns=list(RAW_FEATURES.keys()))
-        return combined_data, predictions_data
-
-    def get_latest_binances_value(self, target_symbol: str) -> pd.DataFrame:
-        return self.download_data.get_latest_prices(target_symbol, PREDICTION_MINUTES, SEQ_LENGTH)
-
+    def load_data(self) -> pd.DataFrame:
+        try:
+            combined_data = self.download_data.fetch_combined_data()
+            return combined_data
+        except Exception as e:
+            logging.error(f"Ошибка при загрузке данных: {e}")
+            raise
 
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
     return DataLoader(
@@ -471,7 +475,8 @@ def main() -> None:
     else:
         data_processor = DataProcessor()
 
-    combined_data, _ = DataFetcher().load_data()
+    data_fetcher = DataFetcher()
+    combined_data = data_fetcher.load_data()
     combined_data = data_processor.preprocess_binance_data(combined_data)
     combined_data = combined_data.sort_values(by='timestamp').reset_index(drop=True)
 
@@ -495,12 +500,11 @@ def main() -> None:
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS.get("batch_size", 32))
     model, optimizer = train_and_save_model(model, dataloader, device)
-    latest_df = DataFetcher().get_latest_binances_value(TARGET_SYMBOL)
+    latest_df = GetBinanceData().get_latest_prices(TARGET_SYMBOL, PREDICTION_MINUTES)
     latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
     print(latest_df)
     predicted_df = predict_future_price(model, latest_df, data_processor)
     print(predicted_df)
-
 
 if __name__ == "__main__":
     while True:
