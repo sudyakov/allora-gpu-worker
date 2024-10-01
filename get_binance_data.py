@@ -253,6 +253,7 @@ class GetBinanceData:
             self.logger.warning(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
+
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     df['timestamp'] = df['timestamp'].astype(int)
     df = df.replace([float('inf'), float('-inf')], pd.NA).dropna()
