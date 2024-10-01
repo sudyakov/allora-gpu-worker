@@ -88,7 +88,7 @@ class EnhancedBiLSTMModel(nn.Module):
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.to(next(self.parameters()).device)  # Перенос входного тензора на устройство модели
+        x = x.to(next(self.parameters()).device)
 
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
@@ -99,10 +99,10 @@ class EnhancedBiLSTMModel(nn.Module):
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
 
-        # Convert timestamp to float and ensure it's on the correct device
         timestamp = x[:, :, self.column_name_to_index['timestamp']].unsqueeze(-1).float()
-
+        print(f"Shape of timestamp before embedding: {timestamp.shape}")
         timestamp_embedded = self.timestamp_embedding(timestamp)
+        print(f"Shape of timestamp_embedded: {timestamp_embedded.shape}")
 
         lstm_input = torch.cat((numerical_data, symbol_embeddings, interval_embeddings, timestamp_embedded), dim=2)
         lstm_out, _ = self.lstm(lstm_input)
