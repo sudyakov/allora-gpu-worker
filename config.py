@@ -38,7 +38,7 @@ RAW_FEATURES: Dict[str, type] = {
     'symbol': str,
     'interval_str': str,
     'interval': int,
-    'timestamp': int,
+    'timestamp': float,
 }
 
 SCALABLE_FEATURES: Dict[str, type] = {
