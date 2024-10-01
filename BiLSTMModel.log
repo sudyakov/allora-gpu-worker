@@ -11,3 +11,4 @@
 2024-10-01 15:10:33,278 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
 2024-10-01 15:10:33,278 - ERROR - Missing columns in DataFrame: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
 2024-10-01 15:15:31,480 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-01 15:50:43,823 - WARNING - Файл комбинированных данных не найден или пуст: data/combined_dataset.csv

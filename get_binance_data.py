@@ -30,6 +30,7 @@ BINANCE_API_COLUMNS = [
     'taker_buy_quote_asset_volume', 'ignore'
 ]
 
+
 class GetBinanceData:
     def __init__(self):
         self.API_BASE_URL = API_BASE_URL
@@ -180,12 +181,12 @@ class GetBinanceData:
                 self.logger.info(f"Combined data loaded from {combined_path}")
                 return df
             except Exception as e:
-                self.logger.error(f"Ошибка при загрузке комбинированных данных: {e}")
+                self.logger.error(f"Error loading combined data: {e}")
                 return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
         else:
-            self.logger.warning(f"Файл комбинированных данных не найден или пуст: {combined_path}")
+            self.logger.warning(f"Combined data file not found or empty: {combined_path}")
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
-    
+
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df['timestamp'] = df['timestamp'].astype(int)
         df = df.replace([float('inf'), float('-inf')], pd.NA).dropna()
@@ -292,19 +293,22 @@ class GetBinanceData:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
             else:
-                self.logger.warning(f"Нет данных для символа {symbol} и интервала {interval} в combined_dataset.")
+                self.logger.warning(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
                 return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
         else:
-            self.logger.warning(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
+            self.logger.warning(f"combined_dataset.csv file not found at path {combined_dataset_path}")
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+
 
 def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     sorted_df = df.sort_values('timestamp', ascending=False)
     logging.debug(f"Sorted DataFrame: {sorted_df.head()}")
     return sorted_df
 
+
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
 
 def get_current_time() -> Tuple[int, str]:
     response = requests.get(f"{API_BASE_URL}/time")
@@ -313,6 +317,7 @@ def get_current_time() -> Tuple[int, str]:
     readable_time = timestamp_to_readable_time(server_time)
     return server_time, readable_time
 
+
 def ensure_file_exists(filepath: str) -> None:
     directory = os.path.dirname(filepath)
     if directory and not os.path.exists(directory):
@@ -320,6 +325,7 @@ def ensure_file_exists(filepath: str) -> None:
     if not os.path.exists(filepath):
         df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
         df.to_csv(filepath, index=False)
+
 
 def main():
     download_data = GetBinanceData()
@@ -376,6 +382,7 @@ def main():
                 time.sleep(1)
             except Exception as e:
                 download_data.logger.error(f"Error fetching prices for {symbol} with interval {interval}: {e}")
+
 
 if __name__ == "__main__":
     try:

@@ -2,14 +2,12 @@ import os
 import pickle
 import logging
 from typing import Optional, Dict, Literal, Tuple, Union, List
-
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-
 from get_binance_data import GetBinanceData
 from config import (
     INTERVAL_MAPPING,
@@ -31,7 +29,6 @@ from config import (
 
 IntervalKey = Literal['1m', '5m', '15m']
 
-
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
@@ -47,10 +44,8 @@ def ensure_directory_exists(filepath: str) -> None:
     if directory and not os.path.exists(directory):
         os.makedirs(directory)
 
-
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -63,7 +58,6 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -102,7 +96,7 @@ class EnhancedBiLSTMModel(nn.Module):
         )
 
         self.attention = Attention(hidden_layer_size)
-        self.linear = nn.Linear(hidden_layer_size * 2, input_size)
+        self.linear = nn.Linear(self.lstm.hidden_size * 2, input_size)
         self.relu = nn.ReLU()
         self.apply(self._initialize_weights)
 
@@ -140,7 +134,6 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
-
 class CustomMinMaxScaler:
     def __init__(self, feature_range: tuple = (0, 1)):
         self.min: Optional[pd.Series] = None
@@ -164,7 +157,6 @@ class CustomMinMaxScaler:
         return (data - self.feature_range[0]) / (
             self.feature_range[1] - self.feature_range[0]
         ) * (self.max - self.min) + self.min
-
 
 class CustomLabelEncoder:
     def __init__(self):
@@ -190,14 +182,14 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
-
 class DataProcessor:
     def __init__(self):
         self.scaler = CustomMinMaxScaler(feature_range=(0, 1))
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: List[str] = ["symbol", "interval_str"]
         self.numerical_columns: List[str] = [
-            col for col in list(SCALABLE_FEATURES.keys()) ]
+            col for col in list(SCALABLE_FEATURES.keys()) 
+        ]
         print("Numerical columns for scaling:", self.numerical_columns)
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -243,7 +235,6 @@ class DataProcessor:
         features = list(MODEL_FEATURES.keys())
         target_columns = [col for col in features if col != 'timestamp']
 
-        # Проверка наличия всех необходимых столбцов
         missing_columns = [col for col in features if col not in df.columns]
         if missing_columns:
             logging.error(f"Missing columns in DataFrame: {missing_columns}")
@@ -256,7 +247,6 @@ class DataProcessor:
         targets = []
         for i in range(len(data_tensor) - seq_length):
             sequences.append(data_tensor[i: i + seq_length])
-            # Используем tensor для индексации
             targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
 
         sequences = torch.stack(sequences)
@@ -284,18 +274,18 @@ class DataProcessor:
             logging.error(f"Error loading DataProcessor: {e}")
             raise
 
-
 class DataFetcher:
     def __init__(self):
         self.download_data = GetBinanceData()
         self.combined_path = PATHS["combined_dataset"]
         self.predictions_path = PATHS["predictions"]
+
     def load_data(self) -> pd.DataFrame:
         try:
             combined_data = self.download_data.fetch_combined_data()
             return combined_data
         except Exception as e:
-            logging.error(f"Ошибка при загрузке данных: {e}")
+            logging.error(f"Error loading data: {e}")
             raise
 
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
@@ -305,7 +295,6 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
         shuffle=shuffle,
         num_workers=TRAINING_PARAMS.get("num_workers", 4),
     )
-
 
 def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     try:
@@ -317,7 +306,6 @@ def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     except Exception as e:
         logging.error(f"Error saving model: {e}")
         raise
-
 
 def load_model(
     model: EnhancedBiLSTMModel,
@@ -340,7 +328,6 @@ def load_model(
     except Exception as e:
         logging.error(f"Error loading model: {e}")
         raise
-
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -390,14 +377,12 @@ def train_and_save_model(
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
     return model, optimizer
 
-
 def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
     logging.error(f"Interval for {minutes} minutes not found in INTERVAL_MAPPING.")
     return None
-
 
 def predict_future_price(
     model: EnhancedBiLSTMModel,
@@ -461,7 +446,6 @@ def predict_future_price(
 
     return predictions_df
 
-
 def main() -> None:
     setup_logging()
     device = get_device()
@@ -481,7 +465,6 @@ def main() -> None:
     else:
         combined_data = data_processor.transform(combined_data)
 
-    # Логирование колонок DataFrame
     logging.info(f"Columns in combined_data: {combined_data.columns.tolist()}")
 
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
