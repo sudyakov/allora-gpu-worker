@@ -12,12 +12,11 @@ from tqdm import tqdm
 
 from get_binance_data import GetBinanceData
 from config import (
-    API_BASE_URL,
-    BINANCE_LIMIT_STRING,
     INTERVAL_MAPPING,
     SYMBOL_MAPPING,
     PATHS,
     RAW_FEATURES,
+    SCALABLE_FEATURES,
     MODEL_FEATURES,
     MODEL_PARAMS,
     ADD_FEATURES,
@@ -28,8 +27,6 @@ from config import (
     TRAINING_PARAMS,
     MODEL_FILENAME,
     DATA_PROCESSOR_FILENAME,
-    DATETIME_FORMAT,
-    TIME_OFFSET
 )
 
 IntervalKey = Literal['1m', '5m', '15m']
@@ -44,7 +41,6 @@ def setup_logging():
             logging.FileHandler("BiLSTMModel.log")
         ]
     )
-
 
 def ensure_directory_exists(filepath: str) -> None:
     directory = os.path.dirname(filepath)
@@ -201,8 +197,7 @@ class DataProcessor:
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: List[str] = ["symbol", "interval_str"]
         self.numerical_columns: List[str] = [
-            col for col in list(RAW_FEATURES.keys()) if col not in self.categorical_columns and col != 'timestamp'
-        ]
+            col for col in list(SCALABLE_FEATURES.keys()) ]
         print("Numerical columns for scaling:", self.numerical_columns)
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:

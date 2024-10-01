@@ -90,8 +90,8 @@ class GetBinanceData:
                 df['interval'] = interval_info['minutes']
                 df['interval_str'] = interval_str
                 self.logger.debug(f"Raw DataFrame: {df.head()}")
-                df = preprocess_binance_data(df)
-                df = fill_missing_model_features(df)
+                df = self.preprocess_binance_data(df)
+                df = self.fill_missing_add_features(df)
                 all_data.append(df)
                 current_start = int(df['timestamp'].iloc[-1]) + 1
             except RequestException as e:
@@ -105,7 +105,7 @@ class GetBinanceData:
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
         combined_df = pd.concat(all_data, ignore_index=True)
-        combined_df = fill_missing_model_features(combined_df)
+        combined_df = self.fill_missing_add_features(combined_df)
         return combined_df[list(self.BINANCE_FEATURES.keys())]
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
@@ -128,8 +128,8 @@ class GetBinanceData:
             df['interval'] = interval_info['minutes']
             df['interval_str'] = interval_str
             self.logger.debug(f"Raw DataFrame: {df.head()}")
-            df = preprocess_binance_data(df)
-            df = fill_missing_model_features(df)
+            df = self.preprocess_binance_data(df)
+            df = self.fill_missing_add_features(df)
             return df[list(self.BINANCE_FEATURES.keys())]
         except RequestException as e:
             self.logger.error(f"Error fetching current price for {symbol}: {e}")
@@ -137,8 +137,8 @@ class GetBinanceData:
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
-        df = preprocess_binance_data(df[df['timestamp'] <= current_time])
-        df = fill_missing_model_features(df)
+        df = self.preprocess_binance_data(df[df['timestamp'] <= current_time])
+        df = self.fill_missing_add_features(df)
         return sort_dataframe(df)
 
     def save_to_csv(self, df: pd.DataFrame, filename: str):
@@ -165,7 +165,7 @@ class GetBinanceData:
             else:
                 combined_data = pd.concat(data.values(), ignore_index=True)
 
-            combined_data = fill_missing_model_features(combined_data)
+            combined_data = self.fill_missing_add_features(combined_data)
             prepared_df = self.prepare_dataframe_for_save(combined_data)
             prepared_df.to_csv(filename, index=False, float_format='%.6f')
             self.logger.info(f"Combined dataset updated: {filename}")
@@ -185,6 +185,38 @@ class GetBinanceData:
         else:
             self.logger.warning(f"Файл комбинированных данных не найден или пуст: {combined_path}")
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+    
+    def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        df['timestamp'] = df['timestamp'].astype(int)
+        df = df.replace([float('inf'), float('-inf')], pd.NA).dropna()
+        if 'interval' in df.columns:
+            df['interval'] = df['interval'].astype(int)
+        for col, dtype in RAW_FEATURES.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
+        for col, dtype in SCALABLE_FEATURES.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
+        for col, dtype in ADD_FEATURES.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
+        float_cols = df.select_dtypes(include=['float', 'float64']).columns
+        df[float_cols] = df[float_cols].round(6)
+        logging.debug(f"Preprocessed DataFrame: {df.head()}")
+        return df
+
+    def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        if 'timestamp' in df.columns:
+            dt = pd.to_datetime(df['timestamp'], unit='ms')
+            df['hour'] = dt.dt.hour
+            df['dayofweek'] = dt.dt.dayofweek
+            df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24)
+            df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24)
+            df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
+            df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
+        df = df.ffill().bfill()
+        logging.debug(f"Filled DataFrame: {df.head()}")
+        return df
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
@@ -208,7 +240,7 @@ class GetBinanceData:
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             df_existing = pd.read_csv(filename, dtype=self.BINANCE_FEATURES)
-            df_existing = fill_missing_model_features(df_existing)
+            df_existing = self.fill_missing_add_features(df_existing)
 
         last_timestamp = (
             int(df_existing['timestamp'].max())
@@ -235,7 +267,7 @@ class GetBinanceData:
                 )
                 df_updated = df_updated.drop_duplicates(subset=['timestamp'], keep='first')
                 df_updated = sort_dataframe(df_updated)
-                df_updated = fill_missing_model_features(df_updated)
+                df_updated = self.fill_missing_add_features(df_updated)
                 self.save_to_csv(df_updated, filename)
                 self.save_combined_dataset(
                     {f"{symbol}_{interval_info['minutes']}": df_updated},
@@ -266,25 +298,6 @@ class GetBinanceData:
             self.logger.warning(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
-def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
-    df['timestamp'] = df['timestamp'].astype(int)
-    df = df.replace([float('inf'), float('-inf')], pd.NA).dropna()
-    if 'interval' in df.columns:
-        df['interval'] = df['interval'].astype(int)
-    for col, dtype in RAW_FEATURES.items():
-        if col in df.columns:
-            df[col] = df[col].astype(dtype)
-    for col, dtype in SCALABLE_FEATURES.items():
-        if col in df.columns:
-            df[col] = df[col].astype(dtype)
-    for col, dtype in ADD_FEATURES.items():
-        if col in df.columns:
-            df[col] = df[col].astype(dtype)
-    float_cols = df.select_dtypes(include=['float', 'float64']).columns
-    df[float_cols] = df[float_cols].round(6)
-    logging.debug(f"Preprocessed DataFrame: {df.head()}")
-    return df
-
 def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     sorted_df = df.sort_values('timestamp', ascending=False)
     logging.debug(f"Sorted DataFrame: {sorted_df.head()}")
@@ -307,19 +320,6 @@ def ensure_file_exists(filepath: str) -> None:
     if not os.path.exists(filepath):
         df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
         df.to_csv(filepath, index=False)
-
-def fill_missing_model_features(df: pd.DataFrame) -> pd.DataFrame:
-    if 'timestamp' in df.columns:
-        dt = pd.to_datetime(df['timestamp'], unit='ms')
-        df['hour'] = dt.dt.hour
-        df['dayofweek'] = dt.dt.dayofweek
-        df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24)
-        df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24)
-        df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
-        df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
-    df = df.ffill().bfill()
-    logging.debug(f"Filled DataFrame: {df.head()}")
-    return df
 
 def main():
     download_data = GetBinanceData()

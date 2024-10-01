@@ -4,3 +4,10 @@
 2024-10-01 15:09:56,518 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
 2024-10-01 15:09:57,279 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
 2024-10-01 15:09:57,280 - ERROR - Missing columns in DataFrame: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-01 15:10:32,271 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-01 15:10:32,388 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-01 15:10:32,450 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-01 15:10:32,450 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-01 15:10:33,278 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
+2024-10-01 15:10:33,278 - ERROR - Missing columns in DataFrame: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-01 15:15:31,480 - INFO - Combined data loaded from data/combined_dataset.csv
