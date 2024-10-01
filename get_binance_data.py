@@ -2,7 +2,7 @@ import logging
 import os
 import time
 from datetime import datetime, timezone
-from typing import Dict, Optional, Union, Tuple, TypedDict
+from typing import Dict, Optional, Union, Tuple
 
 import numpy as np
 import pandas as pd
@@ -16,7 +16,7 @@ from config import (
     SYMBOL_MAPPING,
     PATHS,
     RAW_FEATURES,
-    SCALED_FEATURES,
+    SCALABLE_FEATURES,
     ADD_FEATURES,
     MODEL_FEATURES
 )
@@ -28,11 +28,6 @@ BINANCE_API_COLUMNS = [
     'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume',
     'taker_buy_quote_asset_volume', 'ignore'
 ]
-
-class FeatureConfig(TypedDict, total=False):
-    type: type
-    precision: Optional[int]
-    rounding: Optional[str]  # Например, 'up', 'down', 'nearest'
 
 class GetBinanceData:
     def __init__(self):
@@ -178,14 +173,15 @@ class GetBinanceData:
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
-        summary += f"{'Timestamp':<20} {' '.join([f'{feature.capitalize():<10}' for feature in self.BINANCE_FEATURES])}\n"
+        feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.BINANCE_FEATURES.keys()])
+        summary += f"{'Timestamp':<20} {feature_headers}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
         for i, row in enumerate(rows_to_display):
             label = "First" if i == 0 else "Last"
             timestamp = row['timestamp']
+            feature_values = ' '.join([f'{row[feature]:<10.6f}' if isinstance(row[feature], float) else f"{row[feature]:<10}" for feature in self.BINANCE_FEATURES.keys()])
             summary += (
-                f"{label:<20} {timestamp:<20} "
-                f"{' '.join([f'{row[feature]:<10.6f}' if isinstance(row[feature], float) else str(row[feature]) for feature in self.BINANCE_FEATURES])}\n"
+                f"{label:<20} {timestamp:<20} {feature_values}\n"
             )
         self.logger.info(summary)
 
@@ -212,9 +208,11 @@ class GetBinanceData:
             df_new = self.get_binance_data(symbol, interval, start_time, end_time)
             if df_new is not None and not df_new.empty:
                 newest_timestamp = df_new['timestamp'].max()
+                readable_start = timestamp_to_readable_time(start_time)
+                readable_newest = timestamp_to_readable_time(newest_timestamp)
                 self.logger.info(
                     f"Updating data for {symbol} from {start_time} to {newest_timestamp} "
-                    f"({timestamp_to_readable_time(start_time)} to {timestamp_to_readable_time(newest_timestamp)})"
+                    f"({readable_start} to {readable_newest})"
                 )
                 df_updated = pd.concat(
                     [df_new.dropna(axis=1, how='all'), df_existing.dropna(axis=1, how='all')],
@@ -258,9 +256,15 @@ def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     df = df.replace([float('inf'), float('-inf')], pd.NA).dropna()
     if 'interval' in df.columns:
         df['interval'] = df['interval'].astype(int)
-    for col, config in RAW_FEATURES.items():
+    for col, dtype in RAW_FEATURES.items():
         if col in df.columns:
-            df[col] = df[col].astype(config['type'])
+            df[col] = df[col].astype(dtype)
+    for col, dtype in SCALABLE_FEATURES.items():
+        if col in df.columns:
+            df[col] = df[col].astype(dtype)
+    for col, dtype in ADD_FEATURES.items():
+        if col in df.columns:
+            df[col] = df[col].astype(dtype)
     float_cols = df.select_dtypes(include=['float', 'float64']).columns
     df[float_cols] = df[float_cols].round(6)
     logging.debug(f"Preprocessed DataFrame: {df.head()}")
@@ -286,7 +290,7 @@ def ensure_file_exists(filepath: str) -> None:
     if directory and not os.path.exists(directory):
         os.makedirs(directory)
     if not os.path.exists(filepath):
-        df = pd.DataFrame(columns=list(RAW_FEATURES.keys()))
+        df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
         df.to_csv(filepath, index=False)
 
 def fill_missing_model_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -299,16 +303,6 @@ def fill_missing_model_features(df: pd.DataFrame) -> pd.DataFrame:
         df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
         df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
     df = df.ffill().bfill()
-    for col, config in MODEL_FEATURES.items():
-        if col in df.columns and 'precision' in config:
-            precision = config['precision']
-            rounding = config.get('rounding', 'nearest')
-            if rounding == 'up':
-                df[col] = np.ceil(df[col] * 10**precision) / 10**precision
-            elif rounding == 'down':
-                df[col] = np.floor(df[col] * 10**precision) / 10**precision
-            else:
-                df[col] = df[col].round(precision)
     logging.debug(f"Filled DataFrame: {df.head()}")
     return df
 

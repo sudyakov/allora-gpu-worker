@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Literal, TypedDict, Union
 import os
+from matplotlib.ft2font import SCALABLE
 import requests
 import time
 
@@ -29,47 +30,42 @@ PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
     "1m": {"days": 30, "minutes": 1, "milliseconds": 60000},
-    "5m": {"days": 90, "minutes": 5, "milliseconds": 300000},
-    "15m": {"days": 180, "minutes": 15, "milliseconds": 900000},
+    "5m": {"days": 60, "minutes": 5, "milliseconds": 300000},
+    "15m": {"days": 90, "minutes": 15, "milliseconds": 900000},
 }
 
-class FeatureConfig(TypedDict, total=False):
-    type: type
-    precision: Optional[int]
-    rounding: Optional[str]  # Например, 'up', 'down', 'nearest'
-
-RAW_FEATURES: Dict[str, FeatureConfig] = {
-    'symbol': {'type': str},
-    'interval_str': {'type': str},
-    'interval': {'type': int},
-    'timestamp': {'type': int},
+RAW_FEATURES: Dict[str, type] = {
+    'symbol': str,
+    'interval_str': str,
+    'interval': int,
+    'timestamp': int,
 }
 
-SCALED_FEATURES: Dict[str, FeatureConfig] = {
-    'open': {'type': float, 'precision': 6, 'rounding': 'nearest'},
-    'high': {'type': float, 'precision': 6, 'rounding': 'nearest'},
-    'low': {'type': float, 'precision': 6, 'rounding': 'nearest'},
-    'close': {'type': float, 'precision': 6, 'rounding': 'nearest'},
-    'volume': {'type': float, 'precision': 6, 'rounding': 'down'},
-    'quote_asset_volume': {'type': float, 'precision': 6, 'rounding': 'down'},
-    'number_of_trades': {'type': int},
-    'taker_buy_base_asset_volume': {'type': float, 'precision': 6, 'rounding': 'down'},
-    'taker_buy_quote_asset_volume': {'type': float, 'precision': 6, 'rounding': 'down'},
+SCALABLE_FEATURES: Dict[str, type] = {
+    'open': float,
+    'high': float,
+    'low': float,
+    'close': float,
+    'volume': float,
+    'quote_asset_volume': float,
+    'number_of_trades': int,
+    'taker_buy_base_asset_volume': float,
+    'taker_buy_quote_asset_volume': float
 }
 
-ADD_FEATURES: Dict[str, FeatureConfig] = {
-    "hour": {'type': int},
-    "dayofweek": {'type': int},
-    "sin_hour": {'type': float, 'precision': 6},
-    "cos_hour": {'type': float, 'precision': 6},
-    "sin_day": {'type': float, 'precision': 6},
-    "cos_day": {'type': float, 'precision': 6},
+ADD_FEATURES: Dict[str, type] = {
+    "hour": int,
+    "dayofweek": int,
+    "sin_hour": float,
+    "cos_hour": float,
+    "sin_day": float,
+    "cos_day": float,
 }
 
-MODEL_FEATURES: Dict[str, FeatureConfig] = {
+MODEL_FEATURES: Dict[str, type] = {
     **RAW_FEATURES,
-    **SCALED_FEATURES,
-    **ADD_FEATURES
+    **SCALABLE_FEATURES,
+    **ADD_FEATURES,
 }
 
 PATHS: Dict[str, str] = {
