@@ -26,17 +26,6 @@ from config import (
     API_BASE_URL
 )
 
-class Attention(nn.Module):
-    def __init__(self, hidden_size: int):
-        super(Attention, self).__init__()
-        self.attention_weights = nn.Parameter(torch.Tensor(hidden_size * 2, 1))
-        nn.init.xavier_uniform_(self.attention_weights)
-
-    def forward(self, lstm_out: torch.Tensor) -> torch.Tensor:
-        attention_scores = torch.matmul(lstm_out, self.attention_weights).squeeze(-1)
-        attention_weights = torch.softmax(attention_scores, dim=1)
-        context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
-        return context_vector
 
 class CustomMinMaxScaler:
     def __init__(self, feature_range: tuple = (0, 1)):
@@ -205,7 +194,8 @@ class DataProcessor:
             df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
             df.to_csv(filepath, index=False)
 
-    def load(self, filepath: str) -> 'DataProcessor':
+    @staticmethod
+    def load(filepath: str) -> 'DataProcessor':
         with open(filepath, 'rb') as f:
             processor = pickle.load(f)
         logging.info("DataProcessor loaded: %s", filepath)

@@ -1,15 +1,16 @@
 import os
-import pickle
 import logging
+import pickle
 from typing import Optional, Dict, Literal, Tuple, Union, List
+
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-from get_binance_data import GetBinanceData
 
+from get_binance_data import GetBinanceData
 from config import (
     INTERVAL_MAPPING,
     SYMBOL_MAPPING,
@@ -26,6 +27,7 @@ from config import (
     DATA_PROCESSOR_FILENAME,
     TRAINING_PARAMS,
 )
+from data_utils import DataProcessor
 
 
 class DataFetcher:
@@ -37,6 +39,19 @@ class DataFetcher:
     def load_data(self) -> pd.DataFrame:
         combined_data = self.download_data.fetch_combined_data()
         return combined_data
+
+
+class Attention(nn.Module):
+    def __init__(self, hidden_size: int):
+        super(Attention, self).__init__()
+        self.attention_weights = nn.Parameter(torch.Tensor(hidden_size * 2, 1))
+        nn.init.xavier_uniform_(self.attention_weights)
+
+    def forward(self, lstm_out: torch.Tensor) -> torch.Tensor:
+        attention_scores = torch.matmul(lstm_out, self.attention_weights).squeeze(-1)
+        attention_weights = torch.softmax(attention_scores, dim=1)
+        context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
+        return context_vector
 
 
 class EnhancedBiLSTMModel(nn.Module):
@@ -166,6 +181,12 @@ def load_model(
         logging.info("Model not found, creating new: %s", filepath)
 
 
+def ensure_directory_exists(filepath: str) -> None:
+    directory = os.path.dirname(filepath)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+
+
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     dataloader: DataLoader,
@@ -178,6 +199,7 @@ def train_and_save_model(
     epochs_no_improve = 0
     n_epochs_stop = 5
     min_lr = TRAINING_PARAMS.get("min_lr", 1e-6)
+
     for epoch in range(TRAINING_PARAMS.get("initial_epochs", 50)):
         total_loss = 0.0
         progress_bar = tqdm(
@@ -190,16 +212,20 @@ def train_and_save_model(
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
+
             if outputs.shape != targets.shape:
                 logging.error("Output shape %s does not match target shape %s", outputs.shape, targets.shape)
                 continue
+
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
             progress_bar.set_postfix(loss=f"{loss.item():.4f}")
+
         avg_loss = total_loss / len(dataloader)
         logging.info("Epoch %d/%d - Loss: %.4f", epoch + 1, TRAINING_PARAMS.get("initial_epochs", 50), avg_loss)
+
         if avg_loss < best_val_loss:
             best_val_loss = avg_loss
             epochs_no_improve = 0
@@ -212,10 +238,11 @@ def train_and_save_model(
             for param_group in optimizer.param_groups:
                 param_group["lr"] = max(param_group["lr"] * 0.5, min_lr)
                 logging.info("Reducing learning rate to: %s", param_group["lr"])
+
     return model, optimizer
 
 
-def get_interval(minutes: int) -> Optional[IntervalKey]:
+def get_interval(minutes: int) -> Optional[Literal["1m", "5m", "15m"]]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
@@ -237,7 +264,6 @@ def predict_future_price(
             logging.error("Error processing latest_df: %s", e)
             return pd.DataFrame()
 
-        # Ensure there are enough data points
         if len(processed_df) < SEQ_LENGTH:
             logging.warning("Not enough data for prediction.")
             logging.info("Current number of rows: %d, required: %d", len(processed_df), SEQ_LENGTH)
@@ -292,6 +318,7 @@ def predict_future_price(
 def main() -> None:
     setup_logging()
     device = get_device()
+    DataProcessor()
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
@@ -318,16 +345,17 @@ def main() -> None:
     ).to(device)
     optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS.get("initial_lr", 0.001))
     load_model(model, optimizer, MODEL_FILENAME, device)
+
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
-    dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS.get("batch_size", 32))
+    dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS.get("batch_size", 512))
+
     model, optimizer = train_and_save_model(model, dataloader, device)
-    
+
     latest_df = GetBinanceData().get_latest_dataset_prices(TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH)
     latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
     logging.info("Latest dataset:\n%s", latest_df)
-    predicted_df = predict_future_price(model, latest_df, data_processor)
+    predicted_df = predict_future_price(model, latest_df, data_processor, PREDICTION_MINUTES)
     logging.info("Predicted future prices:\n%s", predicted_df)
-
 
 if __name__ == "__main__":
     while True:
