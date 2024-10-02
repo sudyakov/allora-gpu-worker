@@ -61,11 +61,9 @@ class DataProcessor:
         self.categorical_columns: List[str] = ["symbol", "interval_str"]
         self.numerical_columns: List[str] = list(SCALABLE_FEATURES.keys())
 
-        # Предварительно заданные отображения
         self.symbol_mapping = SYMBOL_MAPPING
         self.interval_str_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 
-        # Инициализация CustomLabelEncoders с предопределёнными маппингами
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
         self.label_encoders["interval_str"] = CustomLabelEncoder(predefined_mapping=self.interval_str_mapping)
 
@@ -98,7 +96,6 @@ class DataProcessor:
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Кодирование категориальных колонок с использованием предопределённых маппингов
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
@@ -106,7 +103,6 @@ class DataProcessor:
                 raise ValueError(f"No encoder found for column {col}.")
             df[col] = encoder.transform(df[col])
 
-        # Приведение типов для числовых колонок
         for col in self.numerical_columns:
             if col in SCALABLE_FEATURES:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
@@ -122,15 +118,12 @@ class DataProcessor:
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Кодирование категориальных колонок с использованием предопределённых маппингов
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 logging.error("LabelEncoder for column %s is not found.", col)
                 raise ValueError(f"LabelEncoder for column {col} is not found.")
             df[col] = encoder.transform(df[col])
-
-        # Приведение типов для числовых колонок
         for col in self.numerical_columns:
             if col in SCALABLE_FEATURES:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
@@ -147,7 +140,6 @@ class DataProcessor:
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         features = list(MODEL_FEATURES.keys())
-        # Определяем только SCALABLE_FEATURES как целевые колонки
         target_columns = list(SCALABLE_FEATURES.keys())
         missing_columns = [col for col in target_columns if col not in df.columns]
         if missing_columns:
@@ -161,11 +153,13 @@ class DataProcessor:
         targets = []
         for i in range(len(data_tensor) - seq_length):
             sequences.append(data_tensor[i:i + seq_length])
-            # Изменяем выборку цели на SCALABLE_FEATURES
             targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
 
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
+        
+        print("Data types before tensor conversion:")
+        print(df[features].dtypes)
         return TensorDataset(sequences, targets)
 
     def save(self, filepath: str) -> None:

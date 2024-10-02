@@ -26,7 +26,7 @@ from config import (
     IntervalConfig,
     IntervalKey,
 )
-from data_utils import DataProcessor
+from data_utils import DataProcessor, CustomLabelEncoder
 from get_binance_data import GetBinanceData
 
 def setup_logging():
