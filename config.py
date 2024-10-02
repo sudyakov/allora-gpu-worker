@@ -84,46 +84,6 @@ PATHS: Dict[str, str] = {
 
 MODEL_VERSION = "2.0"
 
-class ModelParams(TypedDict):
-    input_size: int
-    hidden_layer_size: int
-    num_layers: int
-    dropout: float
-    embedding_dim: int
-    num_symbols: int
-    num_intervals: int
-    timestamp_embedding_dim: int
-
-MODEL_PARAMS: ModelParams = {
-    "input_size": len(MODEL_FEATURES)-1,
-    "hidden_layer_size": 256,
-    "num_layers": 4,
-    "dropout": 0.2,
-    "embedding_dim": 128,
-    "num_symbols": 2,
-    "num_intervals": 3,
-    "timestamp_embedding_dim": 64,
-}
-
-class TrainingParams(TypedDict):
-    batch_size: int
-    initial_epochs: int
-    initial_lr: float
-    max_epochs: int
-    min_lr: float
-    use_mixed_precision: bool
-    num_workers: int
-
-TRAINING_PARAMS: TrainingParams = {
-    "batch_size": 512,
-    "initial_epochs": 5,
-    "initial_lr": 0.0005,
-    "max_epochs": 100,
-    "min_lr": 0.00001,
-    "use_mixed_precision": True,
-    "num_workers": 8,
-}
-
 MODEL_FILENAME = os.path.join(PATHS["models_dir"], f"enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth")
 DATA_PROCESSOR_FILENAME = os.path.join(PATHS["models_dir"], f"data_processor_{TARGET_SYMBOL}_v{MODEL_VERSION}.pkl")
 

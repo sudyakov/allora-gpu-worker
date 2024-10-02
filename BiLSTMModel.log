@@ -2030,3 +2030,136 @@ cos_hour                        float64
 sin_day                         float64
 cos_day                         float64
 dtype: object
+2024-10-02 19:06:39,031 - INFO - Logging is set up.
+2024-10-02 19:06:39,232 - INFO - Using device: cuda
+2024-10-02 19:06:39,233 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 19:06:39,372 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 19:06:39,508 - INFO - Column order after fit_transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 19:06:39,508 - INFO - Data types after fit_transform:
+2024-10-02 19:06:39,508 - INFO - symbol                            int64
+interval_str                      int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-02 19:06:39,514 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 19:06:39,514 - INFO - num_symbols: 2, num_intervals: 3
+2024-10-02 19:06:39,515 - INFO - Columns after processing: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 19:06:41,166 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-02 19:06:41,166 - INFO - Data types before tensor conversion:
+2024-10-02 19:06:41,172 - INFO - symbol                            int64
+interval_str                      int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-02 19:06:41,177 - INFO - Data types after type conversion:
+2024-10-02 19:06:41,180 - INFO - symbol                            int64
+interval_str                      int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-02 19:07:06,203 - INFO - Epoch 1/5 - Loss: 11614957076480.0000
+2024-10-02 19:07:06,290 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 19:07:06,290 - INFO - Validation loss improved to 11614957076480.0000. Model saved.
+2024-10-02 19:07:30,720 - INFO - Epoch 2/5 - Loss: 11623579721032.7383
+2024-10-02 19:07:30,721 - INFO - No improvement in validation loss. (1/5)
+2024-10-02 19:07:30,721 - INFO - Reducing learning rate to: 0.00025
+2024-10-02 19:07:55,265 - INFO - Epoch 3/5 - Loss: 11624971673751.1445
+2024-10-02 19:07:55,265 - INFO - No improvement in validation loss. (2/5)
+2024-10-02 19:07:55,266 - INFO - Reducing learning rate to: 0.000125
+2024-10-02 19:08:20,267 - INFO - Epoch 4/5 - Loss: 11615923937068.3984
+2024-10-02 19:08:20,268 - INFO - No improvement in validation loss. (3/5)
+2024-10-02 19:08:20,268 - INFO - Reducing learning rate to: 6.25e-05
+2024-10-02 19:08:44,808 - INFO - Epoch 5/5 - Loss: 11631622724573.9922
+2024-10-02 19:08:44,809 - INFO - No improvement in validation loss. (4/5)
+2024-10-02 19:08:44,809 - INFO - Reducing learning rate to: 3.125e-05
+2024-10-02 19:08:44,936 - INFO - Latest dataset loaded with 100 records.
+2024-10-02 19:08:44,937 - INFO - Data types before tensor conversion:
+2024-10-02 19:08:44,938 - INFO - symbol                           object
+interval_str                     object
+interval                          int64
+timestamp                         int64
+open                            float64
+high                            float64
+low                             float64
+close                           float64
+volume                          float64
+quote_asset_volume              float64
+number_of_trades                  int64
+taker_buy_base_asset_volume     float64
+taker_buy_quote_asset_volume    float64
+hour                              int64
+dayofweek                         int64
+sin_hour                        float64
+cos_hour                        float64
+sin_day                         float64
+cos_day                         float64
+dtype: object
+2024-10-02 19:08:44,939 - ERROR - Columns with object dtype: ['symbol', 'interval_str']
+2024-10-02 19:08:44,940 - INFO - Column symbol converted to float.
+2024-10-02 19:08:44,940 - INFO - Column interval_str converted to float.
+2024-10-02 19:08:44,941 - INFO - Data types after type conversion:
+2024-10-02 19:08:44,941 - INFO - symbol                          float64
+interval_str                    float64
+interval                          int64
+timestamp                         int64
+open                            float64
+high                            float64
+low                             float64
+close                           float64
+volume                          float64
+quote_asset_volume              float64
+number_of_trades                  int64
+taker_buy_base_asset_volume     float64
+taker_buy_quote_asset_volume    float64
+hour                              int64
+dayofweek                         int64
+sin_hour                        float64
+cos_hour                        float64
+sin_day                         float64
+cos_day                         float64
+dtype: object

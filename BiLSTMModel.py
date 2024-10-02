@@ -1,23 +1,23 @@
-import os
 import logging
-from typing import Dict, List, Optional, Tuple
+import os
+from typing import Dict, List, Optional, Tuple, TypedDict
+
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
+
 from config import (
     ADD_FEATURES,
     DATA_PROCESSOR_FILENAME,
     INTERVAL_MAPPING,
     MODEL_FILENAME,
     MODEL_FEATURES,
-    MODEL_PARAMS,
     SCALABLE_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
-    TRAINING_PARAMS,
     PATHS,
     PREDICTION_MINUTES,
     IntervalConfig,
@@ -26,25 +26,60 @@ from config import (
 from data_utils import DataProcessor
 from get_binance_data import GetBinanceData
 
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler("BiLSTMModel.log"),
-        ],
-    )
-    logging.info("Logging is set up.")
+
+class ModelParams(TypedDict):
+    input_size: int
+    hidden_layer_size: int
+    num_layers: int
+    dropout: float
+    embedding_dim: int
+    num_symbols: int
+    num_intervals: int
+    timestamp_embedding_dim: int
+
+
+MODEL_PARAMS: ModelParams = {
+    "input_size": len(MODEL_FEATURES) - 1,
+    "hidden_layer_size": 256,
+    "num_layers": 4,
+    "dropout": 0.2,
+    "embedding_dim": 128,
+    "num_symbols": 2,
+    "num_intervals": 3,
+    "timestamp_embedding_dim": 64,
+}
+
+
+class TrainingParams(TypedDict):
+    batch_size: int
+    initial_epochs: int
+    initial_lr: float
+    max_epochs: int
+    min_lr: float
+    use_mixed_precision: bool
+    num_workers: int
+
+
+TRAINING_PARAMS: TrainingParams = {
+    "batch_size": 256,
+    "initial_epochs": 5,
+    "initial_lr": 0.0005,
+    "max_epochs": 100,
+    "min_lr": 0.00001,
+    "use_mixed_precision": True,
+    "num_workers": 8,
+}
+
 
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
 
+
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
-        super(Attention, self).__init__()
+        super().__init__()
         self.attention_weights = nn.Parameter(torch.Tensor(hidden_size * 2, 1))
         nn.init.xavier_uniform_(self.attention_weights)
 
@@ -54,6 +89,7 @@ class Attention(nn.Module):
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
 
+
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
         self,
@@ -61,7 +97,7 @@ class EnhancedBiLSTMModel(nn.Module):
         categorical_columns: List[str],
         column_name_to_index: Dict[str, int],
     ):
-        super(EnhancedBiLSTMModel, self).__init__()
+        super().__init__()
         self.numerical_columns = numerical_columns
         self.categorical_columns = categorical_columns
         self.column_name_to_index = column_name_to_index
@@ -106,6 +142,7 @@ class EnhancedBiLSTMModel(nn.Module):
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval_str"]].long()
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
+
         if torch.isnan(timestamp).any() or torch.isinf(timestamp).any():
             logging.error("Timestamp contains NaN or infinite values.")
             raise ValueError("Timestamp tensor contains NaN or infinite values.")
@@ -138,15 +175,15 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
+
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
-    dataloader = DataLoader(
+    return DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=TRAINING_PARAMS["num_workers"],
     )
-    logging.info(f"Dataloader created with batch size {batch_size} and shuffle={shuffle}.")
-    return dataloader
+
 
 def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     DataProcessor.ensure_file_exists(filepath)
@@ -154,6 +191,7 @@ def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
     torch.save(optimizer.state_dict(), optimizer_filepath)
     logging.info(f"Model saved to {filepath} and optimizer to {optimizer_filepath}.")
+
 
 def load_model(
     model: EnhancedBiLSTMModel,
@@ -173,6 +211,7 @@ def load_model(
         logging.info(f"Model loaded from {filepath}.")
     else:
         logging.warning(f"Model file {filepath} not found. A new model will be created.")
+
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -238,12 +277,14 @@ def train_and_save_model(
 
     return model, optimizer
 
+
 def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
     logging.error("Interval for %d minutes not found.", minutes)
     return None
+
 
 def predict_future_price(
     model: EnhancedBiLSTMModel,
@@ -286,12 +327,14 @@ def predict_future_price(
         predictions_df["interval"] = prediction_minutes
         predictions_df["interval_str"] = interval_key
 
-        predictions_df = predictions_df[["timestamp", "symbol", "interval", "interval_str"] + list(SCALABLE_FEATURES.keys())]
+        predictions_df = predictions_df[
+            ["timestamp", "symbol", "interval", "interval_str"] + list(SCALABLE_FEATURES.keys())
+        ]
 
     return predictions_df
 
+
 def main():
-    setup_logging()
     device = get_device()
 
     if os.path.exists(DATA_PROCESSOR_FILENAME):
@@ -317,9 +360,15 @@ def main():
         combined_data = data_processor.fit_transform(combined_data)
         data_processor.save(DATA_PROCESSOR_FILENAME)
 
-    MODEL_PARAMS["num_symbols"] = max(combined_data["symbol"].max() + 1, MODEL_PARAMS.get("num_symbols", 0))
-    MODEL_PARAMS["num_intervals"] = max(combined_data["interval_str"].max() + 1, MODEL_PARAMS.get("num_intervals", 0))
-    logging.info(f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}")
+    MODEL_PARAMS["num_symbols"] = max(
+        combined_data["symbol"].max() + 1, MODEL_PARAMS.get("num_symbols", 0)
+    )
+    MODEL_PARAMS["num_intervals"] = max(
+        combined_data["interval_str"].max() + 1, MODEL_PARAMS.get("num_intervals", 0)
+    )
+    logging.info(
+        f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
+    )
 
     if (combined_data['symbol'] < 0).any():
         raise ValueError("Negative indices found in 'symbol' column.")
@@ -356,7 +405,7 @@ def main():
         predicted_df = predict_future_price(model, latest_df, data_processor, PREDICTION_MINUTES, device)
         if not predicted_df.empty:
             predictions_path = PATHS["predictions"]
-            data_processor.ensure_file_exists(predictions_path)
+            DataProcessor.ensure_file_exists(predictions_path)
             predicted_df.to_csv(
                 predictions_path,
                 mode="a",
@@ -368,6 +417,7 @@ def main():
             logging.warning("No predictions were made due to previous errors.")
     else:
         logging.warning("Latest dataset is empty. Skipping prediction.")
+
 
 if __name__ == "__main__":
     while True:

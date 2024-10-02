@@ -17,7 +17,6 @@ from config import (
     RAW_FEATURES,
     SCALABLE_FEATURES,
     MODEL_FEATURES,
-    MODEL_PARAMS,
     ADD_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
