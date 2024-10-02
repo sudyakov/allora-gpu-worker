@@ -1,5 +1,5 @@
-import logging
 import os
+import logging
 import time
 from typing import Dict, Optional, Tuple
 
@@ -19,7 +19,6 @@ from config import (
 )
 from data_utils import (
     DataProcessor,
-    
     get_current_time,
     timestamp_to_readable_time,
 )
@@ -43,8 +42,10 @@ class GetBinanceData:
         self.SYMBOL_MAPPING = SYMBOL_MAPPING
         self.PATHS = PATHS
         self.MODEL_FEATURES = MODEL_FEATURES
+
         self.logger = logging.getLogger("GetBinanceData")
         self.configure_logging()
+        self.data_processor = DataProcessor()
 
     def configure_logging(self):
         logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
@@ -103,8 +104,9 @@ class GetBinanceData:
             df['interval'] = interval_info['minutes']
             df['interval_str'] = interval_str
             self.logger.debug(f"Raw DataFrame: {df.head()}")
-            df = preprocess_binance_data(df)
-            df = fill_missing_add_features(df)
+
+            df = self.data_processor.preprocess_binance_data(df)
+            df = self.data_processor.fill_missing_add_features(df)
             all_data.append(df)
             current_start = int(df['timestamp'].iloc[-1]) + 1
 
@@ -115,7 +117,7 @@ class GetBinanceData:
             return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
         combined_df = pd.concat(all_data, ignore_index=True)
-        combined_df = fill_missing_add_features(combined_df)
+        combined_df = self.data_processor.fill_missing_add_features(combined_df)
         return combined_df[list(self.MODEL_FEATURES.keys())]
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
@@ -133,18 +135,19 @@ class GetBinanceData:
         df['interval'] = interval_info['minutes']
         df['interval_str'] = interval_str
         self.logger.debug(f"Raw DataFrame: {df.head()}")
-        df = preprocess_binance_data(df)
-        df = fill_missing_add_features(df)
+
+        df = self.data_processor.preprocess_binance_data(df)
+        df = self.data_processor.fill_missing_add_features(df)
         return df[list(self.MODEL_FEATURES.keys())]
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
-        df = preprocess_binance_data(df[df['timestamp'] <= current_time])
-        df = fill_missing_add_features(df)
-        return sort_dataframe(df)
+        df = self.data_processor.preprocess_binance_data(df[df['timestamp'] <= current_time])
+        df = self.data_processor.fill_missing_add_features(df)
+        return self.data_processor.sort_dataframe(df)
 
     def save_to_csv(self, df: pd.DataFrame, filename: str):
-        ensure_file_exists(filename)
+        self.data_processor.ensure_file_exists(filename)
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False, float_format='%.6f')
@@ -155,7 +158,7 @@ class GetBinanceData:
             self.logger.warning("No data to save to combined dataset.")
             return
 
-        ensure_file_exists(filename)
+        self.data_processor.ensure_file_exists(filename)
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             existing_data = pd.read_csv(filename)
             for key, df in data.items():
@@ -168,9 +171,12 @@ class GetBinanceData:
                 ignore_index=True
             )
         else:
-            combined_data = pd.concat([df.dropna(axis=1, how='all') for df in data.values() if not df.empty], ignore_index=True)
+            combined_data = pd.concat(
+                [df.dropna(axis=1, how='all') for df in data.values() if not df.empty],
+                ignore_index=True
+            )
 
-        combined_data = fill_missing_add_features(combined_data)
+        combined_data = self.data_processor.fill_missing_add_features(combined_data)
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False, float_format='%.6f')
         self.logger.info(f"Combined dataset updated: {filename}")
@@ -193,6 +199,7 @@ class GetBinanceData:
         feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.MODEL_FEATURES.keys()])
         summary += f"{'Timestamp':<20} {feature_headers}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
+
         for i, row in enumerate(rows_to_display):
             label = "First" if i == 0 else "Last"
             timestamp = row['timestamp']
@@ -201,6 +208,7 @@ class GetBinanceData:
                 for feature in self.MODEL_FEATURES.keys()
             ])
             summary += f"{label:<20} {timestamp:<20} {feature_values}\n"
+
         self.logger.info(summary)
 
     def update_data(self, symbol: str, interval: int) -> Tuple[pd.DataFrame, Optional[int], Optional[int]]:
@@ -210,7 +218,7 @@ class GetBinanceData:
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             df_existing = pd.read_csv(filename, dtype=self.MODEL_FEATURES)
-            df_existing = fill_missing_add_features(df_existing)
+            df_existing = self.data_processor.fill_missing_add_features(df_existing)
             last_timestamp = int(df_existing['timestamp'].max())
         else:
             df_existing = pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
@@ -222,6 +230,7 @@ class GetBinanceData:
             start_time = last_timestamp + 1
             end_time = server_time
             df_new = self.get_binance_data(symbol, interval, start_time, end_time)
+
             if df_new is not None and not df_new.empty:
                 readable_start = timestamp_to_readable_time(start_time)
                 readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
@@ -229,15 +238,12 @@ class GetBinanceData:
                     f"Updating data for {symbol} from {start_time} to {df_new['timestamp'].max()} "
                     f"({readable_start} to {readable_newest})"
                 )
-                # Убедитесь, что df_new очищен от пустых столбцов
-                df_new_cleaned = df_new.dropna(axis=1, how='all')
-                df_existing_cleaned = df_existing.dropna(axis=1, how='all') if not df_existing.empty else pd.DataFrame()
                 df_updated = pd.concat(
-                    [df_existing_cleaned, df_new_cleaned],
+                    [df_existing, df_new],
                     ignore_index=True
                 ).drop_duplicates(subset=['timestamp'], keep='first')
-                df_updated = sort_dataframe(df_updated)
-                df_updated = fill_missing_add_features(df_updated)
+                df_updated = self.data_processor.sort_dataframe(df_updated)
+                df_updated = self.data_processor.fill_missing_add_features(df_updated)
                 self.save_to_csv(df_updated, filename)
                 self.save_combined_dataset(
                     {f"{symbol}_{interval_info['minutes']}": df_updated},
@@ -250,7 +256,6 @@ class GetBinanceData:
         else:
             self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
-
 
 
 def main():
@@ -302,7 +307,7 @@ def main():
                 current_price_df = download_data.get_current_price(symbol, interval)
                 download_data.logger.info(f"Current price for {symbol} ({interval} minutes):\n{current_price_df}")
 
-                latest_price_df = get_latest_dataset_prices(symbol, interval)
+                latest_price_df = download_data.data_processor.get_latest_dataset_prices(symbol, interval)
                 download_data.logger.info(f"Latest price for {symbol} ({interval} minutes):\n{latest_price_df}")
 
                 time.sleep(1)

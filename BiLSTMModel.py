@@ -28,8 +28,6 @@ from config import (
 )
 
 
-IntervalKey = Literal['1m', '5m', '15m']
-
 class DataFetcher:
     def __init__(self):
         self.download_data = GetBinanceData()
@@ -39,6 +37,82 @@ class DataFetcher:
     def load_data(self) -> pd.DataFrame:
         combined_data = self.download_data.fetch_combined_data()
         return combined_data
+
+
+class EnhancedBiLSTMModel(nn.Module):
+    def __init__(
+        self,
+        numerical_columns: List[str],
+        categorical_columns: List[str],
+        column_name_to_index: Dict[str, int],
+        input_size: int = MODEL_PARAMS.get("input_size", 64),
+        hidden_layer_size: int = MODEL_PARAMS.get("hidden_layer_size", 128),
+        num_layers: int = MODEL_PARAMS.get("num_layers", 2),
+        dropout: float = MODEL_PARAMS.get("dropout", 0.5),
+        embedding_dim: int = MODEL_PARAMS.get("embedding_dim", 32),
+        num_symbols: int = len(SYMBOL_MAPPING),
+        num_intervals: int = len(INTERVAL_MAPPING),
+        timestamp_embedding_dim: int = MODEL_PARAMS.get("timestamp_embedding_dim", 16),
+    ):
+        super(EnhancedBiLSTMModel, self).__init__()
+        self.numerical_columns = numerical_columns
+        self.categorical_columns = categorical_columns
+        self.column_name_to_index = column_name_to_index
+
+        self.symbol_embedding = nn.Embedding(num_embeddings=num_symbols, embedding_dim=embedding_dim)
+        self.interval_embedding = nn.Embedding(num_embeddings=num_intervals, embedding_dim=embedding_dim)
+        self.timestamp_embedding = nn.Linear(1, timestamp_embedding_dim)
+
+        numerical_input_size = len(numerical_columns)
+        self.lstm_input_size = numerical_input_size + (2 * embedding_dim) + timestamp_embedding_dim
+
+        self.lstm = nn.LSTM(
+            input_size=self.lstm_input_size,
+            hidden_size=hidden_layer_size,
+            num_layers=num_layers,
+            dropout=dropout,
+            batch_first=True,
+            bidirectional=True,
+        )
+
+        self.attention = Attention(hidden_layer_size)
+        self.linear = nn.Linear(hidden_layer_size * 2, input_size)
+        self.relu = nn.ReLU()
+        self.apply(self._initialize_weights)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
+        numerical_data = x[:, :, numerical_indices]
+
+        symbols = x[:, :, self.column_name_to_index['symbol']].long()
+        intervals = x[:, :, self.column_name_to_index['interval_str']].long()
+
+        symbol_embeddings = self.symbol_embedding(symbols)
+        interval_embeddings = self.interval_embedding(intervals)
+
+        timestamp = x[:, :, self.column_name_to_index['timestamp']].unsqueeze(-1)
+        timestamp_embedded = self.timestamp_embedding(timestamp)
+
+        lstm_input = torch.cat((numerical_data, symbol_embeddings, interval_embeddings, timestamp_embedded), dim=2)
+        lstm_out, _ = self.lstm(lstm_input)
+        context_vector = self.attention(lstm_out)
+        predictions = self.linear(context_vector)
+        predictions = self.relu(predictions)
+        return predictions
+
+    def _initialize_weights(self, module: nn.Module) -> None:
+        if isinstance(module, nn.Linear):
+            nn.init.xavier_uniform_(module.weight)
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.LSTM):
+            for name, param in module.named_parameters():
+                if "weight_ih" in name:
+                    nn.init.xavier_uniform_(param.data)
+                elif "weight_hh" in name:
+                    nn.init.orthogonal_(param.data)
+                elif "bias" in name:
+                    nn.init.zeros_(param.data)
 
 
 def setup_logging():
