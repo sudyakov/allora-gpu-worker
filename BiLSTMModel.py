@@ -318,7 +318,7 @@ def predict_future_price(
 def main() -> None:
     setup_logging()
     device = get_device()
-    DataProcessor()
+
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
@@ -351,7 +351,7 @@ def main() -> None:
 
     model, optimizer = train_and_save_model(model, dataloader, device)
 
-    latest_df = GetBinanceData().get_latest_dataset_prices(TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH)
+    latest_df = data_processor.get_latest_dataset_prices(TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH)
     latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
     logging.info("Latest dataset:\n%s", latest_df)
     predicted_df = predict_future_price(model, latest_df, data_processor, PREDICTION_MINUTES)
