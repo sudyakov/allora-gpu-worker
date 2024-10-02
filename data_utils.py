@@ -81,7 +81,6 @@ class DataProcessor:
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: List[str] = ["symbol", "interval_str"]
         self.numerical_columns: List[str] = list(SCALABLE_FEATURES.keys())
-        logging.info("Numerical columns for scaling: %s", self.numerical_columns)
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()

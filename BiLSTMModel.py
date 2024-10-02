@@ -1,8 +1,8 @@
-import os
 import logging
-import pickle
-from typing import Optional, Dict, Literal, Tuple, Union, List
+import os
+from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -10,27 +10,25 @@ from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
-from get_binance_data import GetBinanceData
 from config import (
+    ADD_FEATURES,
+    DATA_PROCESSOR_FILENAME,
     INTERVAL_MAPPING,
-    SYMBOL_MAPPING,
+    MODEL_FILENAME,
+    MODEL_FEATURES,
+    MODEL_PARAMS,
+    PREDICTION_MINUTES,
     PATHS,
     RAW_FEATURES,
     SCALABLE_FEATURES,
-    MODEL_FEATURES,
-    MODEL_PARAMS,
-    ADD_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
-    PREDICTION_MINUTES,
-    MODEL_FILENAME,
-    DATA_PROCESSOR_FILENAME,
     TRAINING_PARAMS,
+    IntervalConfig,
+    IntervalKey,
 )
-from data_utils import (
-    DataProcessor,
-    CustomLabelEncoder
-)
+from data_utils import DataProcessor
+from get_binance_data import GetBinanceData
 
 
 class DataFetcher:
@@ -98,7 +96,9 @@ class EnhancedBiLSTMModel(nn.Module):
         )
 
         self.attention = Attention(MODEL_PARAMS["hidden_layer_size"])
-        self.linear = nn.Linear(MODEL_PARAMS["hidden_layer_size"] * 2, MODEL_PARAMS["input_size"])
+        self.linear = nn.Linear(
+            MODEL_PARAMS["hidden_layer_size"] * 2, MODEL_PARAMS["input_size"]
+        )
         self.relu = nn.ReLU()
         self.apply(self._initialize_weights)
 
@@ -106,13 +106,13 @@ class EnhancedBiLSTMModel(nn.Module):
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
 
-        symbols = x[:, :, self.column_name_to_index['symbol']].long()
-        intervals = x[:, :, self.column_name_to_index['interval_str']].long()
+        symbols = x[:, :, self.column_name_to_index["symbol"]].long()
+        intervals = x[:, :, self.column_name_to_index["interval_str"]].long()
 
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
 
-        timestamp = x[:, :, self.column_name_to_index['timestamp']].unsqueeze(-1).float()
+        timestamp = x[:, :, self.column_name_to_index["timestamp"]].unsqueeze(-1).float()
         timestamp_embedded = self.timestamp_embedding(timestamp)
 
         lstm_input = torch.cat(
@@ -145,8 +145,8 @@ def setup_logging():
         format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler("BiLSTMModel.log")
-        ]
+            logging.FileHandler("BiLSTMModel.log"),
+        ],
     )
     logging.info("Logging is set up.")
 
@@ -223,7 +223,11 @@ def train_and_save_model(
             outputs = model(inputs)
 
             if outputs.shape != targets.shape:
-                logging.error("Output shape %s does not match target shape %s", outputs.shape, targets.shape)
+                logging.error(
+                    "Output shape %s does not match target shape %s",
+                    outputs.shape,
+                    targets.shape,
+                )
                 continue
 
             loss = criterion(outputs, targets)
@@ -233,7 +237,9 @@ def train_and_save_model(
             progress_bar.set_postfix(loss=f"{loss.item():.4f}")
 
         avg_loss = total_loss / len(dataloader)
-        logging.info(f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Loss: {avg_loss:.4f}")
+        logging.info(
+            f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Loss: {avg_loss:.4f}"
+        )
 
         if avg_loss < best_val_loss:
             best_val_loss = avg_loss
@@ -242,7 +248,9 @@ def train_and_save_model(
             logging.info(f"Validation loss improved to {best_val_loss:.4f}. Model saved.")
         else:
             epochs_no_improve += 1
-            logging.info(f"No improvement in validation loss. ({epochs_no_improve}/{n_epochs_stop})")
+            logging.info(
+                f"No improvement in validation loss. ({epochs_no_improve}/{n_epochs_stop})"
+            )
             if epochs_no_improve >= n_epochs_stop:
                 logging.info("Early stopping triggered.")
                 break
@@ -253,7 +261,7 @@ def train_and_save_model(
     return model, optimizer
 
 
-def get_interval(minutes: int) -> Optional[Literal["1m", "5m", "15m"]]:
+def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
@@ -266,7 +274,7 @@ def predict_future_price(
     latest_df: pd.DataFrame,
     data_processor: DataProcessor,
     prediction_minutes: int = PREDICTION_MINUTES,
-    device: torch.device = torch.device("cpu")
+    device: torch.device = torch.device("cpu"),
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
@@ -288,7 +296,9 @@ def predict_future_price(
         predictions = model(last_sequence).cpu().tolist()
         predictions_df = pd.DataFrame(predictions, columns=list(MODEL_FEATURES.keys()))
 
-        scaled_numeric = data_processor.scaler.inverse_transform(predictions_df[data_processor.numerical_columns])
+        scaled_numeric = data_processor.scaler.inverse_transform(
+            predictions_df[data_processor.numerical_columns]
+        )
 
         for col in data_processor.categorical_columns:
             predictions_df[col] = predictions_df[col].astype(int)
@@ -333,12 +343,15 @@ def main():
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
         data_processor = DataProcessor()
+        # Логирование числовых столбцов только при создании нового экземпляра
+        logging.info(f"Numerical columns for scaling: {data_processor.numerical_columns}")
+
 
     data_fetcher = DataFetcher()
     combined_data = data_fetcher.load_data()
     combined_data = data_processor.preprocess_binance_data(combined_data)
     combined_data = data_processor.fill_missing_add_features(combined_data)
-    combined_data = combined_data.sort_values(by='timestamp').reset_index(drop=True)
+    combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
     if not os.path.exists(DATA_PROCESSOR_FILENAME):
         combined_data = data_processor.fit_transform(combined_data)
@@ -352,7 +365,7 @@ def main():
     model = EnhancedBiLSTMModel(
         numerical_columns=data_processor.numerical_columns,
         categorical_columns=data_processor.categorical_columns,
-        column_name_to_index=column_name_to_index
+        column_name_to_index=column_name_to_index,
     ).to(device)
     optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     load_model(model, optimizer, MODEL_FILENAME, device)
@@ -362,8 +375,10 @@ def main():
 
     model, optimizer = train_and_save_model(model, dataloader, device)
 
-    latest_df = data_processor.get_latest_dataset_prices(TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH)
-    latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
+    latest_df = data_processor.get_latest_dataset_prices(
+        TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH
+    )
+    latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
 
     if not latest_df.empty:
@@ -371,7 +386,12 @@ def main():
         if not predicted_df.empty:
             predictions_path = PATHS["predictions"]
             data_processor.ensure_file_exists(predictions_path)
-            predicted_df.to_csv(predictions_path, mode='a', header=not os.path.exists(predictions_path), index=False)
+            predicted_df.to_csv(
+                predictions_path,
+                mode="a",
+                header=not os.path.exists(predictions_path),
+                index=False,
+            )
             logging.info(f"Predicted prices saved to {predictions_path}.")
         else:
             logging.warning("No predictions were made due to previous errors.")

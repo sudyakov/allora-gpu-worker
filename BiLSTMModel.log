@@ -59,3 +59,33 @@
 2024-10-02 12:30:38,843 - INFO - Latest dataset loaded with 100 records.
 2024-10-02 12:30:38,849 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
 2024-10-02 12:30:38,849 - INFO - Data transformed successfully for prediction.
+2024-10-02 12:46:40,573 - INFO - Logging is set up.
+2024-10-02 12:46:40,750 - INFO - Using device: cuda
+2024-10-02 12:46:40,750 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 12:46:40,750 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 12:46:40,751 - INFO - Fetching combined data from Binance.
+2024-10-02 12:46:40,899 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 12:46:40,900 - INFO - Data fetched successfully.
+2024-10-02 12:46:41,059 - INFO - Column order after fit_transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:46:41,064 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 12:46:41,064 - INFO - Columns after processing: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:46:42,734 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-02 12:46:44,203 - INFO - Dataloader created with batch size 512 and shuffle=True.
+2024-10-02 12:47:09,770 - INFO - Epoch 1/5 - Loss: 4.8744
+2024-10-02 12:47:09,861 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:47:09,861 - INFO - Validation loss improved to 4.8744. Model saved.
+2024-10-02 12:47:33,740 - INFO - Epoch 2/5 - Loss: 4.7603
+2024-10-02 12:47:33,877 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:47:33,877 - INFO - Validation loss improved to 4.7603. Model saved.
+2024-10-02 12:47:57,679 - INFO - Epoch 3/5 - Loss: 4.7611
+2024-10-02 12:47:57,680 - INFO - No improvement in validation loss. (1/5)
+2024-10-02 12:47:57,680 - INFO - Reducing learning rate to: 0.00025
+2024-10-02 12:48:21,565 - INFO - Epoch 4/5 - Loss: 4.7583
+2024-10-02 12:48:21,689 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:48:21,690 - INFO - Validation loss improved to 4.7583. Model saved.
+2024-10-02 12:48:45,515 - INFO - Epoch 5/5 - Loss: 4.7582
+2024-10-02 12:48:45,661 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:48:45,661 - INFO - Validation loss improved to 4.7582. Model saved.
+2024-10-02 12:48:45,785 - INFO - Latest dataset loaded with 100 records.
+2024-10-02 12:48:45,792 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:48:45,792 - INFO - Data transformed successfully for prediction.
