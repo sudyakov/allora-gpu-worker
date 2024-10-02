@@ -106,6 +106,9 @@ class EnhancedBiLSTMModel(nn.Module):
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval_str"]].long()
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
+        if torch.isnan(timestamp).any() or torch.isinf(timestamp).any():
+            logging.error("Timestamp contains NaN or infinite values.")
+            raise ValueError("Timestamp tensor contains NaN or infinite values.")
 
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)

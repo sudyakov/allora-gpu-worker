@@ -155,15 +155,12 @@ class DataProcessor:
             logging.error("Missing target columns in DataFrame: %s", missing_columns)
             raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
 
-        # Проверка типов данных
         logging.info("Data types before tensor conversion:")
         logging.info(df[features].dtypes)
 
-        # Проверка наличия столбцов с типом object
         object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
         if object_columns:
             logging.error(f"Columns with object dtype: {object_columns}")
-            # Попытка преобразовать их к числовым типам
             for col in object_columns:
                 try:
                     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(float)
@@ -172,26 +169,25 @@ class DataProcessor:
                     logging.error(f"Error converting column {col} to numeric: {e}")
                     raise
 
-        # Повторная проверка типов данных после преобразования
         logging.info("Data types after type conversion:")
         logging.info(df[features].dtypes)
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
 
-        # Создание целевых индексов
         target_indices = torch.tensor([df.columns.get_loc(col) for col in target_columns], dtype=torch.long)
 
         sequences = []
         targets = []
-        for i in range(len(data_tensor) - seq_length):
+        for i in range(len(data_tensor) - seq_length + 1):  # Adjusted loop range
             sequences.append(data_tensor[i:i + seq_length])
-            targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
+            if i + seq_length < len(data_tensor):
+                targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
+            else:
+                # For the last sequence, duplicate the last available target
+                targets.append(data_tensor[-1].index_select(0, target_indices))
 
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
-
-        print("Data types before tensor conversion:")
-        print(df[features].dtypes)
 
         return TensorDataset(sequences, targets)
 
