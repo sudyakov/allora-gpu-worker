@@ -147,11 +147,12 @@ class DataProcessor:
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         features = list(MODEL_FEATURES.keys())
-        target_columns = [col for col in features if col != 'timestamp']
-        missing_columns = [col for col in features if col not in df.columns]
+        # Определяем только SCALABLE_FEATURES как целевые колонки
+        target_columns = list(SCALABLE_FEATURES.keys())
+        missing_columns = [col for col in target_columns if col not in df.columns]
         if missing_columns:
-            logging.error("Missing columns in DataFrame: %s", missing_columns)
-            raise KeyError(f"Missing columns in DataFrame: {missing_columns}")
+            logging.error("Missing target columns in DataFrame: %s", missing_columns)
+            raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
         target_indices = torch.tensor([df.columns.get_loc(col) for col in target_columns], dtype=torch.long)
@@ -160,6 +161,7 @@ class DataProcessor:
         targets = []
         for i in range(len(data_tensor) - seq_length):
             sequences.append(data_tensor[i:i + seq_length])
+            # Изменяем выборку цели на SCALABLE_FEATURES
             targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
 
         sequences = torch.stack(sequences)
