@@ -1,48 +1,44 @@
 import os
-import pickle
 import logging
-from typing import Optional, Dict, Union, List, Tuple
+from typing import Tuple
 from datetime import datetime, timezone
+
 import numpy as np
 import pandas as pd
-import torch
 import requests
-from torch.utils.data import DataLoader, TensorDataset
 from config import (
-    SCALABLE_FEATURES,
-    MODEL_FEATURES,
-    SEQ_LENGTH,
-    TRAINING_PARAMS,
-    RAW_FEATURES,
-    ADD_FEATURES,
     API_BASE_URL,
-    
+    ADD_FEATURES,
+    MODEL_FEATURES,
+    RAW_FEATURES,
+    SCALABLE_FEATURES,
 )
+from torch.utils.data import DataLoader, TensorDataset
 
 
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     df['timestamp'] = df['timestamp'].astype(int)
     if 'interval' in df.columns:
         df['interval'] = df['interval'].astype(int)
-    for col, dtype in RAW_FEATURES.items():
-        if col in df.columns:
-            df[col] = df[col].astype(dtype)
-    for col, dtype in SCALABLE_FEATURES.items():
-        if col in df.columns:
-            df[col] = df[col].astype(dtype)
-    for col, dtype in ADD_FEATURES.items():
-        if col in df.columns:
-            df[col] = df[col].astype(dtype)
-    logging.debug(f"Preprocessed DataFrame: {df.head()}")
+
+    for feature_dict in [RAW_FEATURES, SCALABLE_FEATURES, ADD_FEATURES]:
+        for col, dtype in feature_dict.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
+
+    logging.debug(f"Preprocessed DataFrame:\n{df.head()}")
     return df
+
 
 def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     sorted_df = df.sort_values('timestamp', ascending=False)
-    logging.debug(f"Sorted DataFrame: {sorted_df.head()}")
+    logging.debug(f"Sorted DataFrame:\n{sorted_df.head()}")
     return sorted_df
+
 
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
 
 def fill_missing_add_features(df: pd.DataFrame) -> pd.DataFrame:
     if 'timestamp' in df.columns:
@@ -54,8 +50,9 @@ def fill_missing_add_features(df: pd.DataFrame) -> pd.DataFrame:
         df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
         df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
     df = df.ffill().bfill()
-    logging.debug(f"Filled DataFrame: {df.head()}")
+    logging.debug(f"Filled DataFrame:\n{df.head()}")
     return df
+
 
 def get_current_time() -> Tuple[int, str]:
     response = requests.get(f"{API_BASE_URL}/time")
@@ -63,6 +60,7 @@ def get_current_time() -> Tuple[int, str]:
     server_time = response.json().get('serverTime')
     readable_time = timestamp_to_readable_time(server_time)
     return server_time, readable_time
+
 
 def ensure_file_exists(filepath: str) -> None:
     directory = os.path.dirname(filepath)
