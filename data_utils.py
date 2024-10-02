@@ -33,9 +33,9 @@ from config import (
     SEQ_LENGTH,
     TARGET_SYMBOL,
     PREDICTION_MINUTES,
-    MODEL_FILENAME,
-    DATA_PROCESSOR_FILENAME,
-    TRAINING_PARAMS,
+    TIME_FEATURES,
+    API_BASE_URL
+    
 )
 
 
@@ -348,3 +348,24 @@ def ensure_file_exists(filepath: str) -> None:
     if not os.path.exists(filepath):
         df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
         df.to_csv(filepath, index=False)
+
+def ensure_directory_exists(filepath: str) -> None:
+    directory = os.path.dirname(filepath)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+
+def get_latest_dataset_prices(symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
+    combined_dataset_path = PATHS['combined_dataset']
+    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+        df_combined = pd.read_csv(combined_dataset_path)
+        df_filtered = df_combined[
+            (df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)
+        ]
+        if not df_filtered.empty:
+            df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
+            return df_filtered
+        else:
+            logging.debug(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
+    else:
+        logging.debug(f"combined_dataset.csv file not found at path {combined_dataset_path}")
+    return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))

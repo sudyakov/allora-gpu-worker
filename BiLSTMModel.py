@@ -42,12 +42,6 @@ def setup_logging():
     )
 
 
-def ensure_directory_exists(filepath: str) -> None:
-    directory = os.path.dirname(filepath)
-    if directory and not os.path.exists(directory):
-        os.makedirs(directory)
-
-
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

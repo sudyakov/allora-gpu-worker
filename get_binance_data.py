@@ -24,6 +24,7 @@ from data_utils import (
     sort_dataframe,
     ensure_file_exists,
     timestamp_to_readable_time,
+    get_latest_dataset_prices
 )
 
 
@@ -253,21 +254,6 @@ class GetBinanceData:
             self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
 
-    def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
-        combined_dataset_path = self.PATHS['combined_dataset']
-        if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-            df_combined = pd.read_csv(combined_dataset_path)
-            df_filtered = df_combined[
-                (df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)
-            ]
-            if not df_filtered.empty:
-                df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
-                return df_filtered
-            else:
-                self.logger.warning(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
-        else:
-            self.logger.warning(f"combined_dataset.csv file not found at path {combined_dataset_path}")
-        return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
 
 def main():
@@ -319,7 +305,7 @@ def main():
                 current_price_df = download_data.get_current_price(symbol, interval)
                 download_data.logger.info(f"Current price for {symbol} ({interval} minutes):\n{current_price_df}")
 
-                latest_price_df = download_data.get_latest_dataset_prices(symbol, interval)
+                latest_price_df = get_latest_dataset_prices(symbol, interval)
                 download_data.logger.info(f"Latest price for {symbol} ({interval} minutes):\n{latest_price_df}")
 
                 time.sleep(1)
