@@ -100,7 +100,7 @@ MODEL_PARAMS: ModelParams = {
     "num_layers": 4,
     "dropout": 0.2,
     "embedding_dim": 128,
-    "num_symbols": len(SYMBOL_MAPPING),
+    "num_symbols": 2,
     "num_intervals": 3,
     "timestamp_embedding_dim": 64,
 }

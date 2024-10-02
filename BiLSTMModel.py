@@ -47,19 +47,6 @@ def get_device() -> torch.device:
     return device
 
 
-class DataFetcher:
-    def __init__(self):
-        self.download_data = GetBinanceData()
-        self.combined_path = PATHS["combined_dataset"]
-        self.predictions_path = PATHS["predictions"]
-
-    def load_data(self) -> pd.DataFrame:
-        logging.info("Fetching combined data from Binance.")
-        combined_data = self.download_data.fetch_combined_data()
-        logging.info("Data fetched successfully.")
-        return combined_data
-
-
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super(Attention, self).__init__()
@@ -124,15 +111,14 @@ class EnhancedBiLSTMModel(nn.Module):
 
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval_str"]].long()
+        # timestamp = x[:, :, self.column_name_to_index["timestamp"]].int()
 
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
-
-        timestamp = x[:, :, self.column_name_to_index["timestamp"]].unsqueeze(-1).float()
-        timestamp_embedded = self.timestamp_embedding(timestamp)
+        # timestamp_embeddings = self.timestamp_embedding(timestamp)
 
         lstm_input = torch.cat(
-            (numerical_data, symbol_embeddings, interval_embeddings, timestamp_embedded), dim=2
+            (numerical_data, symbol_embeddings, interval_embeddings), dim=2
         )
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
@@ -276,32 +262,28 @@ def predict_future_price(
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
-        try:
-            processed_df = data_processor.transform(latest_df)
-            logging.info("Data transformed successfully for prediction.")
-        except Exception as e:
-            logging.error(f"Error during data transformation: {e}")
-            return pd.DataFrame()
-
-        if len(processed_df) < SEQ_LENGTH:
+        if len(latest_df) < SEQ_LENGTH:
             logging.warning("Insufficient data for prediction.")
             return pd.DataFrame()
 
-        last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
-        sequence_values = last_sequence_df[list(SCALABLE_FEATURES.keys())].values
-        last_sequence = torch.tensor(sequence_values, dtype=torch.float32).unsqueeze(0).to(device)
+        # Prepare the dataset using data_processor
+        tensor_dataset = data_processor.prepare_dataset(latest_df, SEQ_LENGTH)
+        if len(tensor_dataset) == 0:
+            logging.warning("No data available after preparing dataset.")
+            return pd.DataFrame()
 
-        predictions = model(last_sequence).cpu().tolist()
+        # Get the last sequence from the tensor_dataset
+        inputs, _ = tensor_dataset[-1]  # Get the last sequence
+        inputs = inputs.unsqueeze(0).to(device)  # Add batch dimension
+
+        # Make prediction
+        predictions = model(inputs).cpu().numpy()
+
+        # Convert predictions to DataFrame
         predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
-        for col in data_processor.categorical_columns:
-            if col in predictions_df.columns:
-                predictions_df[col] = predictions_df[col].astype(int)
-                le = data_processor.label_encoders.get(col)
-                if le:
-                    predictions_df[col] = le.inverse_transform(predictions_df[col])
-
-        last_timestamp = latest_df["timestamp"].max()
+        # Add necessary columns to predictions_df
+        last_timestamp = latest_df["timestamp"].iloc[-1]
         if pd.isna(last_timestamp):
             logging.error("Invalid last timestamp.")
             return pd.DataFrame()
@@ -317,17 +299,8 @@ def predict_future_price(
         predictions_df["interval"] = prediction_minutes
         predictions_df["interval_str"] = interval_key
 
-        try:
-            predictions_df = predictions_df[list(SCALABLE_FEATURES.keys())]
-            logging.info("Predictions formatted successfully.")
-        except KeyError as e:
-            logging.error(f"Missing columns in predictions: {e}")
-            return pd.DataFrame()
-
-    predictions_df["timestamp"] = next_timestamp
-    predictions_df["symbol"] = TARGET_SYMBOL
-    predictions_df["interval"] = prediction_minutes
-    predictions_df["interval_str"] = interval_key
+        # Ensure columns are in the correct order
+        predictions_df = predictions_df[["timestamp", "symbol", "interval", "interval_str"] + list(SCALABLE_FEATURES.keys())]
 
     return predictions_df
 
@@ -336,20 +309,48 @@ def main():
     setup_logging()
     device = get_device()
 
+    # Initialize or load DataProcessor
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
         data_processor = DataProcessor()
         logging.info(f"Numerical columns for scaling: {data_processor.numerical_columns}")
 
-    data_fetcher = DataFetcher()
-    combined_data = data_fetcher.load_data()
+    # Use GetBinanceData to fetch combined data
+    get_binance_data = GetBinanceData()
+    combined_data = get_binance_data.fetch_combined_data()
+
+    # Check if DataFrame is empty
+    if combined_data.empty:
+        logging.error("Combined data is empty. Exiting.")
+        return
+
+    # Preprocess data using methods from data_utils.py
     combined_data = data_processor.preprocess_binance_data(combined_data)
     combined_data = data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
-    if not os.path.exists(DATA_PROCESSOR_FILENAME):
+    # Apply transformations
+    if os.path.exists(DATA_PROCESSOR_FILENAME):
+        combined_data = data_processor.transform(combined_data)
+    else:
+        combined_data = data_processor.fit_transform(combined_data)
         data_processor.save(DATA_PROCESSOR_FILENAME)
+
+    # Update MODEL_PARAMS based on the data
+    MODEL_PARAMS["num_symbols"] = max(combined_data["symbol"].max() + 1, MODEL_PARAMS.get("num_symbols", 0))
+    MODEL_PARAMS["num_intervals"] = max(combined_data["interval_str"].max() + 1, MODEL_PARAMS.get("num_intervals", 0))
+    logging.info(f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}")
+
+    # Verify indices
+    if (combined_data['symbol'] < 0).any():
+        raise ValueError("Negative indices found in 'symbol' column.")
+    if (combined_data['interval_str'] < 0).any():
+        raise ValueError("Negative indices found in 'interval_str' column.")
+    if combined_data['symbol'].max() >= MODEL_PARAMS["num_symbols"]:
+        raise ValueError("Symbol indices exceed the number of symbols in embedding.")
+    if combined_data['interval_str'].max() >= MODEL_PARAMS["num_intervals"]:
+        raise ValueError("Interval indices exceed the number of intervals in embedding.")
 
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
 

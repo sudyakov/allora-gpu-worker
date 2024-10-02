@@ -59,7 +59,7 @@ class DataProcessor:
     def __init__(self):
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: List[str] = ["symbol", "interval_str"]
-        self.numerical_columns: List[str] = list(SCALABLE_FEATURES.keys())
+        self.numerical_columns: List[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
 
         self.symbol_mapping = SYMBOL_MAPPING
         self.interval_str_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
@@ -108,6 +108,8 @@ class DataProcessor:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
             elif col in RAW_FEATURES:
                 df[col] = df[col].astype(RAW_FEATURES[col])
+            elif col in ADD_FEATURES:
+                df[col] = df[col].astype(ADD_FEATURES[col])
             else:
                 logging.error("Column %s not found in feature definitions.", col)
                 raise KeyError(f"Column {col} not defined in any feature dictionary.")
@@ -115,6 +117,8 @@ class DataProcessor:
         df['timestamp'] = df['timestamp'].astype('int64')
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Column order after fit_transform: %s", df.columns.tolist())
+        logging.info("Data types after fit_transform:")
+        logging.info(df.dtypes)
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -124,11 +128,14 @@ class DataProcessor:
                 logging.error("LabelEncoder for column %s is not found.", col)
                 raise ValueError(f"LabelEncoder for column {col} is not found.")
             df[col] = encoder.transform(df[col])
+
         for col in self.numerical_columns:
             if col in SCALABLE_FEATURES:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
             elif col in RAW_FEATURES:
                 df[col] = df[col].astype(RAW_FEATURES[col])
+            elif col in ADD_FEATURES:
+                df[col] = df[col].astype(ADD_FEATURES[col])
             else:
                 logging.error("Column %s not found in feature definitions.", col)
                 raise KeyError(f"Column {col} not defined in any feature dictionary.")
@@ -136,6 +143,8 @@ class DataProcessor:
         df['timestamp'] = df['timestamp'].astype('int64')
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Column order after transform: %s", df.columns.tolist())
+        logging.info("Data types after transform:")
+        logging.info(df.dtypes)
         return df
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
@@ -146,7 +155,30 @@ class DataProcessor:
             logging.error("Missing target columns in DataFrame: %s", missing_columns)
             raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
 
+        # Проверка типов данных
+        logging.info("Data types before tensor conversion:")
+        logging.info(df[features].dtypes)
+
+        # Проверка наличия столбцов с типом object
+        object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
+        if object_columns:
+            logging.error(f"Columns with object dtype: {object_columns}")
+            # Попытка преобразовать их к числовым типам
+            for col in object_columns:
+                try:
+                    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(float)
+                    logging.info(f"Column {col} converted to float.")
+                except Exception as e:
+                    logging.error(f"Error converting column {col} to numeric: {e}")
+                    raise
+
+        # Повторная проверка типов данных после преобразования
+        logging.info("Data types after type conversion:")
+        logging.info(df[features].dtypes)
+
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
+
+        # Создание целевых индексов
         target_indices = torch.tensor([df.columns.get_loc(col) for col in target_columns], dtype=torch.long)
 
         sequences = []
@@ -157,9 +189,10 @@ class DataProcessor:
 
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
-        
+
         print("Data types before tensor conversion:")
         print(df[features].dtypes)
+
         return TensorDataset(sequences, targets)
 
     def save(self, filepath: str) -> None:
