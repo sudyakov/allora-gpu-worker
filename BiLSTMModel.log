@@ -17,3 +17,9 @@
 2024-10-02 10:06:13,474 - INFO - Combined data loaded from data/combined_dataset.csv
 2024-10-02 10:06:48,748 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
 2024-10-02 10:06:48,872 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 10:11:18,394 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 10:11:18,512 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 10:11:18,601 - INFO - Column order after fit_transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 10:11:18,603 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 10:11:18,603 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 10:11:20,168 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
