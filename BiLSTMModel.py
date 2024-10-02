@@ -1,14 +1,12 @@
 import os
 import logging
 from typing import Dict, List, Optional, Tuple
-
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-
 from config import (
     ADD_FEATURES,
     DATA_PROCESSOR_FILENAME,
@@ -28,7 +26,6 @@ from config import (
 from data_utils import DataProcessor
 from get_binance_data import GetBinanceData
 
-
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
@@ -40,12 +37,10 @@ def setup_logging():
     )
     logging.info("Logging is set up.")
 
-
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -58,7 +53,6 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -111,22 +105,16 @@ class EnhancedBiLSTMModel(nn.Module):
 
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval_str"]].long()
-        
-        # Convert timestamp to float instead of int
-        timestamp = x[:, :, self.column_name_to_index["timestamp"]].float()
-        print(f"timestamp dtype: {timestamp.dtype}")
-
+        timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
 
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
-        
-        # Now, timestamp_embeddings will work correctly
         timestamp_embeddings = self.timestamp_embedding(timestamp)
 
-        # Concatenate all embeddings and numerical data
         lstm_input = torch.cat(
             (numerical_data, symbol_embeddings, interval_embeddings, timestamp_embeddings), dim=2
         )
+
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
@@ -147,7 +135,6 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
-
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
     dataloader = DataLoader(
         dataset,
@@ -158,14 +145,12 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
     logging.info(f"Dataloader created with batch size {batch_size} and shuffle={shuffle}.")
     return dataloader
 
-
 def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     DataProcessor.ensure_file_exists(filepath)
     torch.save(model.state_dict(), filepath)
     optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
     torch.save(optimizer.state_dict(), optimizer_filepath)
     logging.info(f"Model saved to {filepath} and optimizer to {optimizer_filepath}.")
-
 
 def load_model(
     model: EnhancedBiLSTMModel,
@@ -185,7 +170,6 @@ def load_model(
         logging.info(f"Model loaded from {filepath}.")
     else:
         logging.warning(f"Model file {filepath} not found. A new model will be created.")
-
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -251,14 +235,12 @@ def train_and_save_model(
 
     return model, optimizer
 
-
 def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
     logging.error("Interval for %d minutes not found.", minutes)
     return None
-
 
 def predict_future_price(
     model: EnhancedBiLSTMModel,
@@ -273,23 +255,18 @@ def predict_future_price(
             logging.warning("Insufficient data for prediction.")
             return pd.DataFrame()
 
-        # Prepare the dataset using data_processor
         tensor_dataset = data_processor.prepare_dataset(latest_df, SEQ_LENGTH)
         if len(tensor_dataset) == 0:
             logging.warning("No data available after preparing dataset.")
             return pd.DataFrame()
 
-        # Get the last sequence from the tensor_dataset
-        inputs, _ = tensor_dataset[-1]  # Get the last sequence
-        inputs = inputs.unsqueeze(0).to(device)  # Add batch dimension
+        inputs, _ = tensor_dataset[-1]
+        inputs = inputs.unsqueeze(0).to(device)
 
-        # Make prediction
         predictions = model(inputs).cpu().numpy()
 
-        # Convert predictions to DataFrame
         predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
-        # Add necessary columns to predictions_df
         last_timestamp = latest_df["timestamp"].iloc[-1]
         if pd.isna(last_timestamp):
             logging.error("Invalid last timestamp.")
@@ -306,50 +283,41 @@ def predict_future_price(
         predictions_df["interval"] = prediction_minutes
         predictions_df["interval_str"] = interval_key
 
-        # Ensure columns are in the correct order
         predictions_df = predictions_df[["timestamp", "symbol", "interval", "interval_str"] + list(SCALABLE_FEATURES.keys())]
 
     return predictions_df
-
 
 def main():
     setup_logging()
     device = get_device()
 
-    # Initialize or load DataProcessor
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
         data_processor = DataProcessor()
         logging.info(f"Numerical columns for scaling: {data_processor.numerical_columns}")
 
-    # Use GetBinanceData to fetch combined data
     get_binance_data = GetBinanceData()
     combined_data = get_binance_data.fetch_combined_data()
 
-    # Check if DataFrame is empty
     if combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return
 
-    # Preprocess data using methods from data_utils.py
     combined_data = data_processor.preprocess_binance_data(combined_data)
     combined_data = data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
-    # Apply transformations
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         combined_data = data_processor.transform(combined_data)
     else:
         combined_data = data_processor.fit_transform(combined_data)
         data_processor.save(DATA_PROCESSOR_FILENAME)
 
-    # Update MODEL_PARAMS based on the data
     MODEL_PARAMS["num_symbols"] = max(combined_data["symbol"].max() + 1, MODEL_PARAMS.get("num_symbols", 0))
     MODEL_PARAMS["num_intervals"] = max(combined_data["interval_str"].max() + 1, MODEL_PARAMS.get("num_intervals", 0))
     logging.info(f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}")
 
-    # Verify indices
     if (combined_data['symbol'] < 0).any():
         raise ValueError("Negative indices found in 'symbol' column.")
     if (combined_data['interval_str'] < 0).any():
@@ -397,7 +365,6 @@ def main():
             logging.warning("No predictions were made due to previous errors.")
     else:
         logging.warning("Latest dataset is empty. Skipping prediction.")
-
 
 if __name__ == "__main__":
     while True:
