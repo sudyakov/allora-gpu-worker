@@ -9,6 +9,7 @@ from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 from get_binance_data import GetBinanceData
+
 from config import (
     INTERVAL_MAPPING,
     SYMBOL_MAPPING,
