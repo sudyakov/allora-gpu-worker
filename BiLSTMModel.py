@@ -16,18 +16,18 @@ from config import (
     MODEL_FILENAME,
     MODEL_FEATURES,
     MODEL_PARAMS,
-    PREDICTION_MINUTES,
-    PATHS,
-    RAW_FEATURES,
     SCALABLE_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
     TRAINING_PARAMS,
+    PATHS,
+    PREDICTION_MINUTES,
     IntervalConfig,
     IntervalKey,
 )
-from data_utils import DataProcessor, CustomLabelEncoder
+from data_utils import DataProcessor
 from get_binance_data import GetBinanceData
+
 
 def setup_logging():
     logging.basicConfig(
@@ -40,10 +40,12 @@ def setup_logging():
     )
     logging.info("Logging is set up.")
 
+
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
+
 
 class DataFetcher:
     def __init__(self):
@@ -57,6 +59,7 @@ class DataFetcher:
         logging.info("Data fetched successfully.")
         return combined_data
 
+
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super(Attention, self).__init__()
@@ -68,6 +71,7 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
+
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -108,7 +112,6 @@ class EnhancedBiLSTMModel(nn.Module):
         )
 
         self.attention = Attention(MODEL_PARAMS["hidden_layer_size"])
-        # Updated the linear layer to output the number of SCALABLE_FEATURES
         self.linear = nn.Linear(
             MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
@@ -151,6 +154,7 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
+
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
     dataloader = DataLoader(
         dataset,
@@ -161,12 +165,14 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
     logging.info(f"Dataloader created with batch size {batch_size} and shuffle={shuffle}.")
     return dataloader
 
+
 def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     DataProcessor.ensure_file_exists(filepath)
     torch.save(model.state_dict(), filepath)
     optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
     torch.save(optimizer.state_dict(), optimizer_filepath)
     logging.info(f"Model saved to {filepath} and optimizer to {optimizer_filepath}.")
+
 
 def load_model(
     model: EnhancedBiLSTMModel,
@@ -186,6 +192,7 @@ def load_model(
         logging.info(f"Model loaded from {filepath}.")
     else:
         logging.warning(f"Model file {filepath} not found. A new model will be created.")
+
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -251,12 +258,14 @@ def train_and_save_model(
 
     return model, optimizer
 
+
 def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
     logging.error("Interval for %d minutes not found.", minutes)
     return None
+
 
 def predict_future_price(
     model: EnhancedBiLSTMModel,
@@ -279,12 +288,10 @@ def predict_future_price(
             return pd.DataFrame()
 
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
-        # Updated to use SCALABLE_FEATURES as target
         sequence_values = last_sequence_df[list(SCALABLE_FEATURES.keys())].values
         last_sequence = torch.tensor(sequence_values, dtype=torch.float32).unsqueeze(0).to(device)
 
         predictions = model(last_sequence).cpu().tolist()
-        # Updated to use SCALABLE_FEATURES as prediction columns
         predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
         for col in data_processor.categorical_columns:
@@ -310,7 +317,6 @@ def predict_future_price(
         predictions_df["interval"] = prediction_minutes
         predictions_df["interval_str"] = interval_key
 
-        # Ensure only SCALABLE_FEATURES are included in the final predictions
         try:
             predictions_df = predictions_df[list(SCALABLE_FEATURES.keys())]
             logging.info("Predictions formatted successfully.")
@@ -318,13 +324,13 @@ def predict_future_price(
             logging.error(f"Missing columns in predictions: {e}")
             return pd.DataFrame()
 
-    # Add additional necessary columns
     predictions_df["timestamp"] = next_timestamp
     predictions_df["symbol"] = TARGET_SYMBOL
     predictions_df["interval"] = prediction_minutes
     predictions_df["interval_str"] = interval_key
 
     return predictions_df
+
 
 def main():
     setup_logging()
@@ -344,8 +350,6 @@ def main():
 
     if not os.path.exists(DATA_PROCESSOR_FILENAME):
         data_processor.save(DATA_PROCESSOR_FILENAME)
-    else:
-        pass
 
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
 
@@ -385,6 +389,7 @@ def main():
             logging.warning("No predictions were made due to previous errors.")
     else:
         logging.warning("Latest dataset is empty. Skipping prediction.")
+
 
 if __name__ == "__main__":
     while True:
