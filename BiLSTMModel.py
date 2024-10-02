@@ -1,8 +1,7 @@
-import logging
 import os
+import logging
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -45,7 +44,6 @@ def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
-
 
 class DataFetcher:
     def __init__(self):
@@ -110,8 +108,9 @@ class EnhancedBiLSTMModel(nn.Module):
         )
 
         self.attention = Attention(MODEL_PARAMS["hidden_layer_size"])
+        # Updated the linear layer to output the number of SCALABLE_FEATURES
         self.linear = nn.Linear(
-            MODEL_PARAMS["hidden_layer_size"] * 2, MODEL_PARAMS["input_size"]
+            MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
         self.relu = nn.ReLU()
         self.apply(self._initialize_weights)
@@ -151,7 +150,6 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.orthogonal_(param.data)
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
-
 
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
     dataloader = DataLoader(
@@ -281,24 +279,20 @@ def predict_future_price(
             return pd.DataFrame()
 
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
-        sequence_values = last_sequence_df[list(MODEL_FEATURES.keys())].values
+        # Updated to use SCALABLE_FEATURES as target
+        sequence_values = last_sequence_df[list(SCALABLE_FEATURES.keys())].values
         last_sequence = torch.tensor(sequence_values, dtype=torch.float32).unsqueeze(0).to(device)
 
         predictions = model(last_sequence).cpu().tolist()
-        predictions_df = pd.DataFrame(predictions, columns=list(MODEL_FEATURES.keys()))
-
-        scaled_numeric = data_processor.scaler.inverse_transform(
-            predictions_df[data_processor.numerical_columns]
-        )
+        # Updated to use SCALABLE_FEATURES as prediction columns
+        predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
         for col in data_processor.categorical_columns:
-            predictions_df[col] = predictions_df[col].astype(int)
-            le = data_processor.label_encoders.get(col)
-            if le:
-                predictions_df[col] = le.inverse_transform(predictions_df[col])
-
-        scaled_numeric = scaled_numeric.clip(lower=0)
-        predictions_df[data_processor.numerical_columns] = scaled_numeric
+            if col in predictions_df.columns:
+                predictions_df[col] = predictions_df[col].astype(int)
+                le = data_processor.label_encoders.get(col)
+                if le:
+                    predictions_df[col] = le.inverse_transform(predictions_df[col])
 
         last_timestamp = latest_df["timestamp"].max()
         if pd.isna(last_timestamp):
@@ -316,12 +310,19 @@ def predict_future_price(
         predictions_df["interval"] = prediction_minutes
         predictions_df["interval_str"] = interval_key
 
+        # Ensure only SCALABLE_FEATURES are included in the final predictions
         try:
-            predictions_df = predictions_df[list(RAW_FEATURES.keys()) + list(ADD_FEATURES.keys())]
+            predictions_df = predictions_df[list(SCALABLE_FEATURES.keys())]
             logging.info("Predictions formatted successfully.")
         except KeyError as e:
             logging.error(f"Missing columns in predictions: {e}")
             return pd.DataFrame()
+
+    # Add additional necessary columns
+    predictions_df["timestamp"] = next_timestamp
+    predictions_df["symbol"] = TARGET_SYMBOL
+    predictions_df["interval"] = prediction_minutes
+    predictions_df["interval_str"] = interval_key
 
     return predictions_df
 
@@ -333,9 +334,7 @@ def main():
         data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
     else:
         data_processor = DataProcessor()
-        # Логирование числовых столбцов только при создании нового экземпляра
         logging.info(f"Numerical columns for scaling: {data_processor.numerical_columns}")
-
 
     data_fetcher = DataFetcher()
     combined_data = data_fetcher.load_data()
@@ -344,10 +343,9 @@ def main():
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
     if not os.path.exists(DATA_PROCESSOR_FILENAME):
-        combined_data = data_processor.fit_transform(combined_data)
         data_processor.save(DATA_PROCESSOR_FILENAME)
     else:
-        combined_data = data_processor.transform(combined_data)
+        pass
 
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
 

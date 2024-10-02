@@ -129,3 +129,21 @@
 2024-10-02 13:24:45,368 - INFO - Optimizer loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
 2024-10-02 13:24:45,369 - INFO - Model loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
 2024-10-02 13:24:46,652 - INFO - Dataloader created with batch size 512 and shuffle=True.
+2024-10-02 15:28:58,223 - INFO - Logging is set up.
+2024-10-02 15:28:58,386 - INFO - Using device: cuda
+2024-10-02 15:28:58,386 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 15:28:58,387 - INFO - Fetching combined data from Binance.
+2024-10-02 15:28:58,508 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 15:28:58,509 - INFO - Data fetched successfully.
+2024-10-02 15:28:58,631 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 15:28:58,631 - INFO - Columns after processing: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 15:29:00,114 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-02 15:32:45,875 - INFO - Logging is set up.
+2024-10-02 15:32:45,963 - INFO - Using device: cuda
+2024-10-02 15:32:45,963 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 15:32:45,963 - INFO - Fetching combined data from Binance.
+2024-10-02 15:32:46,104 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 15:32:46,104 - INFO - Data fetched successfully.
+2024-10-02 15:32:46,223 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 15:32:46,224 - INFO - Columns after processing: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 15:32:47,666 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
