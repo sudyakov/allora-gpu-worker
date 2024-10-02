@@ -89,3 +89,32 @@
 2024-10-02 12:48:45,785 - INFO - Latest dataset loaded with 100 records.
 2024-10-02 12:48:45,792 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
 2024-10-02 12:48:45,792 - INFO - Data transformed successfully for prediction.
+2024-10-02 12:50:59,829 - INFO - Logging is set up.
+2024-10-02 12:50:59,923 - INFO - Using device: cuda
+2024-10-02 12:50:59,924 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 12:50:59,924 - INFO - Fetching combined data from Binance.
+2024-10-02 12:51:00,049 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 12:51:00,050 - INFO - Data fetched successfully.
+2024-10-02 12:51:00,211 - INFO - Column order after fit_transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:51:00,216 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 12:51:00,216 - INFO - Columns after processing: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:51:01,491 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-02 12:51:02,977 - INFO - Dataloader created with batch size 512 and shuffle=True.
+2024-10-02 12:51:27,891 - INFO - Epoch 1/5 - Loss: 4.3988
+2024-10-02 12:51:27,982 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:51:27,982 - INFO - Validation loss improved to 4.3988. Model saved.
+2024-10-02 12:51:51,703 - INFO - Epoch 2/5 - Loss: 4.2706
+2024-10-02 12:51:51,833 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:51:51,833 - INFO - Validation loss improved to 4.2706. Model saved.
+2024-10-02 12:52:15,562 - INFO - Epoch 3/5 - Loss: 4.2705
+2024-10-02 12:52:15,687 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:52:15,687 - INFO - Validation loss improved to 4.2705. Model saved.
+2024-10-02 12:52:39,515 - INFO - Epoch 4/5 - Loss: 4.2694
+2024-10-02 12:52:39,612 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:52:39,612 - INFO - Validation loss improved to 4.2694. Model saved.
+2024-10-02 12:53:05,576 - INFO - Epoch 5/5 - Loss: 4.2688
+2024-10-02 12:53:05,718 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:53:05,718 - INFO - Validation loss improved to 4.2688. Model saved.
+2024-10-02 12:53:05,836 - INFO - Latest dataset loaded with 100 records.
+2024-10-02 12:53:05,842 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:53:05,842 - INFO - Data transformed successfully for prediction.
