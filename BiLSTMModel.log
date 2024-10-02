@@ -29,3 +29,33 @@
 
 [100 rows x 19 columns]
 2024-10-02 10:40:52,975 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:28:30,920 - INFO - Logging is set up.
+2024-10-02 12:28:30,998 - INFO - Using device: cuda
+2024-10-02 12:28:30,999 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 12:28:30,999 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 12:28:30,999 - INFO - Fetching combined data from Binance.
+2024-10-02 12:28:31,148 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 12:28:31,148 - INFO - Data fetched successfully.
+2024-10-02 12:28:31,312 - INFO - Column order after fit_transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:28:31,317 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 12:28:31,317 - INFO - Columns after processing: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:28:32,955 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-02 12:28:34,427 - INFO - Dataloader created with batch size 512 and shuffle=True.
+2024-10-02 12:28:58,688 - INFO - Epoch 1/5 - Loss: 4.8918
+2024-10-02 12:28:58,782 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:28:58,783 - INFO - Validation loss improved to 4.8918. Model saved.
+2024-10-02 12:29:25,460 - INFO - Epoch 2/5 - Loss: 4.7156
+2024-10-02 12:29:25,561 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:29:25,561 - INFO - Validation loss improved to 4.7156. Model saved.
+2024-10-02 12:29:51,035 - INFO - Epoch 3/5 - Loss: 4.7152
+2024-10-02 12:29:51,158 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:29:51,158 - INFO - Validation loss improved to 4.7152. Model saved.
+2024-10-02 12:30:14,767 - INFO - Epoch 4/5 - Loss: 4.7142
+2024-10-02 12:30:14,896 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:30:14,896 - INFO - Validation loss improved to 4.7142. Model saved.
+2024-10-02 12:30:38,608 - INFO - Epoch 5/5 - Loss: 4.7140
+2024-10-02 12:30:38,726 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 12:30:38,726 - INFO - Validation loss improved to 4.7140. Model saved.
+2024-10-02 12:30:38,843 - INFO - Latest dataset loaded with 100 records.
+2024-10-02 12:30:38,849 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 12:30:38,849 - INFO - Data transformed successfully for prediction.
