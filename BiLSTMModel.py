@@ -213,8 +213,8 @@ class DataProcessor:
             le = CustomLabelEncoder()
             df[col] = le.fit_transform(df[col])
             self.label_encoders[col] = le
-        
-        # Update this section
+
+        # **Remove the addition of ADD_FEATURES to prevent duplication**
         for col in self.numerical_columns:
             if col in SCALABLE_FEATURES:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
@@ -227,7 +227,9 @@ class DataProcessor:
         self.scaler.fit(df[self.numerical_columns])
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
         df['timestamp'] = df['timestamp'].astype('int64')
-        df = df[list(MODEL_FEATURES.keys()) + list(ADD_FEATURES.keys())]
+        
+        # **Use only MODEL_FEATURES to select columns**
+        df = df[list(MODEL_FEATURES.keys())]
         logging.info("Column order after fit_transform: %s", df.columns.tolist())
         return df
 
@@ -238,8 +240,8 @@ class DataProcessor:
                 logging.error("LabelEncoder for column %s is not fitted.", col)
                 raise ValueError(f"LabelEncoder for column {col} is not fitted.")
             df[col] = le.transform(df[col])
-        
-        # Update this section
+
+        # **Remove the addition of ADD_FEATURES to prevent duplication**
         for col in self.numerical_columns:
             if col in SCALABLE_FEATURES:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
@@ -251,7 +253,9 @@ class DataProcessor:
 
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
         df['timestamp'] = df['timestamp'].astype('int64')
-        df = df[list(MODEL_FEATURES.keys()) + list(ADD_FEATURES.keys())]
+        
+        # **Use only MODEL_FEATURES to select columns**
+        df = df[list(MODEL_FEATURES.keys())]
         logging.info("Column order after transform: %s", df.columns.tolist())
         return df
 
