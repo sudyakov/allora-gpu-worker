@@ -111,14 +111,21 @@ class EnhancedBiLSTMModel(nn.Module):
 
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval_str"]].long()
-        # timestamp = x[:, :, self.column_name_to_index["timestamp"]].int()
+        
+        # Convert timestamp to float instead of int
+        timestamp = x[:, :, self.column_name_to_index["timestamp"]].float()
+        print(f"timestamp dtype: {timestamp.dtype}")
+
 
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
-        # timestamp_embeddings = self.timestamp_embedding(timestamp)
+        
+        # Now, timestamp_embeddings will work correctly
+        timestamp_embeddings = self.timestamp_embedding(timestamp)
 
+        # Concatenate all embeddings and numerical data
         lstm_input = torch.cat(
-            (numerical_data, symbol_embeddings, interval_embeddings), dim=2
+            (numerical_data, symbol_embeddings, interval_embeddings, timestamp_embeddings), dim=2
         )
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
