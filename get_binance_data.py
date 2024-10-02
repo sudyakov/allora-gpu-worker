@@ -8,6 +8,7 @@ import requests
 from requests.exceptions import RequestException
 
 from config import (
+    SEQ_LENGTH,
     API_BASE_URL,
     BINANCE_LIMIT_STRING,
     INTERVAL_MAPPING,
@@ -43,7 +44,7 @@ class GetBinanceData:
         self.INTERVAL_MAPPING = INTERVAL_MAPPING
         self.SYMBOL_MAPPING = SYMBOL_MAPPING
         self.PATHS = PATHS
-        self.BINANCE_FEATURES = MODEL_FEATURES
+        self.MODEL_FEATURES = MODEL_FEATURES
         self.logger = logging.getLogger("GetBinanceData")
         self.configure_logging()
 
@@ -113,11 +114,11 @@ class GetBinanceData:
                 break
 
         if not all_data:
-            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
         combined_df = pd.concat(all_data, ignore_index=True)
         combined_df = fill_missing_add_features(combined_df)
-        return combined_df[list(self.BINANCE_FEATURES.keys())]
+        return combined_df[list(self.MODEL_FEATURES.keys())]
 
     def get_current_price(self, symbol: str, interval: int) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval)
@@ -128,7 +129,7 @@ class GetBinanceData:
 
         df = self._fetch_data(url)
         if df is None:
-            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
         df['symbol'] = symbol
         df['interval'] = interval_info['minutes']
@@ -136,7 +137,7 @@ class GetBinanceData:
         self.logger.debug(f"Raw DataFrame: {df.head()}")
         df = preprocess_binance_data(df)
         df = fill_missing_add_features(df)
-        return df[list(self.BINANCE_FEATURES.keys())]
+        return df[list(self.MODEL_FEATURES.keys())]
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
@@ -187,11 +188,11 @@ class GetBinanceData:
                 self.logger.error(f"Error loading combined data: {e}")
         else:
             self.logger.warning(f"Combined data file not found or empty: {combined_path}")
-        return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+        return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
-        feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.BINANCE_FEATURES.keys()])
+        feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.MODEL_FEATURES.keys()])
         summary += f"{'Timestamp':<20} {feature_headers}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
         for i, row in enumerate(rows_to_display):
@@ -199,7 +200,7 @@ class GetBinanceData:
             timestamp = row['timestamp']
             feature_values = ' '.join([
                 f'{row[feature]:<10.6f}' if isinstance(row[feature], float) else f"{row[feature]:<10}"
-                for feature in self.BINANCE_FEATURES.keys()
+                for feature in self.MODEL_FEATURES.keys()
             ])
             summary += f"{label:<20} {timestamp:<20} {feature_values}\n"
         self.logger.info(summary)
@@ -210,11 +211,11 @@ class GetBinanceData:
         server_time, _ = get_current_time()
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            df_existing = pd.read_csv(filename, dtype=self.BINANCE_FEATURES)
+            df_existing = pd.read_csv(filename, dtype=self.MODEL_FEATURES)
             df_existing = fill_missing_add_features(df_existing)
             last_timestamp = int(df_existing['timestamp'].max())
         else:
-            df_existing = pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+            df_existing = pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
             last_timestamp = server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
 
         time_difference = server_time - last_timestamp
@@ -252,7 +253,7 @@ class GetBinanceData:
             self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
 
-    def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = 1) -> pd.DataFrame:
+    def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
         combined_dataset_path = self.PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
             df_combined = pd.read_csv(combined_dataset_path)
@@ -266,7 +267,7 @@ class GetBinanceData:
                 self.logger.warning(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
         else:
             self.logger.warning(f"combined_dataset.csv file not found at path {combined_dataset_path}")
-        return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+        return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
 
 def main():

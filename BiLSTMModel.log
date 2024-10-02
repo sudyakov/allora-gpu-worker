@@ -1,62 +1,31 @@
-2024-10-01 15:09:56,344 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
-2024-10-01 15:09:56,460 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-01 15:09:56,517 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-01 15:09:56,518 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-01 15:09:57,279 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
-2024-10-01 15:09:57,280 - ERROR - Missing columns in DataFrame: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
-2024-10-01 15:10:32,271 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
-2024-10-01 15:10:32,388 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-01 15:10:32,450 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-01 15:10:32,450 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-01 15:10:33,278 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
-2024-10-01 15:10:33,278 - ERROR - Missing columns in DataFrame: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
-2024-10-01 15:15:31,480 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-01 15:50:43,823 - WARNING - Файл комбинированных данных не найден или пуст: data/combined_dataset.csv
-2024-10-02 10:00:50,744 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-02 10:06:13,351 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
-2024-10-02 10:06:13,474 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-02 10:06:48,748 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
-2024-10-02 10:06:48,872 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-02 10:11:18,394 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
-2024-10-02 10:11:18,512 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-02 10:11:18,601 - INFO - Column order after fit_transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:11:18,603 - INFO - DataProcessor saved: models/data_processor_ETHUSDT_v2.0.pkl
-2024-10-02 10:11:18,603 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:11:20,168 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
-2024-10-02 10:13:31,924 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
-2024-10-02 10:13:32,045 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-02 10:13:32,122 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:13:32,123 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:13:33,342 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
-2024-10-02 10:15:49,034 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
-2024-10-02 10:15:49,153 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-02 10:15:49,227 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:15:49,228 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:15:50,433 - INFO - Model not found, creating new: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth
-2024-10-02 10:16:14,527 - INFO - Epoch 1/5 - Loss: 4.3857
-2024-10-02 10:16:14,612 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
-2024-10-02 10:16:38,163 - INFO - Epoch 2/5 - Loss: 4.2579
-2024-10-02 10:16:38,264 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
-2024-10-02 10:17:02,015 - INFO - Epoch 3/5 - Loss: 4.2586
-2024-10-02 10:17:02,015 - INFO - Reducing learning rate to: 0.00025
-2024-10-02 10:17:28,488 - INFO - Epoch 4/5 - Loss: 4.2558
-2024-10-02 10:17:28,588 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
-2024-10-02 10:17:55,033 - INFO - Epoch 5/5 - Loss: 4.2556
-2024-10-02 10:17:55,130 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
-2024-10-02 10:17:55,245 - INFO - Latest dataset:
-    symbol interval_str  interval      timestamp        open         high          low        close      volume  ...  number_of_trades  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
-0  ETHUSDT           5m         5  1727852100000  2486.52002  2486.679932  2485.790039  2485.909912  180.506302  ...              1798                    92.331001                 229546.109375     6          2       1.0       0.0  0.974928 -0.222521
+2024-10-02 10:38:21,615 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 10:38:21,733 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 10:38:21,813 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 10:38:21,814 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 10:38:23,104 - INFO - Model and optimizer loaded: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
+2024-10-02 10:38:47,038 - INFO - Epoch 1/5 - Loss: 4.2586
+2024-10-02 10:38:47,137 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
+2024-10-02 10:39:10,869 - INFO - Epoch 2/5 - Loss: 4.2573
+2024-10-02 10:39:10,967 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
+2024-10-02 10:39:34,730 - INFO - Epoch 3/5 - Loss: 4.2575
+2024-10-02 10:39:34,730 - INFO - Reducing learning rate to: 0.00025
+2024-10-02 10:39:58,448 - INFO - Epoch 4/5 - Loss: 4.2568
+2024-10-02 10:39:58,547 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
+2024-10-02 10:40:52,714 - INFO - Epoch 5/5 - Loss: 4.2567
+2024-10-02 10:40:52,814 - INFO - Model and optimizer saved: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
+2024-10-02 10:40:52,934 - INFO - Latest dataset:
+     symbol interval_str  interval      timestamp         open         high          low        close  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour  cos_hour   sin_day   cos_day
+0   ETHUSDT           5m         5  1727824200000  2454.429932  2455.320068  2448.300049  2451.830078  ...                   211.718704                 519150.593750    23          1 -0.258819  0.965926  0.781831  0.623490
+1   ETHUSDT           5m         5  1727824500000  2451.820068  2455.800049  2451.010010  2451.989990  ...                   320.630615                 786555.125000    23          1 -0.258819  0.965926  0.781831  0.623490
+2   ETHUSDT           5m         5  1727824800000  2451.989990  2454.389893  2450.699951  2452.209961  ...                   285.448303                 700052.562500    23          1 -0.258819  0.965926  0.781831  0.623490
+3   ETHUSDT           5m         5  1727825100000  2452.199951  2452.199951  2440.199951  2440.500000  ...                   341.515686                 834886.000000    23          1 -0.258819  0.965926  0.781831  0.623490
+4   ETHUSDT           5m         5  1727825400000  2440.500000  2447.840088  2440.000000  2446.520020  ...                   283.721802                 693375.062500    23          1 -0.258819  0.965926  0.781831  0.623490
+..      ...          ...       ...            ...          ...          ...          ...          ...  ...                          ...                           ...   ...        ...       ...       ...       ...       ...
+95  ETHUSDT           5m         5  1727852700000  2485.689941  2488.000000  2481.840088  2482.139893  ...                   287.466797                 714078.000000     7          2  0.965926 -0.258819  0.974928 -0.222521
+96  ETHUSDT           5m         5  1727853000000  2482.149902  2483.449951  2477.270020  2480.360107  ...                   207.859802                 515396.593750     7          2  0.965926 -0.258819  0.974928 -0.222521
+97  ETHUSDT           5m         5  1727853300000  2480.360107  2483.020020  2478.000000  2481.510010  ...                   283.432190                 703087.062500     7          2  0.965926 -0.258819  0.974928 -0.222521
+98  ETHUSDT           5m         5  1727853600000  2481.510010  2481.669922  2478.409912  2478.830078  ...                   169.453598                 420201.562500     7          2  0.965926 -0.258819  0.974928 -0.222521
+99  ETHUSDT           5m         5  1727853900000  2476.929932  2478.000000  2476.929932  2476.939941  ...                    55.362301                 137146.890625     7          2  0.965926 -0.258819  0.974928 -0.222521
 
-[1 rows x 19 columns]
-2024-10-02 10:17:55,278 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:17:55,278 - WARNING - Not enough data for prediction.
-2024-10-02 10:17:55,278 - INFO - Current number of rows: 1, required: 100
-2024-10-02 10:17:55,279 - INFO - Predicted future prices:
-Empty DataFrame
-Columns: []
-Index: []
-2024-10-02 10:17:55,282 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
-2024-10-02 10:17:55,387 - INFO - Combined data loaded from data/combined_dataset.csv
-2024-10-02 10:17:55,457 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:17:55,457 - INFO - Columns in combined_data: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
-2024-10-02 10:17:55,578 - INFO - Model and optimizer loaded: models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth
+[100 rows x 19 columns]
+2024-10-02 10:40:52,975 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']

@@ -11,6 +11,7 @@ from config import (
     ADD_FEATURES,
     MODEL_FEATURES,
     RAW_FEATURES,
+    TIME_FEATURES,
     SCALABLE_FEATURES,
 )
 from torch.utils.data import DataLoader, TensorDataset
@@ -21,7 +22,7 @@ def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     if 'interval' in df.columns:
         df['interval'] = df['interval'].astype(int)
 
-    for feature_dict in [RAW_FEATURES, SCALABLE_FEATURES, ADD_FEATURES]:
+    for feature_dict in [RAW_FEATURES, TIME_FEATURES, SCALABLE_FEATURES, ADD_FEATURES]:
         for col, dtype in feature_dict.items():
             if col in df.columns:
                 df[col] = df[col].astype(dtype)

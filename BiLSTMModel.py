@@ -412,10 +412,13 @@ def predict_future_price(
         except Exception as e:
             logging.error("Error processing latest_df: %s", e)
             return pd.DataFrame()
+
+        # Ensure there are enough data points
         if len(processed_df) < SEQ_LENGTH:
             logging.warning("Not enough data for prediction.")
             logging.info("Current number of rows: %d, required: %d", len(processed_df), SEQ_LENGTH)
             return pd.DataFrame()
+
         last_sequence_df = processed_df.iloc[-SEQ_LENGTH:]
         sequence_values = last_sequence_df[
             data_processor.numerical_columns + data_processor.categorical_columns + ['timestamp']
@@ -494,7 +497,8 @@ def main() -> None:
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS.get("batch_size", 32))
     model, optimizer = train_and_save_model(model, dataloader, device)
-    latest_df = GetBinanceData().get_latest_dataset_prices(TARGET_SYMBOL, PREDICTION_MINUTES)
+    
+    latest_df = GetBinanceData().get_latest_dataset_prices(TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH)
     latest_df = latest_df.sort_values(by='timestamp').reset_index(drop=True)
     logging.info("Latest dataset:\n%s", latest_df)
     predicted_df = predict_future_price(model, latest_df, data_processor)

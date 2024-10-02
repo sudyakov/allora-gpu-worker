@@ -36,8 +36,11 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
 }
 
 RAW_FEATURES: Dict[str, type] = {
-    'symbol': str,  # Categorical data; consider encoding later
-    'interval_str': str,  # Categorical data; consider encoding later
+    'symbol': str,
+    'interval_str': str,
+}
+
+TIME_FEATURES: Dict[str, type] = {
     'interval': np.int64,
     'timestamp': np.int64,
 }
@@ -65,6 +68,7 @@ ADD_FEATURES: Dict[str, type] = {
 
 MODEL_FEATURES: Dict[str, type] = {
     **RAW_FEATURES,
+    **TIME_FEATURES,
     **SCALABLE_FEATURES,
     **ADD_FEATURES,
 }
