@@ -118,3 +118,14 @@
 2024-10-02 12:53:05,836 - INFO - Latest dataset loaded with 100 records.
 2024-10-02 12:53:05,842 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
 2024-10-02 12:53:05,842 - INFO - Data transformed successfully for prediction.
+2024-10-02 13:24:43,850 - INFO - Logging is set up.
+2024-10-02 13:24:43,921 - INFO - Using device: cuda
+2024-10-02 13:24:43,923 - INFO - DataProcessor loaded: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-02 13:24:43,923 - INFO - Fetching combined data from Binance.
+2024-10-02 13:24:44,058 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 13:24:44,059 - INFO - Data fetched successfully.
+2024-10-02 13:24:44,175 - INFO - Column order after transform: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 13:24:44,175 - INFO - Columns after processing: ['symbol', 'interval_str', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-02 13:24:45,368 - INFO - Optimizer loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-02 13:24:45,369 - INFO - Model loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-02 13:24:46,652 - INFO - Dataloader created with batch size 512 and shuffle=True.
