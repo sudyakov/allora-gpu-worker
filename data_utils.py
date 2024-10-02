@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from typing import Tuple, Optional, Dict, Literal, Union, List
+from typing import Tuple, Optional, Dict, Union, List
 from datetime import datetime, timezone
 import requests
 import pickle
@@ -179,6 +179,24 @@ class DataProcessor:
                     df[col] = df[col].astype(dtype)
         return df
 
+    def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        if 'timestamp' in df.columns:
+            dt = pd.to_datetime(df['timestamp'], unit='ms')
+            df['hour'] = dt.dt.hour
+            df['dayofweek'] = dt.dt.dayofweek
+            df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24)
+            df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24)
+            df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
+            df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
+        df = df.ffill().bfill()
+        logging.debug(f"Filled DataFrame:\n{df.head()}")
+        return df
+
+    def sort_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        sorted_df = df.sort_values('timestamp', ascending=False)
+        logging.debug(f"Sorted DataFrame:\n{sorted_df.head()}")
+        return sorted_df
+
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in self.categorical_columns:
             le = CustomLabelEncoder()
@@ -248,51 +266,44 @@ class DataProcessor:
         return TensorDataset(sequences, targets)
 
     def save(self, filepath: str) -> None:
-        ensure_directory_exists(filepath)
+        self.ensure_file_exists(filepath)
         with open(filepath, 'wb') as f:
             pickle.dump(self, f)
         logging.info("DataProcessor saved: %s", filepath)
 
     @staticmethod
-    def load(filepath: str) -> 'DataProcessor':
+    def ensure_file_exists(filepath: str) -> None:
+        directory = os.path.dirname(filepath)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+        if not os.path.exists(filepath):
+            df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+            df.to_csv(filepath, index=False)
+
+    def load(self, filepath: str) -> 'DataProcessor':
         with open(filepath, 'rb') as f:
             processor = pickle.load(f)
         logging.info("DataProcessor loaded: %s", filepath)
         return processor
 
-def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
-    df['timestamp'] = df['timestamp'].astype(int)
-    if 'interval' in df.columns:
-        df['interval'] = df['interval'].astype(int)
-
-    for feature_dict in [RAW_FEATURES, TIME_FEATURES, SCALABLE_FEATURES, ADD_FEATURES]:
-        for col, dtype in feature_dict.items():
-            if col in df.columns:
-                df[col] = df[col].astype(dtype)
-
-    logging.debug(f"Preprocessed DataFrame:\n{df.head()}")
-    return df
-
-def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    sorted_df = df.sort_values('timestamp', ascending=False)
-    logging.debug(f"Sorted DataFrame:\n{sorted_df.head()}")
-    return sorted_df
+    def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
+        combined_dataset_path = PATHS['combined_dataset']
+        if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+            df_combined = pd.read_csv(combined_dataset_path)
+            df_filtered = df_combined[
+                (df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)
+            ]
+            if not df_filtered.empty:
+                df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
+                return df_filtered
+            else:
+                logging.debug(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
+        else:
+            logging.debug(f"combined_dataset.csv file not found at path {combined_dataset_path}")
+        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
 
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-
-def fill_missing_add_features(df: pd.DataFrame) -> pd.DataFrame:
-    if 'timestamp' in df.columns:
-        dt = pd.to_datetime(df['timestamp'], unit='ms')
-        df['hour'] = dt.dt.hour
-        df['dayofweek'] = dt.dt.dayofweek
-        df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24)
-        df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24)
-        df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
-        df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
-    df = df.ffill().bfill()
-    logging.debug(f"Filled DataFrame:\n{df.head()}")
-    return df
 
 def get_current_time() -> Tuple[int, str]:
     response = requests.get(f"{API_BASE_URL}/time")
@@ -300,32 +311,3 @@ def get_current_time() -> Tuple[int, str]:
     server_time = response.json().get('serverTime')
     readable_time = timestamp_to_readable_time(server_time)
     return server_time, readable_time
-
-def ensure_file_exists(filepath: str) -> None:
-    directory = os.path.dirname(filepath)
-    if directory and not os.path.exists(directory):
-        os.makedirs(directory)
-    if not os.path.exists(filepath):
-        df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
-        df.to_csv(filepath, index=False)
-
-def ensure_directory_exists(filepath: str) -> None:
-    directory = os.path.dirname(filepath)
-    if directory and not os.path.exists(directory):
-        os.makedirs(directory)
-
-def get_latest_dataset_prices(symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
-    combined_dataset_path = PATHS['combined_dataset']
-    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-        df_combined = pd.read_csv(combined_dataset_path)
-        df_filtered = df_combined[
-            (df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)
-        ]
-        if not df_filtered.empty:
-            df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
-            return df_filtered
-        else:
-            logging.debug(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
-    else:
-        logging.debug(f"combined_dataset.csv file not found at path {combined_dataset_path}")
-    return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
