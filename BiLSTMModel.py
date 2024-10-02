@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
+from get_binance_data import main as get_binance_data_main
 
 from config import (
     ADD_FEATURES,
@@ -200,12 +201,12 @@ def load_model(
     device: torch.device,
 ) -> None:
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
-        state_dict = torch.load(filepath, map_location=device)
+        state_dict = torch.load(filepath, map_location=device, weights_only=True)
         model.load_state_dict(state_dict)
         model.to(device)
         optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
         if os.path.exists(optimizer_filepath):
-            optimizer_state_dict = torch.load(optimizer_filepath, map_location=device)
+            optimizer_state_dict = torch.load(optimizer_filepath, map_location=device, weights_only=True)
             optimizer.load_state_dict(optimizer_state_dict)
             logging.info(f"Optimizer loaded from {optimizer_filepath}.")
         logging.info(f"Model loaded from {filepath}.")
@@ -291,14 +292,16 @@ def predict_future_price(
     latest_df: pd.DataFrame,
     data_processor: DataProcessor,
     prediction_minutes: int = PREDICTION_MINUTES,
-    device: torch.device = torch.device("cpu"),
+    device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
         if len(latest_df) < SEQ_LENGTH:
             logging.warning("Insufficient data for prediction.")
             return pd.DataFrame()
-
+        
+        latest_df = data_processor.transform(latest_df)
+        
         tensor_dataset = data_processor.prepare_dataset(latest_df, SEQ_LENGTH)
         if len(tensor_dataset) == 0:
             logging.warning("No data available after preparing dataset.")
@@ -394,6 +397,8 @@ def main():
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
 
     model, optimizer = train_and_save_model(model, dataloader, device)
+
+    get_binance_data_main()
 
     latest_df = data_processor.get_latest_dataset_prices(
         TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH

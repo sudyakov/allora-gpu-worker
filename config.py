@@ -12,7 +12,7 @@ RETRY_DELAY: int = 5
 
 BINANCE_LIMIT_STRING: int = 1000
 
-SEQ_LENGTH: int = 100
+SEQ_LENGTH: int = 300
 
 class IntervalConfig(TypedDict):
     days: int
@@ -30,9 +30,9 @@ TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    "1m": {"days": 30, "minutes": 1, "milliseconds": 60000},
-    "5m": {"days": 60, "minutes": 5, "milliseconds": 300000},
-    "15m": {"days": 90, "minutes": 15, "milliseconds": 900000},
+    "1m": {"days": 90, "minutes": 1, "milliseconds": 60000},
+    "5m": {"days": 180, "minutes": 5, "milliseconds": 300000},
+    "15m": {"days": 360, "minutes": 15, "milliseconds": 900000},
 }
 
 RAW_FEATURES: Dict[str, type] = {
