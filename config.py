@@ -1,8 +1,9 @@
 from typing import Optional, Dict, Literal, TypedDict, Union
 import os
-from matplotlib.ft2font import SCALABLE
+
 import requests
 import time
+import numpy as np
 
 API_BASE_URL: str = "https://api.binance.com/api/v3"
 
@@ -35,31 +36,31 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
 }
 
 RAW_FEATURES: Dict[str, type] = {
-    'symbol': str,
-    'interval_str': str,
-    'interval': int,
-    'timestamp': float,
+    'symbol': str,  # Categorical data; consider encoding later
+    'interval_str': str,  # Categorical data; consider encoding later
+    'interval': np.int64,
+    'timestamp': np.int64,
 }
 
 SCALABLE_FEATURES: Dict[str, type] = {
-    'open': float,
-    'high': float,
-    'low': float,
-    'close': float,
-    'volume': float,
-    'quote_asset_volume': float,
-    'number_of_trades': int,
-    'taker_buy_base_asset_volume': float,
-    'taker_buy_quote_asset_volume': float
+    'open': np.float32,
+    'high': np.float32,
+    'low': np.float32,
+    'close': np.float32,
+    'volume': np.float32,
+    'quote_asset_volume': np.float32,
+    'number_of_trades': np.int64,
+    'taker_buy_base_asset_volume': np.float32,
+    'taker_buy_quote_asset_volume': np.float32
 }
 
 ADD_FEATURES: Dict[str, type] = {
-    "hour": int,
-    "dayofweek": int,
-    "sin_hour": float,
-    "cos_hour": float,
-    "sin_day": float,
-    "cos_day": float,
+    "hour": np.int64,
+    "dayofweek": np.int64,
+    "sin_hour": np.float32,
+    "cos_hour": np.float32,
+    "sin_day": np.float32,
+    "cos_day": np.float32,
 }
 
 MODEL_FEATURES: Dict[str, type] = {
