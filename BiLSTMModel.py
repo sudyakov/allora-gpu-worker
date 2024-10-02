@@ -30,6 +30,22 @@ from config import (
 from data_utils import DataProcessor
 from get_binance_data import GetBinanceData
 
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler("BiLSTMModel.log"),
+        ],
+    )
+    logging.info("Logging is set up.")
+
+def get_device() -> torch.device:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logging.info(f"Using device: {device}")
+    return device
+
 
 class DataFetcher:
     def __init__(self):
@@ -43,7 +59,6 @@ class DataFetcher:
         logging.info("Data fetched successfully.")
         return combined_data
 
-
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super(Attention, self).__init__()
@@ -55,7 +70,6 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -139,24 +153,6 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.zeros_(param.data)
 
 
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler("BiLSTMModel.log"),
-        ],
-    )
-    logging.info("Logging is set up.")
-
-
-def get_device() -> torch.device:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logging.info(f"Using device: {device}")
-    return device
-
-
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
     dataloader = DataLoader(
         dataset,
@@ -167,14 +163,12 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
     logging.info(f"Dataloader created with batch size {batch_size} and shuffle={shuffle}.")
     return dataloader
 
-
 def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     DataProcessor.ensure_file_exists(filepath)
     torch.save(model.state_dict(), filepath)
     optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
     torch.save(optimizer.state_dict(), optimizer_filepath)
     logging.info(f"Model saved to {filepath} and optimizer to {optimizer_filepath}.")
-
 
 def load_model(
     model: EnhancedBiLSTMModel,
@@ -194,7 +188,6 @@ def load_model(
         logging.info(f"Model loaded from {filepath}.")
     else:
         logging.warning(f"Model file {filepath} not found. A new model will be created.")
-
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -260,14 +253,12 @@ def train_and_save_model(
 
     return model, optimizer
 
-
 def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
     logging.error("Interval for %d minutes not found.", minutes)
     return None
-
 
 def predict_future_price(
     model: EnhancedBiLSTMModel,
@@ -334,7 +325,6 @@ def predict_future_price(
 
     return predictions_df
 
-
 def main():
     setup_logging()
     device = get_device()
@@ -397,7 +387,6 @@ def main():
             logging.warning("No predictions were made due to previous errors.")
     else:
         logging.warning("Latest dataset is empty. Skipping prediction.")
-
 
 if __name__ == "__main__":
     while True:
