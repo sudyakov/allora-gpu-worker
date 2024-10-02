@@ -4,22 +4,11 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-
-from typing import Tuple
+from typing import Tuple, Optional, Dict, Literal, Union, List
 from datetime import datetime, timezone
-
-import numpy as np
-import pandas as pd
 import requests
-
-
 import pickle
-
-from typing import Optional, Dict, Literal, Tuple, Union, List
-
 from torch.utils.data import DataLoader, TensorDataset
-
-from get_binance_data import GetBinanceData
 
 from config import (
     INTERVAL_MAPPING,
@@ -35,9 +24,7 @@ from config import (
     PREDICTION_MINUTES,
     TIME_FEATURES,
     API_BASE_URL
-    
 )
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -50,7 +37,6 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -127,7 +113,6 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
-
 class CustomMinMaxScaler:
     def __init__(self, feature_range: tuple = (0, 1)):
         self.min: Optional[pd.Series] = None
@@ -151,7 +136,6 @@ class CustomMinMaxScaler:
         return (data - self.feature_range[0]) / (
             self.feature_range[1] - self.feature_range[0]
         ) * (self.max - self.min) + self.min
-
 
 class CustomLabelEncoder:
     def __init__(self):
@@ -177,7 +161,6 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
-
 class DataProcessor:
     def __init__(self):
         self.scaler = CustomMinMaxScaler(feature_range=(0, 1))
@@ -202,7 +185,6 @@ class DataProcessor:
             df[col] = le.fit_transform(df[col])
             self.label_encoders[col] = le
 
-        # **Remove the addition of ADD_FEATURES to prevent duplication**
         for col in self.numerical_columns:
             if col in SCALABLE_FEATURES:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
@@ -215,8 +197,7 @@ class DataProcessor:
         self.scaler.fit(df[self.numerical_columns])
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
         df['timestamp'] = df['timestamp'].astype('int64')
-        
-        # **Use only MODEL_FEATURES to select columns**
+
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Column order after fit_transform: %s", df.columns.tolist())
         return df
@@ -229,7 +210,6 @@ class DataProcessor:
                 raise ValueError(f"LabelEncoder for column {col} is not fitted.")
             df[col] = le.transform(df[col])
 
-        # **Remove the addition of ADD_FEATURES to prevent duplication**
         for col in self.numerical_columns:
             if col in SCALABLE_FEATURES:
                 df[col] = df[col].astype(SCALABLE_FEATURES[col])
@@ -241,8 +221,7 @@ class DataProcessor:
 
         df[self.numerical_columns] = self.scaler.transform(df[self.numerical_columns])
         df['timestamp'] = df['timestamp'].astype('int64')
-        
-        # **Use only MODEL_FEATURES to select columns**
+
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Column order after transform: %s", df.columns.tolist())
         return df
@@ -281,20 +260,6 @@ class DataProcessor:
         logging.info("DataProcessor loaded: %s", filepath)
         return processor
 
-
-class DataFetcher:
-    def __init__(self):
-        self.download_data = GetBinanceData()
-        self.combined_path = PATHS["combined_dataset"]
-        self.predictions_path = PATHS["predictions"]
-
-    def load_data(self) -> pd.DataFrame:
-        combined_data = self.download_data.fetch_combined_data()
-        return combined_data
-
-
-
-
 def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     df['timestamp'] = df['timestamp'].astype(int)
     if 'interval' in df.columns:
@@ -308,16 +273,13 @@ def preprocess_binance_data(df: pd.DataFrame) -> pd.DataFrame:
     logging.debug(f"Preprocessed DataFrame:\n{df.head()}")
     return df
 
-
 def sort_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     sorted_df = df.sort_values('timestamp', ascending=False)
     logging.debug(f"Sorted DataFrame:\n{sorted_df.head()}")
     return sorted_df
 
-
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-
 
 def fill_missing_add_features(df: pd.DataFrame) -> pd.DataFrame:
     if 'timestamp' in df.columns:
@@ -332,14 +294,12 @@ def fill_missing_add_features(df: pd.DataFrame) -> pd.DataFrame:
     logging.debug(f"Filled DataFrame:\n{df.head()}")
     return df
 
-
 def get_current_time() -> Tuple[int, str]:
     response = requests.get(f"{API_BASE_URL}/time")
     response.raise_for_status()
     server_time = response.json().get('serverTime')
     readable_time = timestamp_to_readable_time(server_time)
     return server_time, readable_time
-
 
 def ensure_file_exists(filepath: str) -> None:
     directory = os.path.dirname(filepath)

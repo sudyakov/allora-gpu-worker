@@ -30,6 +30,16 @@ from config import (
 
 IntervalKey = Literal['1m', '5m', '15m']
 
+class DataFetcher:
+    def __init__(self):
+        self.download_data = GetBinanceData()
+        self.combined_path = PATHS["combined_dataset"]
+        self.predictions_path = PATHS["predictions"]
+
+    def load_data(self) -> pd.DataFrame:
+        combined_data = self.download_data.fetch_combined_data()
+        return combined_data
+
 
 def setup_logging():
     logging.basicConfig(
