@@ -2637,3 +2637,35 @@ INFO - Latest price for BTCUSDT (15 minutes):
 18  BTCUSDT          15m        15  1727848800000  61489.710938  61568.621094  61434.0  61434.011719  ...                    33.885391                    2084958.75     6          2       1.0       0.0  0.974928 -0.222521
 
 [1 rows x 19 columns]
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-10-02 06:13:47
+INFO - Updating data for ETHUSDT from 1725257627431 to 1727849580000 (2024-09-02 06:13:47 to 2024-10-02 06:13:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (1 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727849580000        ETHUSDT    1m         1          1727849580000 2475.18994140625 2475.3798828125 2473.989990234375 2473.989990234375 245.00650024414062 606313.625 1574       50.680999755859375 125413.5234375 6          2          1.000000   0.000000   0.974928   -0.222521 
+Last                 1725257640000        ETHUSDT    1m         1          1725257640000 2446.2900390625 2448.199951171875 2446.2900390625 2447.840087890625 35.4099006652832 86664.15625 541        29.25659942626953 71601.390625 6          0          1.000000   0.000000   0.000000   1.000000  
+
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol interval_str  interval      timestamp        open         high          low        close  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour      cos_hour   sin_day   cos_day
+0  ETHUSDT           1m         1  1727849640000  2473.98999  2474.399902  2473.570068  2473.570068  ...                    44.331001                 109674.304688     6          2       1.0  6.123234e-17  0.974928 -0.222521
+
+[1 rows x 19 columns]
+INFO - ------------------------
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-10-02 06:17:43
+INFO - Updating data for ETHUSDT from 1725257864077 to 1727849820000 (2024-09-02 06:17:44 to 2024-10-02 06:17:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Data summary for ETHUSDT (1 minutes):
+Timestamp            Symbol     Interval_str Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727849820000        ETHUSDT    1m         1          1727849820000 2474.39990234375 2474.8798828125 2473.590087890625 2474.3798828125 45.05179977416992 111466.765625 2459       19.045299530029297 47120.62109375 6          2          1.000000   0.000000   0.974928   -0.222521 
+Last                 1725257880000        ETHUSDT    1m         1          1725257880000 2448.159912109375 2448.169921875 2446.0     2446.0     58.140499114990234 142301.46875 454        2.887200117111206 7066.5458984375 6          0          1.000000   0.000000   0.000000   1.000000  
+
+INFO - Current price for ETHUSDT (1 minutes):
+    symbol interval_str  interval      timestamp         open         high          low        close  ...  taker_buy_base_asset_volume  taker_buy_quote_asset_volume  hour  dayofweek  sin_hour      cos_hour   sin_day   cos_day
+0  ETHUSDT           1m         1  1727849880000  2474.370117  2475.199951  2474.370117  2475.199951  ...                       1.8105                   4480.881348     6          2       1.0  6.123234e-17  0.974928 -0.222521
+
+[1 rows x 19 columns]
+INFO - ------------------------

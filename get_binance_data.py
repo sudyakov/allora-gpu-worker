@@ -1,11 +1,12 @@
 import logging
 import os
 import time
+from typing import Dict, Optional, Tuple
+
 import pandas as pd
 import requests
-
-from typing import Dict, Optional, Tuple
 from requests.exceptions import RequestException
+
 from config import (
     API_BASE_URL,
     BINANCE_LIMIT_STRING,
@@ -21,8 +22,9 @@ from data_utils import (
     fill_missing_add_features,
     sort_dataframe,
     ensure_file_exists,
-    timestamp_to_readable_time
+    timestamp_to_readable_time,
 )
+
 
 LOG_FILE = 'get_binance_data.log'
 
@@ -31,6 +33,7 @@ BINANCE_API_COLUMNS = [
     'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume',
     'taker_buy_quote_asset_volume', 'ignore'
 ]
+
 
 class GetBinanceData:
     def __init__(self):
@@ -53,10 +56,24 @@ class GetBinanceData:
         self.logger.addHandler(file_handler)
 
     def get_interval_info(self, interval: int) -> IntervalConfig:
-        for key, value in self.INTERVAL_MAPPING.items():
+        for value in self.INTERVAL_MAPPING.values():
             if value['minutes'] == interval:
                 return value
         raise KeyError(f"Invalid interval value: {interval}")
+
+    def _fetch_data(self, url: str) -> Optional[pd.DataFrame]:
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            if not data:
+                return None
+            df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
+            df = df.drop(columns=['close_time', 'ignore'])
+            return df
+        except RequestException as e:
+            self.logger.warning(f"Request error: {e}")
+            return None
 
     def get_binance_data(
         self,
@@ -79,26 +96,18 @@ class GetBinanceData:
             if end_time:
                 url += f"&endTime={end_time}"
 
-            try:
-                response = requests.get(url)
-                response.raise_for_status()
-                data = response.json()
-                if not data:
-                    break
-
-                df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
-                df = df.drop(columns=['close_time', 'ignore'])
-                df['symbol'] = symbol
-                df['interval'] = interval_info['minutes']
-                df['interval_str'] = interval_str
-                self.logger.debug(f"Raw DataFrame: {df.head()}")
-                df = preprocess_binance_data(df)
-                df = fill_missing_add_features(df)
-                all_data.append(df)
-                current_start = int(df['timestamp'].iloc[-1]) + 1
-            except RequestException as e:
-                self.logger.warning(f"Error loading data for pair {symbol} and interval {interval}: {e}")
+            df = self._fetch_data(url)
+            if df is None:
                 break
+
+            df['symbol'] = symbol
+            df['interval'] = interval_info['minutes']
+            df['interval_str'] = interval_str
+            self.logger.debug(f"Raw DataFrame: {df.head()}")
+            df = preprocess_binance_data(df)
+            df = fill_missing_add_features(df)
+            all_data.append(df)
+            current_start = int(df['timestamp'].iloc[-1]) + 1
 
             if start_time is None:
                 break
@@ -117,25 +126,17 @@ class GetBinanceData:
         )
         url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit=1"
 
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            data = response.json()
-            if not data:
-                return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
-
-            df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
-            df = df.drop(columns=['close_time', 'ignore'])
-            df['symbol'] = symbol
-            df['interval'] = interval_info['minutes']
-            df['interval_str'] = interval_str
-            self.logger.debug(f"Raw DataFrame: {df.head()}")
-            df = preprocess_binance_data(df)
-            df = fill_missing_add_features(df)
-            return df[list(self.BINANCE_FEATURES.keys())]
-        except RequestException as e:
-            self.logger.error(f"Error fetching current price for {symbol}: {e}")
+        df = self._fetch_data(url)
+        if df is None:
             return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+
+        df['symbol'] = symbol
+        df['interval'] = interval_info['minutes']
+        df['interval_str'] = interval_str
+        self.logger.debug(f"Raw DataFrame: {df.head()}")
+        df = preprocess_binance_data(df)
+        df = fill_missing_add_features(df)
+        return df[list(self.BINANCE_FEATURES.keys())]
 
     def prepare_dataframe_for_save(self, df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
@@ -148,31 +149,32 @@ class GetBinanceData:
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False, float_format='%.6f')
-        self.logger.info(f"Data saved to {filename}")
+            self.logger.info(f"Data saved to {filename}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
-        if data:
-            ensure_file_exists(filename)
-            if os.path.exists(filename) and os.path.getsize(filename) > 0:
-                existing_data = pd.read_csv(filename)
-                for key, df in data.items():
-                    symbol, interval = key.split('_')
-                    mask = (existing_data['symbol'] == symbol) & (existing_data['interval'] == int(interval))
-                    existing_data = existing_data[~mask]
-                combined_data = pd.concat(
-                    [existing_data.dropna(axis=1, how='all')] +
-                    [df.dropna(axis=1, how='all') for df in data.values()],
-                    ignore_index=True
-                )
-            else:
-                combined_data = pd.concat(data.values(), ignore_index=True)
-
-            combined_data = fill_missing_add_features(combined_data)
-            prepared_df = self.prepare_dataframe_for_save(combined_data)
-            prepared_df.to_csv(filename, index=False, float_format='%.6f')
-            self.logger.info(f"Combined dataset updated: {filename}")
-        else:
+        if not data:
             self.logger.warning("No data to save to combined dataset.")
+            return
+
+        ensure_file_exists(filename)
+        if os.path.exists(filename) and os.path.getsize(filename) > 0:
+            existing_data = pd.read_csv(filename)
+            for key, df in data.items():
+                symbol, interval = key.split('_')
+                mask = (existing_data['symbol'] == symbol) & (existing_data['interval'] == int(interval))
+                existing_data = existing_data[~mask]
+            combined_data = pd.concat(
+                [existing_data.dropna(axis=1, how='all')] +
+                [df.dropna(axis=1, how='all') for df in data.values() if not df.empty],
+                ignore_index=True
+            )
+        else:
+            combined_data = pd.concat([df.dropna(axis=1, how='all') for df in data.values() if not df.empty], ignore_index=True)
+
+        combined_data = fill_missing_add_features(combined_data)
+        prepared_df = self.prepare_dataframe_for_save(combined_data)
+        prepared_df.to_csv(filename, index=False, float_format='%.6f')
+        self.logger.info(f"Combined dataset updated: {filename}")
 
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
@@ -183,10 +185,9 @@ class GetBinanceData:
                 return df
             except Exception as e:
                 self.logger.error(f"Error loading combined data: {e}")
-                return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
         else:
             self.logger.warning(f"Combined data file not found or empty: {combined_path}")
-            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+        return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval: int):
         summary = f"Data summary for {symbol} ({interval} minutes):\n"
@@ -196,27 +197,26 @@ class GetBinanceData:
         for i, row in enumerate(rows_to_display):
             label = "First" if i == 0 else "Last"
             timestamp = row['timestamp']
-            feature_values = ' '.join([f'{row[feature]:<10.6f}' if isinstance(row[feature], float) else f"{row[feature]:<10}" for feature in self.BINANCE_FEATURES.keys()])
-            summary += (
-                f"{label:<20} {timestamp:<20} {feature_values}\n"
-            )
+            feature_values = ' '.join([
+                f'{row[feature]:<10.6f}' if isinstance(row[feature], float) else f"{row[feature]:<10}"
+                for feature in self.BINANCE_FEATURES.keys()
+            ])
+            summary += f"{label:<20} {timestamp:<20} {feature_values}\n"
         self.logger.info(summary)
 
     def update_data(self, symbol: str, interval: int) -> Tuple[pd.DataFrame, Optional[int], Optional[int]]:
         interval_info = self.get_interval_info(interval)
         filename = os.path.join(self.PATHS['data_dir'], f"{symbol}_{interval_info['minutes']}_data.csv")
         server_time, _ = get_current_time()
-        df_existing = pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             df_existing = pd.read_csv(filename, dtype=self.BINANCE_FEATURES)
             df_existing = fill_missing_add_features(df_existing)
+            last_timestamp = int(df_existing['timestamp'].max())
+        else:
+            df_existing = pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+            last_timestamp = server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
 
-        last_timestamp = (
-            int(df_existing['timestamp'].max())
-            if not df_existing.empty
-            else server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
-        )
         time_difference = server_time - last_timestamp
 
         if time_difference > interval_info['minutes'] * 60 * 1000:
@@ -224,18 +224,19 @@ class GetBinanceData:
             end_time = server_time
             df_new = self.get_binance_data(symbol, interval, start_time, end_time)
             if df_new is not None and not df_new.empty:
-                newest_timestamp = df_new['timestamp'].max()
                 readable_start = timestamp_to_readable_time(start_time)
-                readable_newest = timestamp_to_readable_time(newest_timestamp)
+                readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
                 self.logger.info(
-                    f"Updating data for {symbol} from {start_time} to {newest_timestamp} "
+                    f"Updating data for {symbol} from {start_time} to {df_new['timestamp'].max()} "
                     f"({readable_start} to {readable_newest})"
                 )
+                # Убедитесь, что df_new очищен от пустых столбцов
+                df_new_cleaned = df_new.dropna(axis=1, how='all')
+                df_existing_cleaned = df_existing.dropna(axis=1, how='all') if not df_existing.empty else pd.DataFrame()
                 df_updated = pd.concat(
-                    [df_new.dropna(axis=1, how='all'), df_existing.dropna(axis=1, how='all')],
+                    [df_existing_cleaned, df_new_cleaned],
                     ignore_index=True
-                )
-                df_updated = df_updated.drop_duplicates(subset=['timestamp'], keep='first')
+                ).drop_duplicates(subset=['timestamp'], keep='first')
                 df_updated = sort_dataframe(df_updated)
                 df_updated = fill_missing_add_features(df_updated)
                 self.save_to_csv(df_updated, filename)
@@ -243,9 +244,7 @@ class GetBinanceData:
                     {f"{symbol}_{interval_info['minutes']}": df_updated},
                     self.PATHS['combined_dataset']
                 )
-                update_start_time = df_new['timestamp'].min()
-                update_end_time = df_new['timestamp'].max()
-                return df_updated, update_start_time, update_end_time
+                return df_updated, df_new['timestamp'].min(), df_new['timestamp'].max()
             else:
                 self.logger.warning(f"Failed to retrieve new data for {symbol}.")
                 return df_existing, None, None
@@ -257,16 +256,18 @@ class GetBinanceData:
         combined_dataset_path = self.PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
             df_combined = pd.read_csv(combined_dataset_path)
-            df_filtered = df_combined[(df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)]
+            df_filtered = df_combined[
+                (df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)
+            ]
             if not df_filtered.empty:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
             else:
                 self.logger.warning(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
-                return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
         else:
             self.logger.warning(f"combined_dataset.csv file not found at path {combined_dataset_path}")
-            return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+        return pd.DataFrame(columns=list(self.BINANCE_FEATURES.keys()))
+
 
 def main():
     download_data = GetBinanceData()
@@ -324,10 +325,11 @@ def main():
             except Exception as e:
                 download_data.logger.error(f"Error fetching prices for {symbol} with interval {interval}: {e}")
 
+    download_data.logger.info("Completed.")
+
+
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-    finally:
-        logging.info("Completed.")
