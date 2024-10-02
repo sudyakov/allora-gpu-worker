@@ -12,3 +12,8 @@
 2024-10-01 15:10:33,278 - ERROR - Missing columns in DataFrame: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
 2024-10-01 15:15:31,480 - INFO - Combined data loaded from data/combined_dataset.csv
 2024-10-01 15:50:43,823 - WARNING - Файл комбинированных данных не найден или пуст: data/combined_dataset.csv
+2024-10-02 10:00:50,744 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 10:06:13,351 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 10:06:13,474 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-02 10:06:48,748 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+2024-10-02 10:06:48,872 - INFO - Combined data loaded from data/combined_dataset.csv
