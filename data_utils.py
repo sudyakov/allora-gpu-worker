@@ -24,7 +24,6 @@ from config import (
     SYMBOL_MAPPING,
     API_BASE_URL,
     IntervalConfig,
-    IntervalKey,
 )
 
 class CustomLabelEncoder:

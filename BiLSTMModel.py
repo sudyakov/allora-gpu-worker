@@ -20,7 +20,6 @@ from config import (
     PATHS,
     PREDICTION_MINUTES,
     IntervalConfig,
-    IntervalKey,
     get_interval,
     TRAINING_PARAMS,
     MODEL_PARAMS

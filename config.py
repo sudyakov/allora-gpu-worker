@@ -20,7 +20,7 @@ class IntervalConfig(TypedDict):
     minutes: int
     milliseconds: int
 
-IntervalKey = Literal["1m", "5m", "15m"]
+#IntervalKey = Literal["1m", "5m", "15m"]
 
 SYMBOL_MAPPING: Dict[str, int] = {
     "ETHUSDT": 0,
@@ -30,7 +30,7 @@ SYMBOL_MAPPING: Dict[str, int] = {
 TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
-INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
+INTERVAL_MAPPING: Dict[str, IntervalConfig] = {
     "1m": {"days": 9, "minutes": 1, "milliseconds": 60000},
     "5m": {"days": 18, "minutes": 5, "milliseconds": 300000},
     "15m": {"days": 36, "minutes": 15, "milliseconds": 900000},
@@ -135,7 +135,7 @@ def get_binance_time_offset() -> Optional[int]:
 
 TIME_OFFSET: Optional[int] = get_binance_time_offset()
 
-def get_interval(minutes: int) -> Optional[IntervalKey]:
+def get_interval(minutes: int) -> Optional[str]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key

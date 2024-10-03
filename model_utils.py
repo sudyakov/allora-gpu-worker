@@ -22,7 +22,6 @@ from config import (
     SYMBOL_MAPPING,
     API_BASE_URL,
     IntervalConfig,
-    IntervalKey,
     TRAINING_PARAMS
 )
 from data_utils import DataProcessor
