@@ -90,7 +90,7 @@ class EnhancedBiLSTMModel(nn.Module):
         )
         self.attention = Attention(MODEL_PARAMS["hidden_layer_size"])
         self.linear = nn.Linear(
-            MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
+            MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)-1
         )
         self.relu = nn.ReLU()
         self.apply(self._initialize_weights)

@@ -3819,3 +3819,311 @@ sin_day                         float32
 cos_day                         float32
 dtype: object
 2024-10-03 17:10:48,704 - INFO - num_symbols: 2, num_intervals: 3
+2024-10-03 18:00:40,345 - INFO - Logging is set up.
+2024-10-03 18:00:40,346 - INFO - Используемое устройство: cuda
+2024-10-03 18:00:40,346 - INFO - Numerical columns for scaling: ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'interval']
+2024-10-03 18:00:40,393 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 18:00:40,439 - INFO - Порядок столбцов после fit_transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:00:40,439 - INFO - Типы данных после fit_transform:
+2024-10-03 18:00:40,439 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:00:40,443 - INFO - DataProcessor сохранен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 18:00:40,443 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 18:00:40,443 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:00:41,568 - WARNING - Файл модели models/enhanced_bilstm_model_ETHUSDT_v2.0.pth не найден. Будет создана новая модель.
+2024-10-03 18:00:41,568 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 18:00:41,571 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:00:41,574 - INFO - Типы данных после преобразования типов:
+2024-10-03 18:00:41,575 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:00:42,729 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:42,898 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:43,403 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:43,750 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:44,138 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:44,556 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:44,944 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:45,362 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:45,411 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:45,459 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:45,507 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:45,553 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:45,600 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:00:45,647 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:01:38,992 - INFO - Logging is set up.
+2024-10-03 18:01:38,993 - INFO - Используемое устройство: cuda
+2024-10-03 18:01:38,993 - INFO - Numerical columns for scaling: ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'interval']
+2024-10-03 18:01:39,042 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 18:01:39,089 - INFO - Порядок столбцов после fit_transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:01:39,089 - INFO - Типы данных после fit_transform:
+2024-10-03 18:01:39,090 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:01:39,093 - INFO - DataProcessor сохранен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 18:01:39,094 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 18:01:39,094 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:01:40,038 - WARNING - Файл модели models/enhanced_bilstm_model_ETHUSDT_v2.0.pth не найден. Будет создана новая модель.
+2024-10-03 18:01:40,038 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 18:01:40,040 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:01:40,043 - INFO - Типы данных после преобразования типов:
+2024-10-03 18:01:40,045 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:01:41,142 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:01:41,338 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:01:41,719 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:01:42,128 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:01:42,512 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:01:42,931 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:06:50,057 - INFO - Logging is set up.
+2024-10-03 18:06:50,058 - INFO - Используемое устройство: cuda
+2024-10-03 18:06:50,058 - INFO - DataProcessor загружен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 18:06:50,110 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 18:06:50,158 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:06:50,158 - INFO - Типы данных после transform:
+2024-10-03 18:06:50,158 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:06:50,159 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 18:06:50,160 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:06:51,440 - WARNING - Файл модели models/enhanced_bilstm_model_ETHUSDT_v2.0.pth не найден. Будет создана новая модель.
+2024-10-03 18:06:51,440 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 18:06:51,442 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:06:51,445 - INFO - Типы данных после преобразования типов:
+2024-10-03 18:06:51,446 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:06:52,594 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:06:52,723 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:06:53,123 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:06:53,476 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:06:53,859 - ERROR - Output shape torch.Size([256, 10]) does not match target shape torch.Size([256, 9])
+2024-10-03 18:09:23,425 - INFO - Logging is set up.
+2024-10-03 18:09:23,426 - INFO - Используемое устройство: cuda
+2024-10-03 18:09:23,426 - INFO - DataProcessor загружен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 18:09:23,473 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 18:09:23,519 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:09:23,519 - INFO - Типы данных после transform:
+2024-10-03 18:09:23,520 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:09:23,521 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 18:09:23,521 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 18:09:24,691 - WARNING - Файл модели models/enhanced_bilstm_model_ETHUSDT_v2.0.pth не найден. Будет создана новая модель.
+2024-10-03 18:09:24,691 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 18:09:24,693 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:09:24,696 - INFO - Типы данных после преобразования типов:
+2024-10-03 18:09:24,697 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 18:09:49,686 - INFO - Epoch 1/5 - Loss: 8791938234855.6191
+2024-10-03 18:09:49,768 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 18:09:49,769 - INFO - Validation loss improved to 8791938234855.6191. Model saved.
+2024-10-03 18:10:15,265 - INFO - Epoch 2/5 - Loss: 8765852819065.9043
+2024-10-03 18:10:15,360 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 18:10:15,360 - INFO - Validation loss improved to 8765852819065.9043. Model saved.
+2024-10-03 18:10:41,025 - INFO - Epoch 3/5 - Loss: 8775574850608.7617
+2024-10-03 18:10:41,025 - INFO - No improvement in validation loss. (1/5)
+2024-10-03 18:10:41,026 - INFO - Reducing learning rate to: 0.00025

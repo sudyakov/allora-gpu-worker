@@ -79,7 +79,7 @@ class ModelParams(TypedDict):
     timestamp_embedding_dim: int
 
 MODEL_PARAMS: ModelParams = {
-    "input_size": len(MODEL_FEATURES) - 1,
+    "input_size": len(MODEL_FEATURES),
     "hidden_layer_size": 256,
     "num_layers": 4,
     "dropout": 0.2,
