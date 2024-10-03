@@ -73,13 +73,7 @@ class DataProcessor:
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
 
-    def map_interval(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['interval_str'] = df['interval'].apply(get_interval)
-        if df['interval_str'].isnull().any():
-            missing = df[df['interval_str'].isnull()]['interval'].unique()
-            logging.error("Не удалось найти строки для интервалов: %s", missing)
-            raise ValueError(f"Не удалось найти строки для интервалов: {missing}")
-        return df
+    # Метод map_interval удален, так как теперь интервал не содержит строки
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
@@ -111,10 +105,13 @@ class DataProcessor:
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = self.map_interval(df)  # Добавляем преобразование интервала
+        # Удаляем вызов map_interval, так как он не нужен
+        # df = self.map_interval(df)
+
         for col in self.categorical_columns:
             if col == 'interval':
-                df[col] = df['interval_str']  # Используем строковое представление интервала
+                # Удаляем преобразование интервала в строку
+                pass
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 logging.error("Не найден кодировщик для столбца %s.", col)

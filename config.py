@@ -20,7 +20,7 @@ class IntervalConfig(TypedDict):
     minutes: int
     milliseconds: int
 
-IntervalKey = Literal["1m", "5m", "15m"]
+IntervalKey = int
 
 SYMBOL_MAPPING: Dict[str, int] = {
     "ETHUSDT": 0,
@@ -31,9 +31,9 @@ TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    "1m": {"days": 9, "minutes": 1, "milliseconds": 60000},
-    "5m": {"days": 18, "minutes": 5, "milliseconds": 300000},
-    "15m": {"days": 36, "minutes": 15, "milliseconds": 900000},
+    1: {"days": 9, "minutes": 1, "milliseconds": 60000},
+    5: {"days": 18, "minutes": 5, "milliseconds": 300000},
+    15: {"days": 36, "minutes": 15, "milliseconds": 900000},
 }
 
 RAW_FEATURES = OrderedDict([

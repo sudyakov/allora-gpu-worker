@@ -68,7 +68,7 @@ class GetBinanceData:
         if interval_key in self.INTERVAL_MAPPING:
             return self.INTERVAL_MAPPING[interval_key]
         else:
-            raise KeyError(f"Invalid interval key: {interval_key}")
+            raise KeyError(f"Неверный ключ интервала: {interval_key}")
 
     def _fetch_data(self, url: str) -> Optional[pd.DataFrame]:
         try:
@@ -83,7 +83,7 @@ class GetBinanceData:
             df = self.data_processor.preprocess_binance_data(df)
             return df
         except RequestException as e:
-            self.logger.warning(f"Request error: {e}")
+            self.logger.warning(f"Ошибка запроса: {e}")
             return None
 
     def get_binance_data(
@@ -98,7 +98,9 @@ class GetBinanceData:
         current_start = start_time
 
         while current_start is None or (end_time is not None and current_start < end_time):
-            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_key}&limit={self.BINANCE_LIMIT_STRING}"
+            # Формируем строковое представление интервала, например, '1m'
+            interval_str = f"{interval_info['minutes']}m"
+            url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit={self.BINANCE_LIMIT_STRING}"
             if current_start:
                 url += f"&startTime={current_start}"
             if end_time:
@@ -110,7 +112,7 @@ class GetBinanceData:
 
             df['symbol'] = symbol
             df['interval'] = interval_info['minutes']
-            df['interval_str'] = interval_key
+            df['interval_str'] = interval_str
             self.logger.debug(f"Raw DataFrame: {df.head()}")
 
             df = self.data_processor.preprocess_binance_data(df)
@@ -130,7 +132,8 @@ class GetBinanceData:
 
     def get_current_price(self, symbol: str, interval_key: IntervalKey) -> pd.DataFrame:
         interval_info = self.get_interval_info(interval_key)
-        url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_key}&limit=1"
+        interval_str = f"{interval_info['minutes']}m"
+        url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit=1"
 
         df = self._fetch_data(url)
         if df is None or df.empty:
@@ -138,7 +141,7 @@ class GetBinanceData:
 
         df['symbol'] = symbol
         df['interval'] = interval_info['minutes']
-        df['interval_str'] = interval_key
+        df['interval_str'] = interval_str
         self.logger.debug(f"Raw DataFrame: {df.head()}")
 
         df = self.data_processor.preprocess_binance_data(df)
@@ -161,11 +164,11 @@ class GetBinanceData:
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False)
-            self.logger.info(f"Data saved to {filename}")
+            self.logger.info(f"Данные сохранены в {filename}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if not data:
-            self.logger.warning("No data to save to combined dataset.")
+            self.logger.warning("Нет данных для сохранения в комбинированный набор.")
             return
 
         self.data_processor.ensure_file_exists(filename)
@@ -189,23 +192,23 @@ class GetBinanceData:
         combined_data = self.data_processor.fill_missing_add_features(combined_data)
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
-        self.logger.info(f"Combined dataset updated: {filename}")
+        self.logger.info(f"Комбинированный набор данных обновлен: {filename}")
 
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
         if os.path.exists(combined_path) and os.path.getsize(combined_path) > 0:
             try:
                 df = pd.read_csv(combined_path, dtype=self.MODEL_FEATURES)
-                self.logger.info(f"Combined data loaded from {combined_path}")
+                self.logger.info(f"Комбинированные данные загружены из {combined_path}")
                 return df
             except Exception as e:
-                self.logger.error(f"Error loading combined data: {e}")
+                self.logger.error(f"Ошибка при загрузке комбинированных данных: {e}")
         else:
-            self.logger.warning(f"Combined data file not found or empty: {combined_path}")
+            self.logger.warning(f"Файл комбинированных данных не найден или пуст: {combined_path}")
         return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval_key: IntervalKey):
-        summary = f"Data summary for {symbol} ({interval_key}):\n"
+        summary = f"Сводка данных для {symbol} ({interval_key}):\n"
         feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.MODEL_FEATURES.keys()])
         summary += f"{'Timestamp':<20} {feature_headers}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
@@ -251,8 +254,8 @@ class GetBinanceData:
                 readable_start = timestamp_to_readable_time(start_time)
                 readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
                 self.logger.info(
-                    f"Updating data for {symbol} from {start_time} to {df_new['timestamp'].max()} "
-                    f"({readable_start} to {readable_newest})"
+                    f"Обновление данных для {symbol} с {start_time} до {df_new['timestamp'].max()} "
+                    f"({readable_start} до {readable_newest})"
                 )
 
                 # Приведение типов данных для существующих данных
@@ -275,25 +278,25 @@ class GetBinanceData:
                 )
                 return df_updated, df_new['timestamp'].min(), df_new['timestamp'].max()
             else:
-                self.logger.warning(f"Failed to retrieve new data for {symbol}.")
+                self.logger.warning(f"Не удалось получить новые данные для {symbol}.")
                 return df_existing, None, None
         else:
-            self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
+            self.logger.info(f"Данные для {symbol} не требуют обновления. Используются текущие данные.")
             return df_existing, None, None
 
 
 def main():
     download_data = GetBinanceData()
-    download_data.logger.info("Script started")
+    download_data.logger.info("Скрипт запущен")
 
     try:
         response = requests.get(f"{download_data.API_BASE_URL}/time")
         response.raise_for_status()
         server_time = response.json()['serverTime']
         readable_time = timestamp_to_readable_time(server_time)
-        download_data.logger.info(f"Binance API is available. Server time: {readable_time}")
+        download_data.logger.info(f"Binance API доступен. Время сервера: {readable_time}")
     except Exception as e:
-        download_data.logger.error(f"Failed to access Binance API: {e}")
+        download_data.logger.error(f"Не удалось получить доступ к Binance API: {e}")
         return
 
     symbols = list(download_data.SYMBOL_MAPPING.keys())
@@ -308,42 +311,42 @@ def main():
                     
                     # Получаем ключ для текущего символа и интервала
                     key = f"{symbol}_{download_data.INTERVAL_MAPPING[interval_key]['minutes']}"
-                    
+
                     # Сохраняем данные сразу после обновления
                     download_data.save_combined_dataset(
                         {key: updated_data},
                         download_data.PATHS['combined_dataset']
                     )
                 else:
-                    download_data.logger.error(f"Failed to update data for pair {symbol} and interval {interval_key}")
+                    download_data.logger.error(f"Не удалось обновить данные для пары {symbol} и интервала {interval_key}")
                 download_data.logger.info("------------------------")
                 time.sleep(1)
             except Exception as e:
-                download_data.logger.error(f"Error updating data for {symbol} with interval {interval_key}: {e}")
+                download_data.logger.error(f"Ошибка при обновлении данных для {symbol} с интервалом {interval_key}: {e}")
 
-    download_data.logger.info("All files updated with the latest prices.")
+    download_data.logger.info("Все файлы обновлены с последними ценами.")
 
-    download_data.logger.info("Executing get_current_price and get_latest_prices methods for all symbols and intervals.")
+    download_data.logger.info("Выполнение методов get_current_price и get_latest_prices для всех символов и интервалов.")
     for symbol in symbols:
         for interval_key in intervals:
             try:
                 current_price_df = download_data.get_current_price(symbol, interval_key)
-                download_data.logger.info(f"Current price for {symbol} ({interval_key}):\n{current_price_df}")
+                download_data.logger.info(f"Текущая цена для {symbol} ({interval_key}):\n{current_price_df}")
                 
                 interval_minutes = download_data.INTERVAL_MAPPING[interval_key]['minutes']
                 latest_price_df = download_data.data_processor.get_latest_dataset_prices(symbol, interval_minutes)
 
-                download_data.logger.info(f"Latest price for {symbol} ({interval_key}):\n{latest_price_df}")
+                download_data.logger.info(f"Последняя цена для {symbol} ({interval_key}):\n{latest_price_df}")
 
                 time.sleep(1)
             except Exception as e:
-                download_data.logger.error(f"Error fetching prices for {symbol} with interval {interval_key}: {e}")
+                download_data.logger.error(f"Ошибка при получении цен для {symbol} с интервалом {interval_key}: {e}")
 
-    download_data.logger.info("Completed.")
+    download_data.logger.info("Завершено.")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        logging.error(f"Произошла ошибка: {e}")

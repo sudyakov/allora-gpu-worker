@@ -99,7 +99,7 @@ class EnhancedBiLSTMModel(nn.Module):
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
-        intervals = x[:, :, self.column_name_to_index["interval"]]
+        intervals = x[:, :, self.column_name_to_index["interval"]].long()
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
         if torch.isnan(timestamp).any() or torch.isinf(timestamp).any():
             logging.error("Timestamp contains NaN or infinite values.")
@@ -129,7 +129,6 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.orthogonal_(param.data)
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
-
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -223,7 +222,7 @@ def predict_future_price(
         predictions_df["symbol"] = TARGET_SYMBOL
         predictions_df["interval"] = prediction_minutes
         predictions_df["timestamp"] = next_timestamp
-        
+
         predictions_df = predictions_df[
             ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
         ]

@@ -26,10 +26,12 @@ from config import (
 )
 from data_utils import DataProcessor
 
+
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logging.info(f"Using device: {device}")
+    logging.info(f"Используемое устройство: {device}")
     return device
+
 
 def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
     return DataLoader(
@@ -39,12 +41,14 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
         num_workers=TRAINING_PARAMS["num_workers"],
     )
 
+
 def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
     DataProcessor.ensure_file_exists(filepath)
     torch.save(model.state_dict(), filepath)
     optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
     torch.save(optimizer.state_dict(), optimizer_filepath)
-    logging.info(f"Model saved to {filepath} and optimizer to {optimizer_filepath}.")
+    logging.info(f"Модель сохранена в {filepath}, а оптимизатор в {optimizer_filepath}.")
+
 
 def load_model(
     model: nn.Module,
@@ -53,14 +57,14 @@ def load_model(
     device: torch.device,
 ) -> None:
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
-        state_dict = torch.load(filepath, map_location=device, weights_only=True)
+        state_dict = torch.load(filepath, map_location=device)
         model.load_state_dict(state_dict)
         model.to(device)
         optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
         if os.path.exists(optimizer_filepath):
-            optimizer_state_dict = torch.load(optimizer_filepath, map_location=device, weights_only=True)
+            optimizer_state_dict = torch.load(optimizer_filepath, map_location=device)
             optimizer.load_state_dict(optimizer_state_dict)
-            logging.info(f"Optimizer loaded from {optimizer_filepath}.")
-        logging.info(f"Model loaded from {filepath}.")
+            logging.info(f"Оптимизатор загружен из {optimizer_filepath}.")
+        logging.info(f"Модель загружена из {filepath}.")
     else:
-        logging.warning(f"Model file {filepath} not found. A new model will be created.")
+        logging.warning(f"Файл модели {filepath} не найден. Будет создана новая модель.")
