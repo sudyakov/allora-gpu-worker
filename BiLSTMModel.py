@@ -208,7 +208,7 @@ def predict_future_price(
         inputs, _ = tensor_dataset[-1]
         inputs = inputs.unsqueeze(0).to(device)
         predictions = model(inputs).cpu().numpy()
-        predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
+        predictions_df = pd.DataFrame(predictions, columns=[col for col in SCALABLE_FEATURES.keys() if col != 'timestamp'])
         last_timestamp = latest_df["timestamp"].iloc[-1]
         if pd.isna(last_timestamp):
             logging.error("Invalid last timestamp.")
@@ -268,9 +268,10 @@ def main():
         raise ValueError("Interval indices exceed the number of intervals in embedding.")
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
+    
     model = EnhancedBiLSTMModel(
-        numerical_columns=data_processor.numerical_columns,
         categorical_columns=data_processor.categorical_columns,
+        numerical_columns=data_processor.numerical_columns,
         column_name_to_index=column_name_to_index,
     ).to(device)
     optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
