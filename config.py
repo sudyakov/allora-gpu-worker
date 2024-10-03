@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Dict, Literal, TypedDict, Union
 import os
 from collections import OrderedDict
@@ -37,7 +38,7 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
 
 RAW_FEATURES = OrderedDict([
     ('symbol', str),
-    ('interval', str),
+    ('interval', np.int64),
 ])
 
 SCALABLE_FEATURES = OrderedDict([
@@ -67,6 +68,7 @@ MODEL_FEATURES.update(RAW_FEATURES)
 MODEL_FEATURES.update(SCALABLE_FEATURES)
 MODEL_FEATURES.update(ADD_FEATURES)
 
+
 PATHS: Dict[str, str] = {
     'combined_dataset': 'data/combined_dataset.csv',
     'predictions': 'data/predictions.csv',
@@ -93,3 +95,10 @@ def get_binance_time_offset() -> Optional[int]:
         return None
 
 TIME_OFFSET: Optional[int] = get_binance_time_offset()
+
+def get_interval(minutes: int) -> Optional[IntervalKey]:
+    for key, config in INTERVAL_MAPPING.items():
+        if config["minutes"] == minutes:
+            return key
+    logging.error("Interval for %d minutes not found.", minutes)
+    return None

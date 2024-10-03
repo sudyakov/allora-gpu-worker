@@ -80,7 +80,7 @@ class GetBinanceData:
             df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
             df = df.drop(columns=['close_time', 'ignore'])
             # Преобразуем типы данных сразу после получения
-            df = self.data_processor.convert_dtypes(df)
+            df = self.data_processor.preprocess_binance_data(df)
             return df
         except RequestException as e:
             self.logger.warning(f"Request error: {e}")

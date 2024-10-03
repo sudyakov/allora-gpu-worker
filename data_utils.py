@@ -24,7 +24,7 @@ from config import (
     SYMBOL_MAPPING,
     API_BASE_URL,
     IntervalConfig,
-    IntervalKey
+    IntervalKey,
 )
 
 class CustomLabelEncoder:
@@ -74,20 +74,18 @@ class DataProcessor:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
         for col, dtype in RAW_FEATURES.items():
             if col in df.columns:
-                if col == 'timestamp':
-                    df[col] = pd.to_datetime(df[col], unit='ms')
-                else:
-                    df[col] = df[col].astype(dtype)
-        for col, dtype in TIME_FEATURES.items():
-            if col in df.columns and col != 'timestamp':
+                df[col] = df[col].astype(dtype)
+        for col, dtype in SCALABLE_FEATURES.items():
+            if col in df.columns:
                 df[col] = df[col].astype(dtype)
         return df
 
     def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
         if 'timestamp' in df.columns:
-            dt = pd.to_datetime(df['timestamp'], unit='ms')
-            df['hour'] = dt.dt.hour.astype(np.int64)
-            df['dayofweek'] = dt.dt.dayofweek.astype(np.int64)
+            # Вычисляем дополнительные временные признаки без преобразования 'timestamp' в datetime
+            df['hour'] = ((df['timestamp'] // (1000 * 60 * 60)) % 24).astype(np.int64)
+            df['dayofweek'] = ((df['timestamp'] // (1000 * 60 * 60 * 24)) % 7).astype(np.int64)
+
             df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24).astype(np.float32)
             df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24).astype(np.float32)
             df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
@@ -116,7 +114,10 @@ class DataProcessor:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
-        df['timestamp'] = df['timestamp'].astype(np.int64)
+        # Убедимся, что 'timestamp' имеет тип np.int64
+        if 'timestamp' in df.columns:
+            df['timestamp'] = df['timestamp'].astype(np.int64)
+
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Порядок столбцов после fit_transform: %s", df.columns.tolist())
         logging.info("Типы данных после fit_transform:")
@@ -138,7 +139,10 @@ class DataProcessor:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
-        df['timestamp'] = df['timestamp'].astype(np.int64)
+        # Убедимся, что 'timestamp' имеет тип np.int64
+        if 'timestamp' in df.columns:
+            df['timestamp'] = df['timestamp'].astype(np.int64)
+
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Порядок столбцов после transform: %s", df.columns.tolist())
         logging.info("Типы данных после transform:")
@@ -147,7 +151,7 @@ class DataProcessor:
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         features = list(MODEL_FEATURES.keys())
-        target_columns = list(SCALABLE_FEATURES.keys())
+        target_columns = [col for col in SCALABLE_FEATURES.keys() if col != 'timestamp']
         missing_columns = [col for col in target_columns if col not in df.columns]
         if missing_columns:
             logging.error("Отсутствующие целевые столбцы в DataFrame: %s", missing_columns)
@@ -155,6 +159,10 @@ class DataProcessor:
 
         logging.info("Типы данных перед преобразованием в тензоры:")
         logging.info(df[features].dtypes)
+
+        # Убедимся, что 'timestamp' имеет числовой тип
+        if 'timestamp' in df.columns:
+            df['timestamp'] = df['timestamp'].astype(np.float32)  # Или np.int64, если требуется
 
         object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
         if object_columns:
@@ -172,11 +180,11 @@ class DataProcessor:
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
 
-        target_indices = torch.tensor([df.columns.get_loc(col) for col in target_columns], dtype=torch.long)
+        target_indices = torch.tensor([df.columns.get_loc(col) for col in target_columns if col in df.columns], dtype=torch.long)
 
         sequences = []
         targets = []
-        for i in range(len(data_tensor) - seq_length + 1):  # Adjusted loop range
+        for i in range(len(data_tensor) - seq_length + 1):
             sequences.append(data_tensor[i:i + seq_length])
             if i + seq_length < len(data_tensor):
                 targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
@@ -188,7 +196,7 @@ class DataProcessor:
         targets = torch.stack(targets)
 
         return TensorDataset(sequences, targets)
-
+    
     def save(self, filepath: str) -> None:
         self.ensure_file_exists(filepath)
         with open(filepath, 'wb') as f:
