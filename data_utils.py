@@ -8,7 +8,7 @@ from typing import Tuple, Optional, Dict, Union, List, Any, OrderedDict, Sequenc
 from datetime import datetime, timezone
 import requests
 import pickle
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 
 from config import (
     SEQ_LENGTH,
@@ -27,6 +27,7 @@ from config import (
     IntervalKey,
     get_interval
 )
+
 
 class CustomLabelEncoder:
     def __init__(self, predefined_mapping: Optional[Dict[Any, int]] = None):
@@ -56,6 +57,7 @@ class CustomLabelEncoder:
     def fit_transform(self, data: pd.Series) -> pd.Series:
         self.fit(data)
         return self.transform(data)
+
 
 class DataProcessor:
     def __init__(self):
@@ -209,7 +211,51 @@ class DataProcessor:
 
         return TensorDataset(sequences, targets)
 
-    
+    def create_dataloaders(
+        self,
+        dataset: TensorDataset,
+        batch_size: int = 32,
+        shuffle: bool = True,
+        split_ratio: Tuple[float, float] = (0.8, 0.2),
+        num_workers: int = 4,
+        pin_memory: bool = True
+    ) -> Tuple[DataLoader, DataLoader]:
+        """
+        Создает DataLoader для обучения и валидации.
+
+        :param dataset: Полный TensorDataset.
+        :param batch_size: Размер батча.
+        :param shuffle: Перемешивать ли данные.
+        :param split_ratio: Соотношение разделения на обучение и валидацию.
+        :param num_workers: Количество потоков для загрузки данных.
+        :param pin_memory: Использовать ли pin memory.
+        :return: Кортеж (train_loader, val_loader).
+        """
+        train_size = int(split_ratio[0] * len(dataset))
+        val_size = len(dataset) - train_size
+        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
+            pin_memory=pin_memory
+        )
+
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=pin_memory
+        )
+
+        logging.info(f"Создан DataLoader для обучения с размером батча {batch_size} и {train_size} примеров.")
+        logging.info(f"Создан DataLoader для валидации с {val_size} примерами.")
+
+        return train_loader, val_loader
+
     def save(self, filepath: str) -> None:
         self.ensure_file_exists(filepath)
         with open(filepath, 'wb') as f:
@@ -248,8 +294,10 @@ class DataProcessor:
             logging.debug(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
 
+
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
 
 def get_current_time() -> Tuple[int, str]:
     response = requests.get(f"{API_BASE_URL}/time")
