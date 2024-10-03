@@ -162,7 +162,7 @@ class DataProcessor:
             logging.error(f"Столбцы с типом object: {object_columns}")
             for col in object_columns:
                 try:
-                    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(float)
+                    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(np.float32)
                     logging.info(f"Столбец {col} преобразован в float.")
                 except Exception as e:
                     logging.error(f"Ошибка при преобразовании столбца {col} в численный тип: {e}")

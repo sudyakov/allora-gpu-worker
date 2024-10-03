@@ -229,8 +229,11 @@ class GetBinanceData:
         filename = os.path.join(self.PATHS['data_dir'], f"{symbol}_{interval_info['minutes']}_data.csv")
         server_time, _ = get_current_time()
 
+        # Создаем словарь типов данных для pandas
+        dtype_dict = {k: v for k, v in self.MODEL_FEATURES.items()}
+
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            df_existing = pd.read_csv(filename, dtype=self.MODEL_FEATURES)
+            df_existing = pd.read_csv(filename, dtype=dtype_dict)
             df_existing = self.data_processor.fill_missing_add_features(df_existing)
             last_timestamp = int(df_existing['timestamp'].max())
         else:
@@ -245,18 +248,29 @@ class GetBinanceData:
             df_new = self.get_binance_data(symbol, interval_key, start_time, end_time)
 
             if df_new is not None and not df_new.empty:
+                # Приведение типов данных для новых данных
+                df_new = df_new.astype(dtype_dict)
+
                 readable_start = timestamp_to_readable_time(start_time)
                 readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
                 self.logger.info(
                     f"Updating data for {symbol} from {start_time} to {df_new['timestamp'].max()} "
                     f"({readable_start} to {readable_newest})"
                 )
+
+                # Приведение типов данных для существующих данных
+                df_existing = df_existing.astype(dtype_dict)
+
                 df_updated = pd.concat(
                     [df_existing, df_new],
                     ignore_index=True
                 ).drop_duplicates(subset=['timestamp'], keep='first')
                 df_updated = self.data_processor.sort_dataframe(df_updated)
                 df_updated = self.data_processor.fill_missing_add_features(df_updated)
+
+                # Приведение типов данных перед сохранением
+                df_updated = df_updated.astype(dtype_dict)
+
                 self.save_to_csv(df_updated, filename)
                 self.save_combined_dataset(
                     {f"{symbol}_{interval_info['minutes']}": df_updated},
