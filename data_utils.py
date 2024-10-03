@@ -24,6 +24,8 @@ from config import (
     SYMBOL_MAPPING,
     API_BASE_URL,
     IntervalConfig,
+    IntervalKey,
+    get_interval
 )
 
 class CustomLabelEncoder:
@@ -64,10 +66,18 @@ class DataProcessor:
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
 
         self.symbol_mapping = SYMBOL_MAPPING
-        self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
+        self.interval_mapping = {k: i for i, k in enumerate(INTERVAL_MAPPING.keys())}
 
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
+
+    def map_interval(self, df: pd.DataFrame) -> pd.DataFrame:
+        df['interval_str'] = df['interval'].apply(get_interval)
+        if df['interval_str'].isnull().any():
+            missing = df[df['interval_str'].isnull()]['interval'].unique()
+            logging.error("Не удалось найти строки для интервалов: %s", missing)
+            raise ValueError(f"Не удалось найти строки для интервалов: {missing}")
+        return df
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
@@ -99,7 +109,10 @@ class DataProcessor:
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = self.map_interval(df)  # Добавляем преобразование интервала
         for col in self.categorical_columns:
+            if col == 'interval':
+                df[col] = df['interval_str']  # Используем строковое представление интервала
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 logging.error("Не найден кодировщик для столбца %s.", col)
@@ -161,7 +174,7 @@ class DataProcessor:
 
         # Убедимся, что 'timestamp' имеет числовой тип
         if 'timestamp' in df.columns:
-            df['timestamp'] = df['timestamp'].astype(np.float32)  # Или np.int64, если требуется
+            df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)  # Или np.int64, если требуется
 
         object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
         if object_columns:
@@ -195,6 +208,7 @@ class DataProcessor:
         targets = torch.stack(targets)
 
         return TensorDataset(sequences, targets)
+
     
     def save(self, filepath: str) -> None:
         self.ensure_file_exists(filepath)

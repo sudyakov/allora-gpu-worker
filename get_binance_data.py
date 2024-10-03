@@ -19,10 +19,10 @@ from config import (
     MODEL_FEATURES,
     PATHS,
     IntervalConfig,
-    IntervalKey,
     RAW_FEATURES,
     SCALABLE_FEATURES,
     ADD_FEATURES,
+    IntervalKey,
 )
 from data_utils import (
     DataProcessor,
