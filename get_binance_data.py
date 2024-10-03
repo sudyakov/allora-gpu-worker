@@ -172,12 +172,8 @@ class GetBinanceData:
         self.data_processor.ensure_file_exists(filename)
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             existing_data = pd.read_csv(filename)
-            for key, df in data.items():
-                symbol, interval = key.split('_')
-                mask = (existing_data['symbol'] == symbol) & (existing_data['interval'] == int(interval))
-                existing_data = existing_data[~mask]
-                combined_data = pd.concat(
-                [existing_data.dropna(axis=1, how='all')] +
+            combined_data = pd.concat(
+                [existing_data] +
                 [df.dropna(axis=1, how='all') for df in data.values() if not df.empty],
                 ignore_index=True
             )
@@ -187,10 +183,16 @@ class GetBinanceData:
                 ignore_index=True
             )
 
+        # Удаляем дубликаты по 'timestamp', 'symbol' и 'interval'
+        combined_data = combined_data.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='first')
+        combined_data = combined_data.sort_values(['symbol', 'interval', 'timestamp'])
+
+
         combined_data = self.data_processor.fill_missing_add_features(combined_data)
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
         self.logger.info(f"Combined dataset updated: {filename}")
+
 
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
@@ -283,7 +285,6 @@ def main():
         download_data.logger.error(f"Failed to access Binance API: {e}")
         return
 
-    binance_data = {}
     symbols = list(download_data.SYMBOL_MAPPING.keys())
     intervals = list(download_data.INTERVAL_MAPPING.keys())
 
@@ -292,24 +293,24 @@ def main():
             try:
                 updated_data, start_time, end_time = download_data.update_data(symbol, interval_key)
                 if updated_data is not None and not updated_data.empty:
-                    key = f"{symbol}_{download_data.INTERVAL_MAPPING[interval_key]['minutes']}"
-                    binance_data[key] = updated_data
                     download_data.print_data_summary(updated_data, symbol, interval_key)
+                    
+                    # Получаем ключ для текущего символа и интервала
+                    key = f"{symbol}_{download_data.INTERVAL_MAPPING[interval_key]['minutes']}"
+                    
+                    # Сохраняем данные сразу после обновления
+                    download_data.save_combined_dataset(
+                        {key: updated_data},
+                        download_data.PATHS['combined_dataset']
+                    )
                 else:
                     download_data.logger.error(f"Failed to update data for pair {symbol} and interval {interval_key}")
-
-                current_price_df = download_data.get_current_price(symbol, interval_key)
-                download_data.logger.info(f"Current price for {symbol} ({interval_key}):\n{current_price_df}")
                 download_data.logger.info("------------------------")
                 time.sleep(1)
             except Exception as e:
                 download_data.logger.error(f"Error updating data for {symbol} with interval {interval_key}: {e}")
 
-    if binance_data:
-        download_data.save_combined_dataset(binance_data, download_data.PATHS['combined_dataset'])
-        download_data.logger.info("All files updated with the latest prices.")
-    else:
-        download_data.logger.warning("No data to update.")
+    download_data.logger.info("All files updated with the latest prices.")
 
     download_data.logger.info("Executing get_current_price and get_latest_prices methods for all symbols and intervals.")
     for symbol in symbols:
