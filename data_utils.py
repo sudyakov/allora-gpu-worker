@@ -4,26 +4,28 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from typing import Tuple, Optional, Dict, Union, List, Any
+from typing import Tuple, Optional, Dict, Union, List, Any, OrderedDict, Sequence, TypedDict, Literal
 from datetime import datetime, timezone
 import requests
 import pickle
 from torch.utils.data import DataLoader, TensorDataset
-from typing import Sequence
 
 from config import (
-    INTERVAL_MAPPING,
-    SYMBOL_MAPPING,
-    PATHS,
-    RAW_FEATURES,
-    SCALABLE_FEATURES,
-    MODEL_FEATURES,
-    ADD_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
-    PREDICTION_MINUTES,
+    INTERVAL_MAPPING,
+    MODEL_FEATURES,
+    RAW_FEATURES,
     TIME_FEATURES,
-    API_BASE_URL
+    SCALABLE_FEATURES,
+    ADD_FEATURES,
+    MODEL_FILENAME,
+    DATA_PROCESSOR_FILENAME,
+    PATHS,
+    SYMBOL_MAPPING,
+    API_BASE_URL,
+    IntervalConfig,
+    IntervalKey
 )
 
 class CustomLabelEncoder:
@@ -43,12 +45,12 @@ class CustomLabelEncoder:
 
     def transform(self, data: pd.Series) -> pd.Series:
         if not self.classes_:
-            raise ValueError("LabelEncoder has not been initialized with a mapping.")
+            raise ValueError("LabelEncoder не инициализирован маппингом.")
         return data.map(self.classes_).fillna(-1).astype(int)
 
     def inverse_transform(self, data: pd.Series) -> pd.Series:
         if not self.classes_reverse:
-            raise ValueError("LabelEncoder has not been initialized with a mapping.")
+            raise ValueError("LabelEncoder не инициализирован маппингом.")
         return data.map(self.classes_reverse)
 
     def fit_transform(self, data: pd.Series) -> pd.Series:
@@ -58,13 +60,11 @@ class CustomLabelEncoder:
 class DataProcessor:
     def __init__(self):
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
-        
-        self.numerical_columns: Sequence[str] = (
-            list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
-        )
-        self.categorical_columns: Sequence[str] = (
-            list(RAW_FEATURES.keys()) + list(TIME_FEATURES.keys())
-        )
+
+        # Следуем строгому порядку и названиям
+        self.categorical_columns: Sequence[str] = list(RAW_FEATURES.keys()) + list(TIME_FEATURES.keys())
+        self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
+
         self.symbol_mapping = SYMBOL_MAPPING
         self.interval_str_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 
@@ -79,49 +79,48 @@ class DataProcessor:
                     df[col] = pd.to_datetime(df[col], unit='ms')
                 else:
                     df[col] = df[col].astype(dtype)
+        for col, dtype in TIME_FEATURES.items():
+            if col in df.columns and col != 'timestamp':
+                df[col] = df[col].astype(dtype)
         return df
 
     def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
         if 'timestamp' in df.columns:
             dt = pd.to_datetime(df['timestamp'], unit='ms')
-            df['hour'] = dt.dt.hour
-            df['dayofweek'] = dt.dt.dayofweek
-            df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24)
-            df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24)
-            df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7)
-            df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7)
+            df['hour'] = dt.dt.hour.astype(np.int64)
+            df['dayofweek'] = dt.dt.dayofweek.astype(np.int64)
+            df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24).astype(np.float32)
+            df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24).astype(np.float32)
+            df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
+            df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
         df = df.ffill().bfill()
-        logging.debug(f"Filled DataFrame:\n{df.head()}")
+        logging.debug(f"Заполненный DataFrame:\n{df.head()}")
         return df
 
     def sort_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         sorted_df = df.sort_values('timestamp', ascending=False)
-        logging.debug(f"Sorted DataFrame:\n{sorted_df.head()}")
+        logging.debug(f"Отсортированный DataFrame:\n{sorted_df.head()}")
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
-                logging.error("No encoder found for column %s.", col)
-                raise ValueError(f"No encoder found for column {col}.")
+                logging.error("Не найден кодировщик для столбца %s.", col)
+                raise ValueError(f"Не найден кодировщик для столбца {col}.")
             df[col] = encoder.transform(df[col])
 
-        for col in self.numerical_columns:
-            if col in SCALABLE_FEATURES:
-                df[col] = df[col].astype(SCALABLE_FEATURES[col])
-            elif col in RAW_FEATURES:
-                df[col] = df[col].astype(RAW_FEATURES[col])
-            elif col in ADD_FEATURES:
-                df[col] = df[col].astype(ADD_FEATURES[col])
+        for col, dtype in {**SCALABLE_FEATURES, **ADD_FEATURES}.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
             else:
-                logging.error("Column %s not found in feature definitions.", col)
-                raise KeyError(f"Column {col} not defined in any feature dictionary.")
+                logging.error("Столбец %s отсутствует в DataFrame.", col)
+                raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
-        df['timestamp'] = df['timestamp'].astype('int64')
+        df['timestamp'] = df['timestamp'].astype(np.int64)
         df = df[list(MODEL_FEATURES.keys())]
-        logging.info("Column order after fit_transform: %s", df.columns.tolist())
-        logging.info("Data types after fit_transform:")
+        logging.info("Порядок столбцов после fit_transform: %s", df.columns.tolist())
+        logging.info("Типы данных после fit_transform:")
         logging.info(df.dtypes)
         return df
 
@@ -129,25 +128,21 @@ class DataProcessor:
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
-                logging.error("LabelEncoder for column %s is not found.", col)
-                raise ValueError(f"LabelEncoder for column {col} is not found.")
+                logging.error("LabelEncoder для столбца %s не найден.", col)
+                raise ValueError(f"LabelEncoder для столбца {col} не найден.")
             df[col] = encoder.transform(df[col])
 
-        for col in self.numerical_columns:
-            if col in SCALABLE_FEATURES:
-                df[col] = df[col].astype(SCALABLE_FEATURES[col])
-            elif col in RAW_FEATURES:
-                df[col] = df[col].astype(RAW_FEATURES[col])
-            elif col in ADD_FEATURES:
-                df[col] = df[col].astype(ADD_FEATURES[col])
+        for col, dtype in {**SCALABLE_FEATURES, **ADD_FEATURES}.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
             else:
-                logging.error("Column %s not found in feature definitions.", col)
-                raise KeyError(f"Column {col} not defined in any feature dictionary.")
+                logging.error("Столбец %s отсутствует в DataFrame.", col)
+                raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
-        df['timestamp'] = df['timestamp'].astype('int64')
+        df['timestamp'] = df['timestamp'].astype(np.int64)
         df = df[list(MODEL_FEATURES.keys())]
-        logging.info("Column order after transform: %s", df.columns.tolist())
-        logging.info("Data types after transform:")
+        logging.info("Порядок столбцов после transform: %s", df.columns.tolist())
+        logging.info("Типы данных после transform:")
         logging.info(df.dtypes)
         return df
 
@@ -156,24 +151,24 @@ class DataProcessor:
         target_columns = list(SCALABLE_FEATURES.keys())
         missing_columns = [col for col in target_columns if col not in df.columns]
         if missing_columns:
-            logging.error("Missing target columns in DataFrame: %s", missing_columns)
-            raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
+            logging.error("Отсутствующие целевые столбцы в DataFrame: %s", missing_columns)
+            raise KeyError(f"Отсутствующие целевые столбцы в DataFrame: {missing_columns}")
 
-        logging.info("Data types before tensor conversion:")
+        logging.info("Типы данных перед преобразованием в тензоры:")
         logging.info(df[features].dtypes)
 
         object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
         if object_columns:
-            logging.error(f"Columns with object dtype: {object_columns}")
+            logging.error(f"Столбцы с типом object: {object_columns}")
             for col in object_columns:
                 try:
                     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(float)
-                    logging.info(f"Column {col} converted to float.")
+                    logging.info(f"Столбец {col} преобразован в float.")
                 except Exception as e:
-                    logging.error(f"Error converting column {col} to numeric: {e}")
+                    logging.error(f"Ошибка при преобразовании столбца {col} в численный тип: {e}")
                     raise
 
-        logging.info("Data types after type conversion:")
+        logging.info("Типы данных после преобразования типов:")
         logging.info(df[features].dtypes)
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
@@ -187,7 +182,7 @@ class DataProcessor:
             if i + seq_length < len(data_tensor):
                 targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
             else:
-                # For the last sequence, duplicate the last available target
+                # Для последней последовательности дублируем последний доступный таргет
                 targets.append(data_tensor[-1].index_select(0, target_indices))
 
         sequences = torch.stack(sequences)
@@ -199,7 +194,7 @@ class DataProcessor:
         self.ensure_file_exists(filepath)
         with open(filepath, 'wb') as f:
             pickle.dump(self, f)
-        logging.info("DataProcessor saved: %s", filepath)
+        logging.info("DataProcessor сохранен: %s", filepath)
 
     @staticmethod
     def ensure_file_exists(filepath: str) -> None:
@@ -214,7 +209,7 @@ class DataProcessor:
     def load(filepath: str) -> 'DataProcessor':
         with open(filepath, 'rb') as f:
             processor = pickle.load(f)
-        logging.info("DataProcessor loaded: %s", filepath)
+        logging.info("DataProcessor загружен: %s", filepath)
         return processor
 
     def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
@@ -228,14 +223,13 @@ class DataProcessor:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
             else:
-                logging.debug(f"No data for symbol {symbol} and interval {interval} in combined_dataset.")
+                logging.debug(f"Нет данных для символа {symbol} и интервала {interval} в combined_dataset.")
         else:
-            logging.debug(f"combined_dataset.csv file not found at path {combined_dataset_path}")
+            logging.debug(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
 
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-
 
 def get_current_time() -> Tuple[int, str]:
     response = requests.get(f"{API_BASE_URL}/time")

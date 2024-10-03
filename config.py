@@ -30,9 +30,9 @@ TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    "1m": {"days": 90, "minutes": 1, "milliseconds": 60000},
-    "5m": {"days": 180, "minutes": 5, "milliseconds": 300000},
-    "15m": {"days": 360, "minutes": 15, "milliseconds": 900000},
+    "1m": {"days": 9, "minutes": 1, "milliseconds": 60000},
+    "5m": {"days": 18, "minutes": 5, "milliseconds": 300000},
+    "15m": {"days": 36, "minutes": 15, "milliseconds": 900000},
 }
 
 RAW_FEATURES = OrderedDict([
@@ -66,7 +66,6 @@ ADD_FEATURES = OrderedDict([
     ('cos_day', np.float32),
 ])
 
-# Combine all features into MODEL_FEATURES with ordered keys
 MODEL_FEATURES = OrderedDict()
 MODEL_FEATURES.update(RAW_FEATURES)
 MODEL_FEATURES.update(TIME_FEATURES)

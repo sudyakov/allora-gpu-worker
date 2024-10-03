@@ -27,6 +27,16 @@ from config import (
 from data_utils import DataProcessor
 from get_binance_data import GetBinanceData
 
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler("BiLSTMModel.log"),
+        ],
+    )
+    logging.info("Logging is set up.")
 
 class ModelParams(TypedDict):
     input_size: int
@@ -338,6 +348,7 @@ def predict_future_price(
 
 
 def main():
+    setup_logging()
     device = get_device()
 
     if os.path.exists(DATA_PROCESSOR_FILENAME):
@@ -390,7 +401,7 @@ def main():
         categorical_columns=data_processor.categorical_columns,
         column_name_to_index=column_name_to_index,
     ).to(device)
-    optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
+    optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["in itial_lr"])
     load_model(model, optimizer, MODEL_FILENAME, device)
 
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
