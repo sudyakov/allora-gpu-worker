@@ -1,12 +1,14 @@
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, TypedDict
+from typing import Dict, List, Optional, Tuple, TypedDict, Sequence
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
+import numpy as np
+
 from get_binance_data import main as get_binance_data_main
 from config import (
     ADD_FEATURES,
@@ -20,6 +22,7 @@ from config import (
     PATHS,
     PREDICTION_MINUTES,
     IntervalConfig,
+    IntervalKey,
     get_interval,
     TRAINING_PARAMS,
     MODEL_PARAMS
@@ -54,8 +57,8 @@ class Attention(nn.Module):
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
         self,
-        numerical_columns: List[str],
-        categorical_columns: List[str],
+        numerical_columns: Sequence[str],
+        categorical_columns: Sequence[str],
         column_name_to_index: Dict[str, int],
     ):
         super().__init__()
@@ -96,7 +99,7 @@ class EnhancedBiLSTMModel(nn.Module):
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
-        intervals = x[:, :, self.column_name_to_index["interval_str"]].long()
+        intervals = x[:, :, self.column_name_to_index["interval"]]
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
         if torch.isnan(timestamp).any() or torch.isinf(timestamp).any():
             logging.error("Timestamp contains NaN or infinite values.")
@@ -211,17 +214,18 @@ def predict_future_price(
         if pd.isna(last_timestamp):
             logging.error("Invalid last timestamp.")
             return pd.DataFrame()
-        interval_key = get_interval(prediction_minutes)
+        interval_key: Optional[IntervalKey] = get_interval(prediction_minutes)
         if interval_key is None:
             logging.error("Invalid prediction interval.")
             return pd.DataFrame()
         next_timestamp = int(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
-        predictions_df["timestamp"] = next_timestamp
+
         predictions_df["symbol"] = TARGET_SYMBOL
         predictions_df["interval"] = prediction_minutes
-        predictions_df["interval_str"] = interval_key
+        predictions_df["timestamp"] = next_timestamp
+        
         predictions_df = predictions_df[
-            ["timestamp", "symbol", "interval", "interval_str"] + list(SCALABLE_FEATURES.keys())
+            ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
         ]
     return predictions_df
 
@@ -250,18 +254,18 @@ def main():
         combined_data["symbol"].max() + 1, MODEL_PARAMS.get("num_symbols", 0)
     )
     MODEL_PARAMS["num_intervals"] = max(
-        combined_data["interval_str"].max() + 1, MODEL_PARAMS.get("num_intervals", 0)
+        combined_data["interval"].max() + 1, MODEL_PARAMS.get("num_intervals", 0)
     )
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
     if (combined_data['symbol'] < 0).any():
         raise ValueError("Negative indices found in 'symbol' column.")
-    if (combined_data['interval_str'] < 0).any():
-        raise ValueError("Negative indices found in 'interval_str' column.")
+    if (combined_data['interval'] < 0).any():
+        raise ValueError("Negative indices found in 'interval' column.")
     if combined_data['symbol'].max() >= MODEL_PARAMS["num_symbols"]:
         raise ValueError("Symbol indices exceed the number of symbols in embedding.")
-    if combined_data['interval_str'].max() >= MODEL_PARAMS["num_intervals"]:
+    if combined_data['interval'].max() >= MODEL_PARAMS["num_intervals"]:
         raise ValueError("Interval indices exceed the number of intervals in embedding.")
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}

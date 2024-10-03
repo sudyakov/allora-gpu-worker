@@ -3690,3 +3690,106 @@ dtype: object
 2024-10-02 21:13:29,325 - INFO - Epoch 1/5 - Loss: 18084581330963.4141
 2024-10-02 21:13:29,418 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
 2024-10-02 21:13:29,418 - INFO - Validation loss improved to 18084581330963.4141. Model saved.
+2024-10-03 16:35:00,359 - INFO - Logging is set up.
+2024-10-03 16:35:00,360 - INFO - Using device: cuda
+2024-10-03 16:35:00,360 - INFO - Numerical columns for scaling: ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 16:35:00,408 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-03 16:35:00,448 - INFO - Порядок столбцов после fit_transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 16:35:00,448 - INFO - Типы данных после fit_transform:
+2024-10-03 16:35:00,449 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 16:35:00,451 - INFO - DataProcessor сохранен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 16:38:31,730 - INFO - Logging is set up.
+2024-10-03 16:38:31,731 - INFO - Using device: cuda
+2024-10-03 16:38:31,731 - INFO - DataProcessor загружен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 16:38:31,783 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-03 16:38:31,820 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 16:38:31,820 - INFO - Типы данных после transform:
+2024-10-03 16:38:31,821 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 16:49:23,444 - INFO - Logging is set up.
+2024-10-03 16:49:23,445 - INFO - Using device: cuda
+2024-10-03 16:49:23,445 - INFO - Numerical columns for scaling: ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 16:49:23,495 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-03 16:49:23,535 - INFO - Порядок столбцов после fit_transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 16:49:23,536 - INFO - Типы данных после fit_transform:
+2024-10-03 16:49:23,536 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 16:49:23,538 - INFO - DataProcessor сохранен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 16:50:16,315 - INFO - Logging is set up.
+2024-10-03 16:50:16,315 - INFO - Using device: cuda
+2024-10-03 16:50:16,315 - INFO - DataProcessor загружен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 16:50:16,361 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-03 16:50:16,408 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 16:50:16,408 - INFO - Типы данных после transform:
+2024-10-03 16:50:16,408 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 16:50:16,410 - INFO - num_symbols: 2, num_intervals: 3

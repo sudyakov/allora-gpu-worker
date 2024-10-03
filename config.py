@@ -135,7 +135,7 @@ def get_binance_time_offset() -> Optional[int]:
 
 TIME_OFFSET: Optional[int] = get_binance_time_offset()
 
-def get_interval(minutes: int) -> Optional[str]:
+def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:
             return key
