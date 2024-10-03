@@ -62,18 +62,10 @@ class CustomLabelEncoder:
 class DataProcessor:
     def __init__(self):
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
-
-        # Следуем строгому порядку и названиям
-        self.categorical_columns: Sequence[str] = list(RAW_FEATURES.keys())
-        self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
-
+        self.categorical_columns: Sequence[str] = [col for col in RAW_FEATURES.keys() if col != 'interval']
+        self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys()) + ['interval']
         self.symbol_mapping = SYMBOL_MAPPING
-        self.interval_mapping = {k: i for i, k in enumerate(INTERVAL_MAPPING.keys())}
-
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
-        self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
-
-    # Метод map_interval удален, так как теперь интервал не содержит строки
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
@@ -87,7 +79,6 @@ class DataProcessor:
 
     def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
         if 'timestamp' in df.columns:
-            # Вычисляем дополнительные временные признаки без преобразования 'timestamp' в datetime
             df['hour'] = ((df['timestamp'] // (1000 * 60 * 60)) % 24).astype(np.int64)
             df['dayofweek'] = ((df['timestamp'] // (1000 * 60 * 60 * 24)) % 7).astype(np.int64)
 
@@ -105,27 +96,21 @@ class DataProcessor:
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Удаляем вызов map_interval, так как он не нужен
-        # df = self.map_interval(df)
-
         for col in self.categorical_columns:
-            if col == 'interval':
-                # Удаляем преобразование интервала в строку
-                pass
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 logging.error("Не найден кодировщик для столбца %s.", col)
                 raise ValueError(f"Не найден кодировщик для столбца {col}.")
             df[col] = encoder.transform(df[col])
 
-        for col, dtype in {**SCALABLE_FEATURES, **ADD_FEATURES}.items():
+        for col in self.numerical_columns:
             if col in df.columns:
+                dtype = MODEL_FEATURES.get(col, np.float32)
                 df[col] = df[col].astype(dtype)
             else:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
-
-        # Убедимся, что 'timestamp' имеет тип np.int64
+            
         if 'timestamp' in df.columns:
             df['timestamp'] = df['timestamp'].astype(np.int64)
 
@@ -143,14 +128,14 @@ class DataProcessor:
                 raise ValueError(f"LabelEncoder для столбца {col} не найден.")
             df[col] = encoder.transform(df[col])
 
-        for col, dtype in {**SCALABLE_FEATURES, **ADD_FEATURES}.items():
+        for col in self.numerical_columns:
             if col in df.columns:
+                dtype = MODEL_FEATURES.get(col, np.float32)
                 df[col] = df[col].astype(dtype)
             else:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
-        # Убедимся, что 'timestamp' имеет тип np.int64
         if 'timestamp' in df.columns:
             df['timestamp'] = df['timestamp'].astype(np.int64)
 
@@ -217,17 +202,6 @@ class DataProcessor:
         num_workers: int = 4,
         pin_memory: bool = True
     ) -> Tuple[DataLoader, DataLoader]:
-        """
-        Создает DataLoader для обучения и валидации.
-
-        :param dataset: Полный TensorDataset.
-        :param batch_size: Размер батча.
-        :param shuffle: Перемешивать ли данные.
-        :param split_ratio: Соотношение разделения на обучение и валидацию.
-        :param num_workers: Количество потоков для загрузки данных.
-        :param pin_memory: Использовать ли pin memory.
-        :return: Кортеж (train_loader, val_loader).
-        """
         train_size = int(split_ratio[0] * len(dataset))
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
