@@ -37,11 +37,10 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
 
 RAW_FEATURES = OrderedDict([
     ('symbol', str),
-    ('interval_str', str),
+    ('interval', str),
 ])
 
 TIME_FEATURES = OrderedDict([
-    ('interval', np.int64),
     ('timestamp', np.int64),
 ])
 

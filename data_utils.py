@@ -66,10 +66,10 @@ class DataProcessor:
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
 
         self.symbol_mapping = SYMBOL_MAPPING
-        self.interval_str_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
+        self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
-        self.label_encoders["interval_str"] = CustomLabelEncoder(predefined_mapping=self.interval_str_mapping)
+        self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()

@@ -109,7 +109,7 @@ class GetBinanceData:
 
             df['symbol'] = symbol
             df['interval'] = interval_info['minutes']
-            df['interval_str'] = interval_key
+            df['interval'] = interval_key
             self.logger.debug(f"Raw DataFrame: {df.head()}")
 
             df = self.data_processor.preprocess_binance_data(df)
@@ -137,7 +137,7 @@ class GetBinanceData:
 
         df['symbol'] = symbol
         df['interval'] = interval_info['minutes']
-        df['interval_str'] = interval_key
+        df['interval'] = interval_key
         self.logger.debug(f"Raw DataFrame: {df.head()}")
 
         df = self.data_processor.preprocess_binance_data(df)
