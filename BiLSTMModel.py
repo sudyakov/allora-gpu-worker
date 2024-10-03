@@ -65,6 +65,7 @@ class EnhancedBiLSTMModel(nn.Module):
         self.numerical_columns = numerical_columns
         self.categorical_columns = categorical_columns
         self.column_name_to_index = column_name_to_index
+
         self.symbol_embedding = nn.Embedding(
             num_embeddings=MODEL_PARAMS["num_symbols"],
             embedding_dim=MODEL_PARAMS["embedding_dim"],
@@ -74,12 +75,14 @@ class EnhancedBiLSTMModel(nn.Module):
             embedding_dim=MODEL_PARAMS["embedding_dim"],
         )
         self.timestamp_embedding = nn.Linear(1, MODEL_PARAMS["timestamp_embedding_dim"])
+
         numerical_input_size = len(numerical_columns)
         self.lstm_input_size = (
             numerical_input_size
             + 2 * MODEL_PARAMS["embedding_dim"]
             + MODEL_PARAMS["timestamp_embedding_dim"]
         )
+
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
             hidden_size=MODEL_PARAMS["hidden_layer_size"],
@@ -88,32 +91,38 @@ class EnhancedBiLSTMModel(nn.Module):
             batch_first=True,
             bidirectional=True,
         )
+
         self.attention = Attention(MODEL_PARAMS["hidden_layer_size"])
         self.linear = nn.Linear(
-            MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)-1
+            MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES) - 1
         )
-        self.relu = nn.ReLU()
+
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
+
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval"]].long()
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
+
         if torch.isnan(timestamp).any() or torch.isinf(timestamp).any():
             logging.error("Timestamp contains NaN or infinite values.")
             raise ValueError("Timestamp tensor contains NaN or infinite values.")
+
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
         timestamp_embeddings = self.timestamp_embedding(timestamp)
+
         lstm_input = torch.cat(
             (numerical_data, symbol_embeddings, interval_embeddings, timestamp_embeddings), dim=2
         )
+
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
-        predictions = self.relu(predictions)
+
         return predictions
 
     def _initialize_weights(self, module: nn.Module) -> None:
@@ -223,9 +232,13 @@ def predict_future_price(
         predictions_df["interval"] = prediction_minutes
         predictions_df["timestamp"] = next_timestamp
 
+        # predictions_df = predictions_df[
+        #     ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
+        # ]
         predictions_df = predictions_df[
-            ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
+            ["symbol", "interval", "timestamp"] + [col for col in SCALABLE_FEATURES.keys() if col != 'timestamp']
         ]
+
     return predictions_df
 
 def main():

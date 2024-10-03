@@ -152,7 +152,8 @@ class DataProcessor:
         if missing_columns:
             logging.error("Отсутствующие целевые столбцы в DataFrame: %s", missing_columns)
             raise KeyError(f"Отсутствующие целевые столбцы в DataFrame: {missing_columns}")
-
+        
+        df = df[features]
         logging.info("Типы данных перед преобразованием в тензоры:")
         logging.info(df[features].dtypes)
 
@@ -176,7 +177,8 @@ class DataProcessor:
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
 
-        target_indices = torch.tensor([df.columns.get_loc(col) for col in target_columns if col in df.columns], dtype=torch.long)
+        target_indices = torch.tensor([features.index(col) for col in target_columns])
+
 
         sequences = []
         targets = []
