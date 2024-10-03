@@ -1,7 +1,7 @@
 import os
 import logging
 import time
-from typing import Dict, Optional, Tuple, TypedDict, Literal, OrderedDict
+from typing import Dict, Optional, Tuple, OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,6 @@ from config import (
     IntervalConfig,
     IntervalKey,
     RAW_FEATURES,
-    TIME_FEATURES,
     SCALABLE_FEATURES,
     ADD_FEATURES,
 )
@@ -80,6 +79,8 @@ class GetBinanceData:
                 return None
             df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
             df = df.drop(columns=['close_time', 'ignore'])
+            # Преобразуем типы данных сразу после получения
+            df = self.data_processor.convert_dtypes(df)
             return df
         except RequestException as e:
             self.logger.warning(f"Request error: {e}")
@@ -104,12 +105,12 @@ class GetBinanceData:
                 url += f"&endTime={end_time}"
 
             df = self._fetch_data(url)
-            if df is None:
+            if df is None or df.empty:
                 break
 
             df['symbol'] = symbol
             df['interval'] = interval_info['minutes']
-            df['interval'] = interval_key
+            df['interval_str'] = interval_key
             self.logger.debug(f"Raw DataFrame: {df.head()}")
 
             df = self.data_processor.preprocess_binance_data(df)
@@ -132,12 +133,12 @@ class GetBinanceData:
         url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_key}&limit=1"
 
         df = self._fetch_data(url)
-        if df is None:
+        if df is None or df.empty:
             return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
         df['symbol'] = symbol
         df['interval'] = interval_info['minutes']
-        df['interval'] = interval_key
+        df['interval_str'] = interval_key
         self.logger.debug(f"Raw DataFrame: {df.head()}")
 
         df = self.data_processor.preprocess_binance_data(df)
@@ -150,10 +151,8 @@ class GetBinanceData:
         df = self.data_processor.fill_missing_add_features(df)
         df = self.data_processor.sort_dataframe(df)
         
-        # Приведение числовых колонок к np.float32
-        numeric_columns = df.select_dtypes(include=['float32', 'float64']).columns
-        df[numeric_columns] = df[numeric_columns].astype(np.float32)
-
+        # Приведение типов данных согласно MODEL_FEATURES
+        df = df.astype(self.MODEL_FEATURES)
         return df
 
 
@@ -171,7 +170,7 @@ class GetBinanceData:
 
         self.data_processor.ensure_file_exists(filename)
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            existing_data = pd.read_csv(filename)
+            existing_data = pd.read_csv(filename, dtype=self.MODEL_FEATURES)
             combined_data = pd.concat(
                 [existing_data] +
                 [df.dropna(axis=1, how='all') for df in data.values() if not df.empty],
@@ -187,18 +186,16 @@ class GetBinanceData:
         combined_data = combined_data.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='first')
         combined_data = combined_data.sort_values(['symbol', 'interval', 'timestamp'])
 
-
         combined_data = self.data_processor.fill_missing_add_features(combined_data)
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
         self.logger.info(f"Combined dataset updated: {filename}")
 
-
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
         if os.path.exists(combined_path) and os.path.getsize(combined_path) > 0:
             try:
-                df = pd.read_csv(combined_path)
+                df = pd.read_csv(combined_path, dtype=self.MODEL_FEATURES)
                 self.logger.info(f"Combined data loaded from {combined_path}")
                 return df
             except Exception as e:
@@ -229,8 +226,8 @@ class GetBinanceData:
         filename = os.path.join(self.PATHS['data_dir'], f"{symbol}_{interval_info['minutes']}_data.csv")
         server_time, _ = get_current_time()
 
-        # Создаем словарь типов данных для pandas
-        dtype_dict = {k: v for k, v in self.MODEL_FEATURES.items()}
+        # Используем MODEL_FEATURES для задания типов данных
+        dtype_dict = self.MODEL_FEATURES
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             df_existing = pd.read_csv(filename, dtype=dtype_dict)

@@ -109,15 +109,14 @@ class DataProcessor:
 
         for col, dtype in {**SCALABLE_FEATURES, **ADD_FEATURES}.items():
             if col in df.columns:
-                if col != 'timestamp':
-                    df[col] = df[col].astype(dtype)
+                df[col] = df[col].astype(dtype)
             else:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
         # Преобразование 'timestamp' в числовой формат после всех операций с датой и временем
-        if 'timestamp' in df.columns:
-            df['timestamp'] = df['timestamp'].astype(np.int64)
+        if 'timestamp' in df.columns and df['timestamp'].dtype == 'datetime64[ns]':
+            df['timestamp'] = df['timestamp'].astype(np.int64) // 10**6  # Преобразуем в миллисекунды
 
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Порядок столбцов после fit_transform: %s", df.columns.tolist())
@@ -135,23 +134,20 @@ class DataProcessor:
 
         for col, dtype in {**SCALABLE_FEATURES, **ADD_FEATURES}.items():
             if col in df.columns:
-                if col != 'timestamp':
-                    df[col] = df[col].astype(dtype)
+                df[col] = df[col].astype(dtype)
             else:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
         # Преобразование 'timestamp' в числовой формат после всех операций с датой и временем
-        if 'timestamp' in df.columns:
-            df['timestamp'] = df['timestamp'].astype(np.int64)
+        if 'timestamp' in df.columns and df['timestamp'].dtype == 'datetime64[ns]':
+            df['timestamp'] = df['timestamp'].astype(np.int64) // 10**6  # Преобразуем в миллисекунды
 
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Порядок столбцов после transform: %s", df.columns.tolist())
         logging.info("Типы данных после transform:")
         logging.info(df.dtypes)
         return df
-
-
 
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
