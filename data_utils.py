@@ -72,18 +72,20 @@ class DataProcessor:
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
-
-        if 'timestamp' in df.columns:
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-
         for col, dtype in RAW_FEATURES.items():
+            if col in df.columns:
+                if col == 'timestamp':
+                    df[col] = pd.to_datetime(df[col], unit='ms')
+                else:
+                    df[col] = df[col].astype(dtype)
+        for col, dtype in TIME_FEATURES.items():
             if col in df.columns and col != 'timestamp':
                 df[col] = df[col].astype(dtype)
         return df
 
     def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
         if 'timestamp' in df.columns:
-            dt = df['timestamp']
+            dt = pd.to_datetime(df['timestamp'], unit='ms')
             df['hour'] = dt.dt.hour.astype(np.int64)
             df['dayofweek'] = dt.dt.dayofweek.astype(np.int64)
             df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24).astype(np.float32)
@@ -114,10 +116,7 @@ class DataProcessor:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
-        # Преобразование 'timestamp' в числовой формат после всех операций с датой и временем
-        if 'timestamp' in df.columns and df['timestamp'].dtype == 'datetime64[ns]':
-            df['timestamp'] = df['timestamp'].astype(np.int64) // 10**6  # Преобразуем в миллисекунды
-
+        df['timestamp'] = df['timestamp'].astype(np.int64)
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Порядок столбцов после fit_transform: %s", df.columns.tolist())
         logging.info("Типы данных после fit_transform:")
@@ -139,15 +138,94 @@ class DataProcessor:
                 logging.error("Столбец %s отсутствует в DataFrame.", col)
                 raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
 
-        # Преобразование 'timestamp' в числовой формат после всех операций с датой и временем
-        if 'timestamp' in df.columns and df['timestamp'].dtype == 'datetime64[ns]':
-            df['timestamp'] = df['timestamp'].astype(np.int64) // 10**6  # Преобразуем в миллисекунды
-
+        df['timestamp'] = df['timestamp'].astype(np.int64)
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Порядок столбцов после transform: %s", df.columns.tolist())
         logging.info("Типы данных после transform:")
         logging.info(df.dtypes)
         return df
+
+    def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
+        features = list(MODEL_FEATURES.keys())
+        target_columns = list(SCALABLE_FEATURES.keys())
+        missing_columns = [col for col in target_columns if col not in df.columns]
+        if missing_columns:
+            logging.error("Отсутствующие целевые столбцы в DataFrame: %s", missing_columns)
+            raise KeyError(f"Отсутствующие целевые столбцы в DataFrame: {missing_columns}")
+
+        logging.info("Типы данных перед преобразованием в тензоры:")
+        logging.info(df[features].dtypes)
+
+        object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
+        if object_columns:
+            logging.error(f"Столбцы с типом object: {object_columns}")
+            for col in object_columns:
+                try:
+                    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(np.float32)
+                    logging.info(f"Столбец {col} преобразован в float.")
+                except Exception as e:
+                    logging.error(f"Ошибка при преобразовании столбца {col} в численный тип: {e}")
+                    raise
+
+        logging.info("Типы данных после преобразования типов:")
+        logging.info(df[features].dtypes)
+
+        data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
+
+        target_indices = torch.tensor([df.columns.get_loc(col) for col in target_columns], dtype=torch.long)
+
+        sequences = []
+        targets = []
+        for i in range(len(data_tensor) - seq_length + 1):  # Adjusted loop range
+            sequences.append(data_tensor[i:i + seq_length])
+            if i + seq_length < len(data_tensor):
+                targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
+            else:
+                # Для последней последовательности дублируем последний доступный таргет
+                targets.append(data_tensor[-1].index_select(0, target_indices))
+
+        sequences = torch.stack(sequences)
+        targets = torch.stack(targets)
+
+        return TensorDataset(sequences, targets)
+
+    def save(self, filepath: str) -> None:
+        self.ensure_file_exists(filepath)
+        with open(filepath, 'wb') as f:
+            pickle.dump(self, f)
+        logging.info("DataProcessor сохранен: %s", filepath)
+
+    @staticmethod
+    def ensure_file_exists(filepath: str) -> None:
+        directory = os.path.dirname(filepath)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+        if not os.path.exists(filepath):
+            df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+            df.to_csv(filepath, index=False)
+
+    @staticmethod
+    def load(filepath: str) -> 'DataProcessor':
+        with open(filepath, 'rb') as f:
+            processor = pickle.load(f)
+        logging.info("DataProcessor загружен: %s", filepath)
+        return processor
+
+    def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
+        combined_dataset_path = PATHS['combined_dataset']
+        if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+            df_combined = pd.read_csv(combined_dataset_path)
+            df_filtered = df_combined[
+                (df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)
+            ]
+            if not df_filtered.empty:
+                df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
+                return df_filtered
+            else:
+                logging.debug(f"Нет данных для символа {symbol} и интервала {interval} в combined_dataset.")
+        else:
+            logging.debug(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
+        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
 
 def timestamp_to_readable_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
