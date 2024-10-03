@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import requests
 import pickle
 from torch.utils.data import DataLoader, TensorDataset
+from typing import Sequence
 
 from config import (
     INTERVAL_MAPPING,
@@ -57,9 +58,13 @@ class CustomLabelEncoder:
 class DataProcessor:
     def __init__(self):
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
-        self.categorical_columns: List[str] = ["symbol", "interval_str"]
-        self.numerical_columns: List[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
-
+        
+        self.numerical_columns: Sequence[str] = (
+            list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
+        )
+        self.categorical_columns: Sequence[str] = (
+            list(RAW_FEATURES.keys()) + list(TIME_FEATURES.keys())
+        )
         self.symbol_mapping = SYMBOL_MAPPING
         self.interval_str_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 

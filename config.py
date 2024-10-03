@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Literal, TypedDict, Union
 import os
-
+from collections import OrderedDict
 import requests
 import time
 import numpy as np
@@ -35,43 +35,43 @@ INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
     "15m": {"days": 360, "minutes": 15, "milliseconds": 900000},
 }
 
-RAW_FEATURES: Dict[str, type] = {
-    'symbol': str,
-    'interval_str': str,
-}
+RAW_FEATURES = OrderedDict([
+    ('symbol', str),
+    ('interval_str', str),
+])
 
-TIME_FEATURES: Dict[str, type] = {
-    'interval': np.int64,
-    'timestamp': np.int64,
-}
+TIME_FEATURES = OrderedDict([
+    ('interval', np.int64),
+    ('timestamp', np.int64),
+])
 
-SCALABLE_FEATURES: Dict[str, type] = {
-    'open': np.float32,
-    'high': np.float32,
-    'low': np.float32,
-    'close': np.float32,
-    'volume': np.float32,
-    'quote_asset_volume': np.float32,
-    'number_of_trades': np.int64,
-    'taker_buy_base_asset_volume': np.float32,
-    'taker_buy_quote_asset_volume': np.float32
-}
+SCALABLE_FEATURES = OrderedDict([
+    ('open', np.float32),
+    ('high', np.float32),
+    ('low', np.float32),
+    ('close', np.float32),
+    ('volume', np.float32),
+    ('quote_asset_volume', np.float32),
+    ('number_of_trades', np.int64),
+    ('taker_buy_base_asset_volume', np.float32),
+    ('taker_buy_quote_asset_volume', np.float32),
+])
 
-ADD_FEATURES: Dict[str, type] = {
-    "hour": np.int64,
-    "dayofweek": np.int64,
-    "sin_hour": np.float32,
-    "cos_hour": np.float32,
-    "sin_day": np.float32,
-    "cos_day": np.float32,
-}
+ADD_FEATURES = OrderedDict([
+    ('hour', np.int64),
+    ('dayofweek', np.int64),
+    ('sin_hour', np.float32),
+    ('cos_hour', np.float32),
+    ('sin_day', np.float32),
+    ('cos_day', np.float32),
+])
 
-MODEL_FEATURES: Dict[str, type] = {
-    **RAW_FEATURES,
-    **TIME_FEATURES,
-    **SCALABLE_FEATURES,
-    **ADD_FEATURES,
-}
+# Combine all features into MODEL_FEATURES with ordered keys
+MODEL_FEATURES = OrderedDict()
+MODEL_FEATURES.update(RAW_FEATURES)
+MODEL_FEATURES.update(TIME_FEATURES)
+MODEL_FEATURES.update(SCALABLE_FEATURES)
+MODEL_FEATURES.update(ADD_FEATURES)
 
 PATHS: Dict[str, str] = {
     'combined_dataset': 'data/combined_dataset.csv',
