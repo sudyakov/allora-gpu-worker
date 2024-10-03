@@ -68,6 +68,45 @@ MODEL_FEATURES.update(RAW_FEATURES)
 MODEL_FEATURES.update(SCALABLE_FEATURES)
 MODEL_FEATURES.update(ADD_FEATURES)
 
+class ModelParams(TypedDict):
+    input_size: int
+    hidden_layer_size: int
+    num_layers: int
+    dropout: float
+    embedding_dim: int
+    num_symbols: int
+    num_intervals: int
+    timestamp_embedding_dim: int
+
+MODEL_PARAMS: ModelParams = {
+    "input_size": len(MODEL_FEATURES) - 1,
+    "hidden_layer_size": 256,
+    "num_layers": 4,
+    "dropout": 0.2,
+    "embedding_dim": 128,
+    "num_symbols": 2,
+    "num_intervals": 3,
+    "timestamp_embedding_dim": 64,
+}
+
+class TrainingParams(TypedDict):
+    batch_size: int
+    initial_epochs: int
+    initial_lr: float
+    max_epochs: int
+    min_lr: float
+    use_mixed_precision: bool
+    num_workers: int
+
+TRAINING_PARAMS: TrainingParams = {
+    "batch_size": 256,
+    "initial_epochs": 5,
+    "initial_lr": 0.0005,
+    "max_epochs": 100,
+    "min_lr": 0.00001,
+    "use_mixed_precision": True,
+    "num_workers": 8,
+}
 
 PATHS: Dict[str, str] = {
     'combined_dataset': 'data/combined_dataset.csv',
