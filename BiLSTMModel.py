@@ -207,6 +207,7 @@ def train_and_save_model(
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
     return model, optimizer
 
+
 def predict_future_price(
     model: EnhancedBiLSTMModel,
     latest_df: pd.DataFrame,
@@ -219,41 +220,46 @@ def predict_future_price(
         if len(latest_df) < SEQ_LENGTH:
             logging.warning("Insufficient data for prediction.")
             return pd.DataFrame()
-        
+
         # Transform the latest data
         latest_df_transformed = data_processor.transform(latest_df)
         tensor_dataset = data_processor.prepare_dataset(latest_df_transformed, SEQ_LENGTH)
         if len(tensor_dataset) == 0:
             logging.warning("No data after dataset preparation.")
             return pd.DataFrame()
-        
+
         inputs, _ = tensor_dataset[-1]
         inputs = inputs.unsqueeze(0).to(device)
         predictions = model(inputs).cpu().numpy()
         predictions_df = pd.DataFrame(predictions, columns=[col for col in SCALABLE_FEATURES.keys()])
-        
+
         # Inverse transform the predictions to return to the original scale
         predictions_df_denormalized = data_processor.inverse_transform(predictions_df)
-        
+
         last_timestamp = latest_df["timestamp"].iloc[-1]
         if pd.isna(last_timestamp):
             logging.error("Invalid last timestamp value.")
             return pd.DataFrame()
-        
+
         interval_key: Optional[IntervalKey] = get_interval(prediction_minutes)
         if interval_key is None:
             logging.error("Invalid prediction interval.")
             return pd.DataFrame()
+
         next_timestamp = int(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
-        
+
         predictions_df_denormalized["symbol"] = TARGET_SYMBOL
         predictions_df_denormalized["interval"] = prediction_minutes
         predictions_df_denormalized["timestamp"] = next_timestamp
-        
+
         predictions_df_denormalized = predictions_df_denormalized[
             ["symbol", "interval", "timestamp"] + [col for col in SCALABLE_FEATURES.keys()]
         ]
-    return predictions_df_denormalized
+
+        # Подготовка DataFrame для сохранения
+        predictions_df_prepared = data_processor.prepare_dataframe_for_save(predictions_df_denormalized, prediction_minutes)
+
+    return predictions_df_prepared
 
 
 def main():
@@ -331,13 +337,21 @@ def main():
         if not predicted_df.empty:
             predictions_path = PATHS["predictions"]
             DataProcessor.ensure_file_exists(predictions_path)
-            predicted_df.to_csv(
-                predictions_path,
-                mode="a",
-                header=not os.path.exists(predictions_path),
-                index=False,
-            )
-            logging.info(f"Predicted prices saved to {predictions_path}.")
+
+            # Чтение существующих предсказаний
+            existing_predictions = pd.read_csv(predictions_path)
+            # Проверка наличия текущего timestamp
+            current_timestamp = predicted_df["timestamp"].iloc[0]
+            if current_timestamp in existing_predictions["timestamp"].values:
+                logging.info(f"Prediction for timestamp {current_timestamp} already exists. Skipping save.")
+            else:
+                # Добавление новых предсказаний наверх
+                combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
+                combined_predictions.to_csv(
+                    predictions_path,
+                    index=False
+                )
+                logging.info(f"Predicted prices saved to {predictions_path}.")
         else:
             logging.warning("Predictions were not made due to previous errors.")
     else:
