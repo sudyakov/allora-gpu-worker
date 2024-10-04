@@ -58,6 +58,7 @@ class CustomLabelEncoder:
 
 class DataProcessor:
     def __init__(self):
+        self.is_fitted = False
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: Sequence[str] = ['symbol', 'interval']
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
@@ -94,6 +95,7 @@ class DataProcessor:
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        self.is_fitted = True
         # Encode categorical columns
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
