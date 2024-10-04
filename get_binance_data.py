@@ -1,13 +1,11 @@
 import os
 import logging
 import time
-from typing import Dict, Optional, Tuple, OrderedDict
+from typing import Dict, Optional, Tuple
 
-import numpy as np
 import pandas as pd
 import requests
 from requests.exceptions import RequestException
-from collections import OrderedDict
 
 from config import (
     API_BASE_URL,
@@ -19,9 +17,6 @@ from config import (
     MODEL_FEATURES,
     PATHS,
     IntervalConfig,
-    RAW_FEATURES,
-    SCALABLE_FEATURES,
-    ADD_FEATURES,
     IntervalKey,
 )
 from data_utils import (
@@ -29,7 +24,6 @@ from data_utils import (
     get_current_time,
     timestamp_to_readable_time,
 )
-
 
 LOG_FILE = 'get_binance_data.log'
 
@@ -68,7 +62,7 @@ class GetBinanceData:
         if interval_key in self.INTERVAL_MAPPING:
             return self.INTERVAL_MAPPING[interval_key]
         else:
-            raise KeyError(f"Неверный ключ интервала: {interval_key}")
+            raise KeyError(f"Invalid interval key: {interval_key}")
 
     def _fetch_data(self, url: str) -> Optional[pd.DataFrame]:
         try:
@@ -79,11 +73,10 @@ class GetBinanceData:
                 return None
             df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
             df = df.drop(columns=['close_time', 'ignore'])
-            # Преобразуем типы данных сразу после получения
             df = self.data_processor.preprocess_binance_data(df)
             return df
         except RequestException as e:
-            self.logger.warning(f"Ошибка запроса: {e}")
+            self.logger.warning(f"Request error: {e}")
             return None
 
     def get_binance_data(
@@ -98,7 +91,6 @@ class GetBinanceData:
         current_start = start_time
 
         while current_start is None or (end_time is not None and current_start < end_time):
-            # Формируем строковое представление интервала, например, '1m'
             interval_str = f"{interval_info['minutes']}m"
             url = f"{self.API_BASE_URL}/klines?symbol={symbol}&interval={interval_str}&limit={self.BINANCE_LIMIT_STRING}"
             if current_start:
@@ -153,22 +145,20 @@ class GetBinanceData:
         df = self.data_processor.preprocess_binance_data(df[df['timestamp'] <= current_time])
         df = self.data_processor.fill_missing_add_features(df)
         df = self.data_processor.sort_dataframe(df)
-        
-        # Приведение типов данных согласно MODEL_FEATURES
+
         df = df.astype(self.MODEL_FEATURES)
         return df
-
 
     def save_to_csv(self, df: pd.DataFrame, filename: str):
         self.data_processor.ensure_file_exists(filename)
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False)
-            self.logger.info(f"Данные сохранены в {filename}")
+            self.logger.info(f"Data saved to {filename}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if not data:
-            self.logger.warning("Нет данных для сохранения в комбинированный набор.")
+            self.logger.warning("No data to save to the combined dataset.")
             return
 
         self.data_processor.ensure_file_exists(filename)
@@ -191,23 +181,23 @@ class GetBinanceData:
         combined_data = self.data_processor.fill_missing_add_features(combined_data)
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
-        self.logger.info(f"Комбинированный набор данных обновлен: {filename}")
+        self.logger.info(f"Combined dataset updated: {filename}")
 
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
         if os.path.exists(combined_path) and os.path.getsize(combined_path) > 0:
             try:
                 df = pd.read_csv(combined_path, dtype=self.MODEL_FEATURES)
-                self.logger.info(f"Комбинированные данные загружены из {combined_path}")
+                self.logger.info(f"Combined data loaded from {combined_path}")
                 return df
             except Exception as e:
-                self.logger.error(f"Ошибка при загрузке комбинированных данных: {e}")
+                self.logger.error(f"Error loading combined data: {e}")
         else:
-            self.logger.warning(f"Файл комбинированных данных не найден или пуст: {combined_path}")
+            self.logger.warning(f"Combined data file not found or is empty: {combined_path}")
         return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval_key: IntervalKey):
-        summary = f"Сводка данных для {symbol} ({interval_key}):\n"
+        summary = f"Data summary for {symbol} ({interval_key}):\n"
         feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.MODEL_FEATURES.keys()])
         summary += f"{'Timestamp':<20} {feature_headers}\n"
         rows_to_display = [df.iloc[0], df.iloc[-1]] if len(df) > 1 else [df.iloc[0]]
@@ -228,7 +218,6 @@ class GetBinanceData:
         filename = os.path.join(self.PATHS['data_dir'], f"{symbol}_{interval_info['minutes']}_data.csv")
         server_time, _ = get_current_time()
 
-        # Используем MODEL_FEATURES для задания типов данных
         dtype_dict = self.MODEL_FEATURES
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
@@ -247,17 +236,15 @@ class GetBinanceData:
             df_new = self.get_binance_data(symbol, interval_key, start_time, end_time)
 
             if df_new is not None and not df_new.empty:
-                # Приведение типов данных для новых данных
                 df_new = df_new.astype(dtype_dict)
 
                 readable_start = timestamp_to_readable_time(start_time)
                 readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
                 self.logger.info(
-                    f"Обновление данных для {symbol} с {start_time} до {df_new['timestamp'].max()} "
-                    f"({readable_start} до {readable_newest})"
+                    f"Updating data for {symbol} from {start_time} to {df_new['timestamp'].max()} "
+                    f"({readable_start} to {readable_newest})"
                 )
 
-                # Приведение типов данных для существующих данных
                 df_existing = df_existing.astype(dtype_dict)
 
                 df_updated = pd.concat(
@@ -267,7 +254,6 @@ class GetBinanceData:
                 df_updated = self.data_processor.sort_dataframe(df_updated)
                 df_updated = self.data_processor.fill_missing_add_features(df_updated)
 
-                # Приведение типов данных перед сохранением
                 df_updated = df_updated.astype(dtype_dict)
 
                 self.save_to_csv(df_updated, filename)
@@ -277,25 +263,25 @@ class GetBinanceData:
                 )
                 return df_updated, df_new['timestamp'].min(), df_new['timestamp'].max()
             else:
-                self.logger.warning(f"Не удалось получить новые данные для {symbol}.")
+                self.logger.warning(f"Failed to retrieve new data for {symbol}.")
                 return df_existing, None, None
         else:
-            self.logger.info(f"Данные для {symbol} не требуют обновления. Используются текущие данные.")
+            self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
 
 
 def main():
     download_data = GetBinanceData()
-    download_data.logger.info("Скрипт запущен")
+    download_data.logger.info("Script started")
 
     try:
         response = requests.get(f"{download_data.API_BASE_URL}/time")
         response.raise_for_status()
         server_time = response.json()['serverTime']
         readable_time = timestamp_to_readable_time(server_time)
-        download_data.logger.info(f"Binance API доступен. Время сервера: {readable_time}")
+        download_data.logger.info(f"Binance API is available. Server time: {readable_time}")
     except Exception as e:
-        download_data.logger.error(f"Не удалось получить доступ к Binance API: {e}")
+        download_data.logger.error(f"Failed to access Binance API: {e}")
         return
 
     symbols = list(download_data.SYMBOL_MAPPING.keys())
@@ -307,45 +293,25 @@ def main():
                 updated_data, start_time, end_time = download_data.update_data(symbol, interval_key)
                 if updated_data is not None and not updated_data.empty:
                     download_data.print_data_summary(updated_data, symbol, interval_key)
-                    
-                    # Получаем ключ для текущего символа и интервала
+
                     key = f"{symbol}_{download_data.INTERVAL_MAPPING[interval_key]['minutes']}"
 
-                    # Сохраняем данные сразу после обновления
                     download_data.save_combined_dataset(
                         {key: updated_data},
                         download_data.PATHS['combined_dataset']
                     )
                 else:
-                    download_data.logger.error(f"Не удалось обновить данные для пары {symbol} и интервала {interval_key}")
+                    download_data.logger.error(f"Failed to update data for pair {symbol} and interval {interval_key}")
                 download_data.logger.info("------------------------")
                 time.sleep(1)
             except Exception as e:
-                download_data.logger.error(f"Ошибка при обновлении данных для {symbol} с интервалом {interval_key}: {e}")
+                download_data.logger.error(f"Error updating data for {symbol} with interval {interval_key}: {e}")
 
-    download_data.logger.info("Все файлы обновлены с последними ценами.")
-
-    download_data.logger.info("Выполнение методов get_current_price и get_latest_prices для всех символов и интервалов.")
-    for symbol in symbols:
-        for interval_key in intervals:
-            try:
-                current_price_df = download_data.get_current_price(symbol, interval_key)
-                download_data.logger.info(f"Текущая цена для {symbol} ({interval_key}):\n{current_price_df}")
-                
-                interval_minutes = download_data.INTERVAL_MAPPING[interval_key]['minutes']
-                latest_price_df = download_data.data_processor.get_latest_dataset_prices(symbol, interval_minutes)
-
-                download_data.logger.info(f"Последняя цена для {symbol} ({interval_key}):\n{latest_price_df}")
-
-                time.sleep(1)
-            except Exception as e:
-                download_data.logger.error(f"Ошибка при получении цен для {symbol} с интервалом {interval_key}: {e}")
-
-    download_data.logger.info("Завершено.")
+    download_data.logger.info("All files have been updated with the latest prices.")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logging.error(f"Произошла ошибка: {e}")
+        logging.error(f"An error occurred: {e}")

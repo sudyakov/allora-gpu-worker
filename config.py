@@ -1,4 +1,4 @@
-# Импорт необходимых библиотек
+# Import necessary libraries
 import logging
 from typing import Optional, Dict, Literal, TypedDict, Union
 import os
@@ -7,20 +7,20 @@ import requests
 import time
 import numpy as np
 
-# Базовый URL для API Binance
+# Base URL for Binance API
 API_BASE_URL: str = "https://api.binance.com/api/v3"
 
-# Параметры для повторных попыток запросов
+# Parameters for retrying requests
 MAX_RETRIES: int = 3
 RETRY_DELAY: int = 5
 
-# Лимит для запросов к Binance
+# Limit for requests to Binance
 BINANCE_LIMIT_STRING: int = 1000
 
-# Длина последовательности для модели
+# Sequence length for the model
 SEQ_LENGTH: int = 300
 
-# Определение типа для конфигурации интервалов
+# Definition of type for interval configuration
 class IntervalConfig(TypedDict):
     days: int
     minutes: int
@@ -28,35 +28,35 @@ class IntervalConfig(TypedDict):
 
 IntervalKey = int
 
-# Маппинг символов криптовалют
+# Mapping of cryptocurrency symbols
 SYMBOL_MAPPING: Dict[str, int] = {
     "ETHUSDT": 0,
     "BTCUSDT": 1,
 }
 
-# Целевой символ и интервал предсказания
+# Target symbol and prediction interval
 TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
-# Маппинг интервалов для разных временных промежутков
+# Mapping of intervals for different time spans
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
     1: {"days": 9, "minutes": 1, "milliseconds": 60000},
     5: {"days": 18, "minutes": 5, "milliseconds": 300000},
     15: {"days": 36, "minutes": 15, "milliseconds": 900000},
 }
 
-# Категориальные признаки
+# Categorical features
 RAW_FEATURES = OrderedDict([
     ('symbol', str),
     ('interval', np.int64),
 ])
 
-# Временные признаки
+# Temporal features
 TIME_FEATURES = OrderedDict([
     ('timestamp', np.int64),
 ])
 
-# Масштабируемые признаки
+# Scalable features
 SCALABLE_FEATURES = OrderedDict([
     ('open', np.float32),
     ('high', np.float32),
@@ -69,7 +69,7 @@ SCALABLE_FEATURES = OrderedDict([
     ('taker_buy_quote_asset_volume', np.float32),
 ])
 
-# Временные циклические признаки
+# Temporal cyclic features
 ADD_FEATURES = OrderedDict([
     ('hour', np.int64),
     ('dayofweek', np.int64),
@@ -79,14 +79,14 @@ ADD_FEATURES = OrderedDict([
     ('cos_day', np.float32),
 ])
 
-# Объединение всех признаков для модели
+# Combining all features for the model
 MODEL_FEATURES = OrderedDict()
 MODEL_FEATURES.update(RAW_FEATURES)
 MODEL_FEATURES.update(TIME_FEATURES)
 MODEL_FEATURES.update(SCALABLE_FEATURES)
 MODEL_FEATURES.update(ADD_FEATURES)
 
-# Определение параметров модели
+# Definition of model parameters
 class ModelParams(TypedDict):
     input_size: int
     hidden_layer_size: int
@@ -108,7 +108,7 @@ MODEL_PARAMS: ModelParams = {
     "timestamp_embedding_dim": 64,
 }
 
-# Определение параметров обучения
+# Definition of training parameters
 class TrainingParams(TypedDict):
     batch_size: int
     initial_epochs: int
@@ -128,7 +128,7 @@ TRAINING_PARAMS: TrainingParams = {
     "num_workers": 8,
 }
 
-# Пути к файлам и директориям
+# Paths to files and directories
 PATHS: Dict[str, str] = {
     'combined_dataset': 'data/combined_dataset.csv',
     'predictions': 'data/predictions.csv',
@@ -138,17 +138,17 @@ PATHS: Dict[str, str] = {
     'data_dir': 'data',
 }
 
-# Версия модели
+# Model version
 MODEL_VERSION = "2.0"
 
-# Имена файлов для сохранения модели и обработчика данных
+# Filenames for saving the model and data processor
 MODEL_FILENAME = os.path.join(PATHS["models_dir"], f"enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth")
 DATA_PROCESSOR_FILENAME = os.path.join(PATHS["models_dir"], f"data_processor_{TARGET_SYMBOL}_v{MODEL_VERSION}.pkl")
 
-# Формат даты и времени
+# Date and time format
 DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
-# Функция для получения смещения времени Binance
+# Function to get Binance time offset
 def get_binance_time_offset() -> Optional[int]:
     try:
         response = requests.get(f"{API_BASE_URL}/time")
@@ -160,7 +160,7 @@ def get_binance_time_offset() -> Optional[int]:
 
 TIME_OFFSET: Optional[int] = get_binance_time_offset()
 
-# Функция для получения интервала по количеству минут
+# Function to get interval by number of minutes
 def get_interval(minutes: int) -> Optional[IntervalKey]:
     for key, config in INTERVAL_MAPPING.items():
         if config["minutes"] == minutes:

@@ -42,12 +42,12 @@ class CustomLabelEncoder:
 
     def transform(self, data: pd.Series) -> pd.Series:
         if not self.classes_:
-            raise ValueError("LabelEncoder не инициализирован маппингом.")
+            raise ValueError("LabelEncoder is not initialized with mapping.")
         return data.map(self.classes_).fillna(-1).astype(int)
 
     def inverse_transform(self, data: pd.Series) -> pd.Series:
         if not self.classes_reverse:
-            raise ValueError("LabelEncoder не инициализирован маппингом.")
+            raise ValueError("LabelEncoder is not initialized with mapping.")
         return data.map(self.classes_reverse)
 
     def fit_transform(self, data: pd.Series) -> pd.Series:
@@ -59,7 +59,6 @@ class DataProcessor:
     def __init__(self):
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
 
-        # Добавляем 'symbol' и 'interval' в категориальные столбцы
         self.categorical_columns: Sequence[str] = ['symbol', 'interval']
 
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
@@ -67,7 +66,6 @@ class DataProcessor:
         self.symbol_mapping = SYMBOL_MAPPING
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
 
-        # Создаем маппинг для 'interval' на основе INTERVAL_MAPPING
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
 
@@ -91,20 +89,17 @@ class DataProcessor:
             df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
             df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
         df = df.ffill().bfill()
-        logging.debug(f"Заполненный DataFrame:\n{df.head()}")
         return df
 
     def sort_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         sorted_df = df.sort_values('timestamp', ascending=False)
-        logging.debug(f"Отсортированный DataFrame:\n{sorted_df.head()}")
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
-                logging.error("Не найден кодировщик для столбца %s.", col)
-                raise ValueError(f"Не найден кодировщик для столбца {col}.")
+                raise ValueError(f"Encoder not found for column {col}.")
             df[col] = encoder.transform(df[col])
 
         for col in self.numerical_columns:
@@ -112,22 +107,19 @@ class DataProcessor:
                 dtype = MODEL_FEATURES.get(col, np.float32)
                 df[col] = df[col].astype(dtype)
             else:
-                logging.error("Столбец %s отсутствует в DataFrame.", col)
-                raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
+                raise KeyError(f"Column {col} is missing in DataFrame.")
 
         if 'timestamp' in df.columns:
             df['timestamp'] = df['timestamp'].astype(np.int64)
 
         df = df[list(MODEL_FEATURES.keys())]
-        logging.info("Порядок столбцов после fit_transform: %s", df.columns.tolist())
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
-                logging.error("LabelEncoder для столбца %s не найден.", col)
-                raise ValueError(f"LabelEncoder для столбца {col} не найден.")
+                raise ValueError(f"LabelEncoder not found for column {col}.")
             df[col] = encoder.transform(df[col])
 
         for col in self.numerical_columns:
@@ -135,16 +127,12 @@ class DataProcessor:
                 dtype = MODEL_FEATURES.get(col, np.float32)
                 df[col] = df[col].astype(dtype)
             else:
-                logging.error("Столбец %s отсутствует в DataFrame.", col)
-                raise KeyError(f"Столбец {col} отсутствует в DataFrame.")
+                raise KeyError(f"Column {col} is missing in DataFrame.")
 
         if 'timestamp' in df.columns:
             df['timestamp'] = df['timestamp'].astype(np.int64)
 
         df = df[list(MODEL_FEATURES.keys())]
-        logging.info("Порядок столбцов после transform: %s", df.columns.tolist())
-        logging.info("Типы данных после transform:")
-        logging.info(df.dtypes)
         return df
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
@@ -152,8 +140,7 @@ class DataProcessor:
         target_columns = [col for col in SCALABLE_FEATURES.keys()]
         missing_columns = [col for col in target_columns if col not in df.columns]
         if missing_columns:
-            logging.error("Отсутствующие целевые столбцы в DataFrame: %s", missing_columns)
-            raise KeyError(f"Отсутствующие целевые столбцы в DataFrame: {missing_columns}")
+            raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
 
         df = df[features]
 
@@ -162,13 +149,10 @@ class DataProcessor:
 
         object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
         if object_columns:
-            logging.error(f"Столбцы с типом object: {object_columns}")
             for col in object_columns:
                 try:
                     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(np.float32)
-                    logging.info(f"Столбец {col} преобразован в float.")
                 except Exception as e:
-                    logging.error(f"Ошибка при преобразовании столбца {col} в численный тип: {e}")
                     raise
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
@@ -182,7 +166,6 @@ class DataProcessor:
             if i + seq_length < len(data_tensor):
                 targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
             else:
-                # Для последней последовательности дублируем последний доступный таргет
                 targets.append(data_tensor[-1].index_select(0, target_indices))
 
         sequences = torch.stack(sequences)
@@ -219,16 +202,12 @@ class DataProcessor:
             pin_memory=pin_memory
         )
 
-        logging.info(f"Создан DataLoader для обучения с размером батча {batch_size} и {train_size} примеров.")
-        logging.info(f"Создан DataLoader для валидации с {val_size} примерами.")
-
         return train_loader, val_loader
 
     def save(self, filepath: str) -> None:
         self.ensure_file_exists(filepath)
         with open(filepath, 'wb') as f:
             pickle.dump(self, f)
-        logging.info("DataProcessor сохранен: %s", filepath)
 
     @staticmethod
     def ensure_file_exists(filepath: str) -> None:
@@ -243,7 +222,6 @@ class DataProcessor:
     def load(filepath: str) -> 'DataProcessor':
         with open(filepath, 'rb') as f:
             processor = pickle.load(f)
-        logging.info("DataProcessor загружен: %s", filepath)
         return processor
 
     def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
@@ -256,10 +234,6 @@ class DataProcessor:
             if not df_filtered.empty:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
-            else:
-                logging.debug(f"Нет данных для символа {symbol} и интервала {interval} в combined_dataset.")
-        else:
-            logging.debug(f"Файл combined_dataset.csv не найден по пути {combined_dataset_path}")
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
 
 
