@@ -182,7 +182,7 @@ class GetBinanceData:
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
         self.logger.info(f"Combined dataset updated: {filename}")
-        self.logger.info("---------------------------")
+        self.logger.info("------------------------")
 
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
