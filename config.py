@@ -1,100 +1,169 @@
-from datetime import datetime, timezone
-from typing import Dict, List, Union
+# Импорт необходимых библиотек
+import logging
+from typing import Optional, Dict, Literal, TypedDict, Union
+import os
+from collections import OrderedDict
 import requests
 import time
-from typing import Optional
+import numpy as np
 
-# Base URL for Binance API
-API_BASE_URL = "https://api.binance.com/api/v3"
-# Parameters for request retries
-MAX_RETRIES = 3
-RETRY_DELAY = 5
-BINANCE_LIMIT_STRING = 1000
-BINANCE_INTERVAL_REQUEST = 1 # 1 minute
-REQUEST_DELAY = 1 # second
+# Базовый URL для API Binance
+API_BASE_URL: str = "https://api.binance.com/api/v3"
 
-# Target symbol and list of symbols for analysis
-TARGET_SYMBOL = 'ETHUSDT'
-SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ARBUSDT"]
-SEQ_LENGTH = 10
+# Параметры для повторных попыток запросов
+MAX_RETRIES: int = 3
+RETRY_DELAY: int = 5
 
-# Parameters for prediction
-PREDICTION_MINUTES = 5
-# Интервал для текущих данных
-CURRENT_MINUTES = 1  
+# Лимит для запросов к Binance
+BINANCE_LIMIT_STRING: int = 1000
 
-# Intervals and periods for data collection
-INTERVALS_PERIODS = {
-    "1m": {"interval": "1m", "days": 1, "minutes": 1, "milliseconds": 1 * 60 * 1000},
-    "5m": {"interval": "5m", "days": 5, "minutes": 5, "milliseconds": 5 * 60 * 1000},
-    "15m": {"interval": "15m", "days": 15, "minutes": 15, "milliseconds": 15 * 60 * 1000},
+# Длина последовательности для модели
+SEQ_LENGTH: int = 300
+
+# Определение типа для конфигурации интервалов
+class IntervalConfig(TypedDict):
+    days: int
+    minutes: int
+    milliseconds: int
+
+IntervalKey = int
+
+# Маппинг символов криптовалют
+SYMBOL_MAPPING: Dict[str, int] = {
+    "ETHUSDT": 0,
+    "BTCUSDT": 1,
 }
 
-# Feature names for the model
-FEATURE_NAMES = [
-    'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume',
-    'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
-]
-# Binance API columns
-BINANCE_API_COLUMNS = [
-    'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
-    'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume',
-    'taker_buy_quote_asset_volume', 'ignore'
-]
+# Целевой символ и интервал предсказания
+TARGET_SYMBOL: str = "ETHUSDT"
+PREDICTION_MINUTES: int = 5
 
-# Feature names for the model
-FEATURE_NAMES = [
-    'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume',
-    'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
-]
-
-# Data types for columns
-DATA_TYPES = {
-    'timestamp': int, 'open': float, 'high': float, 'low': float, 'close': float,
-    'volume': float, 'quote_asset_volume': float,
-    'number_of_trades': int, 'taker_buy_base_asset_volume': float,
-    'taker_buy_quote_asset_volume': float, 'symbol': str, 'interval': str
+# Маппинг интервалов для разных временных промежутков
+INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
+    1: {"days": 9, "minutes": 1, "milliseconds": 60000},
+    5: {"days": 18, "minutes": 5, "milliseconds": 300000},
+    15: {"days": 36, "minutes": 15, "milliseconds": 900000},
 }
 
-# Model version and its parameters
-MODEL_VERSION = "2.0"
-MODEL_PARAMS = {
-    'input_size': len(FEATURE_NAMES),
-    'hidden_layer_size': 512,
-    'num_layers': 6,
-    'dropout': 0.3
+# Категориальные признаки
+RAW_FEATURES = OrderedDict([
+    ('symbol', str),
+    ('interval', np.int64),
+])
+
+# Временные признаки
+TIME_FEATURES = OrderedDict([
+    ('timestamp', np.int64),
+])
+
+# Масштабируемые признаки
+SCALABLE_FEATURES = OrderedDict([
+    ('open', np.float32),
+    ('high', np.float32),
+    ('low', np.float32),
+    ('close', np.float32),
+    ('volume', np.float32),
+    ('quote_asset_volume', np.float32),
+    ('number_of_trades', np.int64),
+    ('taker_buy_base_asset_volume', np.float32),
+    ('taker_buy_quote_asset_volume', np.float32),
+])
+
+# Временные циклические признаки
+ADD_FEATURES = OrderedDict([
+    ('hour', np.int64),
+    ('dayofweek', np.int64),
+    ('sin_hour', np.float32),
+    ('cos_hour', np.float32),
+    ('sin_day', np.float32),
+    ('cos_day', np.float32),
+])
+
+# Объединение всех признаков для модели
+MODEL_FEATURES = OrderedDict()
+MODEL_FEATURES.update(RAW_FEATURES)
+MODEL_FEATURES.update(TIME_FEATURES)
+MODEL_FEATURES.update(SCALABLE_FEATURES)
+MODEL_FEATURES.update(ADD_FEATURES)
+
+# Определение параметров модели
+class ModelParams(TypedDict):
+    input_size: int
+    hidden_layer_size: int
+    num_layers: int
+    dropout: float
+    embedding_dim: int
+    num_symbols: int
+    num_intervals: int
+    timestamp_embedding_dim: int
+
+MODEL_PARAMS: ModelParams = {
+    "input_size": len(MODEL_FEATURES),
+    "hidden_layer_size": 256,
+    "num_layers": 4,
+    "dropout": 0.2,
+    "embedding_dim": 128,
+    "num_symbols": 2,
+    "num_intervals": 3,
+    "timestamp_embedding_dim": 64,
 }
 
-# Parameters for model training
-TRAINING_PARAMS = {
-    'batch_size': 4096, 'initial_epochs': 10, 'initial_lr': 0.001,
-    'max_epochs': 50, 'min_lr': 0.0001, 'use_mixed_precision': True,
-    'num_workers': 16
+# Определение параметров обучения
+class TrainingParams(TypedDict):
+    batch_size: int
+    initial_epochs: int
+    initial_lr: float
+    max_epochs: int
+    min_lr: float
+    use_mixed_precision: bool
+    num_workers: int
+
+TRAINING_PARAMS: TrainingParams = {
+    "batch_size": 256,
+    "initial_epochs": 5,
+    "initial_lr": 0.0005,
+    "max_epochs": 100,
+    "min_lr": 0.00001,
+    "use_mixed_precision": True,
+    "num_workers": 8,
 }
 
-# Paths to files and directories
-PATHS = {
-    'combined_dataset': 'combined_dataset.csv',
-    'predictions': 'predictions.csv',
-    'differences': 'differences.csv',
+# Пути к файлам и директориям
+PATHS: Dict[str, str] = {
+    'combined_dataset': 'data/combined_dataset.csv',
+    'predictions': 'data/predictions.csv',
+    'differences': 'data/differences.csv',
     'models_dir': 'models',
     'visualization_dir': 'visualizations',
     'data_dir': 'data',
 }
 
-# Date and time format
-DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-# Columns for the dataset
-DATASET_COLUMNS = ['timestamp', 'symbol', 'interval'] + FEATURE_NAMES
+# Версия модели
+MODEL_VERSION = "2.0"
 
-# Function to get Binance server time offset
+# Имена файлов для сохранения модели и обработчика данных
+MODEL_FILENAME = os.path.join(PATHS["models_dir"], f"enhanced_bilstm_model_{TARGET_SYMBOL}_v{MODEL_VERSION}.pth")
+DATA_PROCESSOR_FILENAME = os.path.join(PATHS["models_dir"], f"data_processor_{TARGET_SYMBOL}_v{MODEL_VERSION}.pkl")
+
+# Формат даты и времени
+DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
+
+# Функция для получения смещения времени Binance
 def get_binance_time_offset() -> Optional[int]:
     try:
         response = requests.get(f"{API_BASE_URL}/time")
-        server_time = response.json()['serverTime']
-        local_time = int(time.time() * 1000)
+        server_time: int = response.json()['serverTime']
+        local_time: int = int(time.time() * 1000)
         return server_time - local_time
-    except:
+    except requests.RequestException:
         return None
 
-TIME_OFFSET = get_binance_time_offset()
+TIME_OFFSET: Optional[int] = get_binance_time_offset()
+
+# Функция для получения интервала по количеству минут
+def get_interval(minutes: int) -> Optional[IntervalKey]:
+    for key, config in INTERVAL_MAPPING.items():
+        if config["minutes"] == minutes:
+            return key
+    logging.error("Interval for %d minutes not found.", minutes)
+    return None
