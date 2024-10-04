@@ -41,9 +41,9 @@ PREDICTION_MINUTES: int = 5
 
 # Mapping of intervals for different time spans
 INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
-    1: {"days": 9, "minutes": 1, "milliseconds": 60000},
-    5: {"days": 18, "minutes": 5, "milliseconds": 300000},
-    15: {"days": 36, "minutes": 15, "milliseconds": 900000},
+    1: {"days": 90, "minutes": 1, "milliseconds": 60000},
+    5: {"days": 180, "minutes": 5, "milliseconds": 300000},
+    15: {"days": 360, "minutes": 15, "milliseconds": 900000},
 }
 
 # Categorical features
