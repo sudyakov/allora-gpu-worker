@@ -143,10 +143,10 @@ class EnhancedBiLSTMModel(nn.Module):
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     dataloader: DataLoader,
+    optimizer: Adam,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, Adam]:
     model.train()
-    optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     criterion = nn.MSELoss()
     best_val_loss = float("inf")
     epochs_no_improve = 0
@@ -213,7 +213,7 @@ def predict_future_price(
     latest_df: pd.DataFrame,
     data_processor: DataProcessor,
     prediction_minutes: int = PREDICTION_MINUTES,
-    device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    device: torch.device = get_device(),
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
@@ -246,7 +246,7 @@ def predict_future_price(
             logging.error("Invalid prediction interval.")
             return pd.DataFrame()
 
-        next_timestamp = int(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
+        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
 
         predictions_df_denormalized["symbol"] = TARGET_SYMBOL
         predictions_df_denormalized["interval"] = prediction_minutes
@@ -282,7 +282,7 @@ def main():
     combined_data = data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
-    if os.path.exists(DATA_PROCESSOR_FILENAME):
+    if isinstance(data_processor, DataProcessor) and hasattr(data_processor, 'is_fitted') and data_processor.is_fitted:
         combined_data = data_processor.transform(combined_data)
     else:
         combined_data = data_processor.fit_transform(combined_data)
@@ -324,8 +324,11 @@ def main():
         logging.warning("Data contains infinite values.")
 
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
+    if len(tensor_dataset) == 0:
+        logging.error("No data available after dataset preparation.")
+        return
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
-    model, optimizer = train_and_save_model(model, dataloader, device)
+    model, optimizer = train_and_save_model(model, dataloader, optimizer, device)
     get_binance_data_main()
     latest_df = data_processor.get_latest_dataset_prices(
         TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH
@@ -338,8 +341,13 @@ def main():
             predictions_path = PATHS["predictions"]
             DataProcessor.ensure_file_exists(predictions_path)
 
-            # Чтение существующих предсказаний
-            existing_predictions = pd.read_csv(predictions_path)
+            try:
+                existing_predictions = pd.read_csv(predictions_path)
+            except FileNotFoundError:
+                existing_predictions = pd.DataFrame()
+            except pd.errors.EmptyDataError:
+                existing_predictions = pd.DataFrame()
+            
             # Проверка наличия текущего timestamp
             current_timestamp = predicted_df["timestamp"].iloc[0]
             if current_timestamp in existing_predictions["timestamp"].values:
