@@ -30,7 +30,7 @@ class IntervalConfig(TypedDict):
 IntervalKey = int
 
 # Mapping of cryptocurrency symbols
-SYMBOL_MAPPING: Dict[str, int] = {
+SYMBOL_MAPPING: OrderedDict[str, int] = {
     "ETHUSDT": 0,
     "BTCUSDT": 1,
 }
@@ -40,7 +40,7 @@ TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 # Mapping of intervals for different time spans
-INTERVAL_MAPPING: Dict[IntervalKey, IntervalConfig] = {
+INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = {
     1: {"days": 90, "minutes": 1, "milliseconds": 60000},
     5: {"days": 180, "minutes": 5, "milliseconds": 300000},
     15: {"days": 360, "minutes": 15, "milliseconds": 900000},
