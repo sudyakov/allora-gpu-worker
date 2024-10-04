@@ -59,12 +59,12 @@ def load_model(
     device: torch.device,
 ) -> None:
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
-        state_dict = torch.load(filepath, map_location=device)
+        state_dict = torch.load(filepath, map_location=device, weights_only=True)
         model.load_state_dict(state_dict)
         model.to(device)
         optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
         if os.path.exists(optimizer_filepath):
-            optimizer_state_dict = torch.load(optimizer_filepath, map_location=device)
+            optimizer_state_dict = torch.load(optimizer_filepath, map_location=device, weights_only=True)
             optimizer.load_state_dict(optimizer_state_dict)
             logging.info(f"Optimizer loaded from {optimizer_filepath}.")
         logging.info(f"Model loaded from {filepath}.")
