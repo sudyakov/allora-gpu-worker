@@ -182,6 +182,7 @@ class GetBinanceData:
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
         self.logger.info(f"Combined dataset updated: {filename}")
+        self.logger.info("---------------------------")
 
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
@@ -257,10 +258,6 @@ class GetBinanceData:
                 df_updated = df_updated.astype(dtype_dict)
 
                 self.save_to_csv(df_updated, filename)
-                self.save_combined_dataset(
-                    {f"{symbol}_{interval_info['minutes']}": df_updated},
-                    self.PATHS['combined_dataset']
-                )
                 return df_updated, df_new['timestamp'].min(), df_new['timestamp'].max()
             else:
                 self.logger.warning(f"Failed to retrieve new data for {symbol}.")
@@ -302,7 +299,6 @@ def main():
                     )
                 else:
                     download_data.logger.error(f"Failed to update data for pair {symbol} and interval {interval_key}")
-                download_data.logger.info("------------------------")
                 time.sleep(1)
             except Exception as e:
                 download_data.logger.error(f"Error updating data for {symbol} with interval {interval_key}: {e}")
