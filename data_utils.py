@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import requests
 import pickle
 from torch.utils.data import DataLoader, TensorDataset, random_split
+from sklearn.preprocessing import MinMaxScaler  # Updated import
 
 from config import (
     SEQ_LENGTH,
@@ -58,16 +59,14 @@ class CustomLabelEncoder:
 class DataProcessor:
     def __init__(self):
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
-
         self.categorical_columns: Sequence[str] = ['symbol', 'interval']
-
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
-
+        self.scalable_columns: Sequence[str] = list(SCALABLE_FEATURES.keys())
         self.symbol_mapping = SYMBOL_MAPPING
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
-
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
+        self.scalers: Dict[str, MinMaxScaler] = {}  # Updated type hint
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
@@ -83,7 +82,6 @@ class DataProcessor:
         if 'timestamp' in df.columns:
             df['hour'] = ((df['timestamp'] // (1000 * 60 * 60)) % 24).astype(np.int64)
             df['dayofweek'] = ((df['timestamp'] // (1000 * 60 * 60 * 24)) % 7).astype(np.int64)
-
             df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24).astype(np.float32)
             df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24).astype(np.float32)
             df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
@@ -96,12 +94,23 @@ class DataProcessor:
         return sorted_df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Encode categorical columns
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 raise ValueError(f"Encoder not found for column {col}.")
             df[col] = encoder.transform(df[col])
 
+        # Fit and transform scalable features using MinMaxScaler
+        for col in self.scalable_columns:
+            if col in df.columns:
+                scaler = MinMaxScaler(feature_range=(0, 1))
+                df[col] = scaler.fit_transform(df[[col]])
+                self.scalers[col] = scaler
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+
+        # Ensure numerical columns have correct data types
         for col in self.numerical_columns:
             if col in df.columns:
                 dtype = MODEL_FEATURES.get(col, np.float32)
@@ -116,12 +125,24 @@ class DataProcessor:
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Encode categorical columns
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 raise ValueError(f"LabelEncoder not found for column {col}.")
             df[col] = encoder.transform(df[col])
 
+        # Transform scalable features using existing MinMaxScalers
+        for col in self.scalable_columns:
+            if col in df.columns:
+                scaler = self.scalers.get(col)
+                if scaler is None:
+                    raise ValueError(f"Scaler not found for column {col}.")
+                df[col] = scaler.transform(df[[col]])
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+
+        # Ensure numerical columns have correct data types
         for col in self.numerical_columns:
             if col in df.columns:
                 dtype = MODEL_FEATURES.get(col, np.float32)
@@ -134,6 +155,19 @@ class DataProcessor:
 
         df = df[list(MODEL_FEATURES.keys())]
         return df
+
+    def inverse_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        df_inv = df.copy()
+        # Inverse transform scalable features
+        for col in self.scalable_columns:
+            if col in df_inv.columns:
+                scaler = self.scalers.get(col)
+                if scaler is None:
+                    raise ValueError(f"Scaler not found for column {col}.")
+                df_inv[col] = scaler.inverse_transform(df_inv[[col]])
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+        return df_inv
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         features = list(MODEL_FEATURES.keys())

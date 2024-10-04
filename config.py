@@ -7,6 +7,7 @@ import requests
 import time
 import numpy as np
 
+
 # Base URL for Binance API
 API_BASE_URL: str = "https://api.binance.com/api/v3"
 
@@ -64,15 +65,15 @@ SCALABLE_FEATURES = OrderedDict([
     ('close', np.float32),
     ('volume', np.float32),
     ('quote_asset_volume', np.float32),
-    ('number_of_trades', np.int64),
+    ('number_of_trades', np.float32),
     ('taker_buy_base_asset_volume', np.float32),
     ('taker_buy_quote_asset_volume', np.float32),
 ])
 
 # Temporal cyclic features
 ADD_FEATURES = OrderedDict([
-    ('hour', np.int64),
-    ('dayofweek', np.int64),
+    ('hour', np.float32),
+    ('dayofweek', np.float32),
     ('sin_hour', np.float32),
     ('cos_hour', np.float32),
     ('sin_day', np.float32),
