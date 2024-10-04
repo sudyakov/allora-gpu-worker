@@ -232,11 +232,8 @@ def predict_future_price(
         predictions_df["interval"] = prediction_minutes
         predictions_df["timestamp"] = next_timestamp
 
-        # predictions_df = predictions_df[
-        #     ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
-        # ]
         predictions_df = predictions_df[
-            ["symbol", "interval", "timestamp"] + [col for col in SCALABLE_FEATURES.keys() if col != 'timestamp']
+            ["symbol", "interval", "timestamp"] + [col for col in SCALABLE_FEATURES.keys()]
         ]
 
     return predictions_df

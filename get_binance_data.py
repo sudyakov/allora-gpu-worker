@@ -185,7 +185,6 @@ class GetBinanceData:
                 ignore_index=True
             )
 
-        # Удаляем дубликаты по 'timestamp', 'symbol' и 'interval'
         combined_data = combined_data.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='first')
         combined_data = combined_data.sort_values(['symbol', 'interval', 'timestamp'])
 

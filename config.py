@@ -41,6 +41,10 @@ RAW_FEATURES = OrderedDict([
     ('interval', np.int64),
 ])
 
+TIME_FEATURES = OrderedDict([
+    ('timestamp', np.int64),
+])
+
 SCALABLE_FEATURES = OrderedDict([
     ('timestamp', np.int64),
     ('open', np.float32),
@@ -65,6 +69,7 @@ ADD_FEATURES = OrderedDict([
 
 MODEL_FEATURES = OrderedDict()
 MODEL_FEATURES.update(RAW_FEATURES)
+MODEL_FEATURES.update(TIME_FEATURES)
 MODEL_FEATURES.update(SCALABLE_FEATURES)
 MODEL_FEATURES.update(ADD_FEATURES)
 

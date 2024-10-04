@@ -142,12 +142,12 @@ class DataProcessor:
         df = df[list(MODEL_FEATURES.keys())]
         logging.info("Порядок столбцов после transform: %s", df.columns.tolist())
         logging.info("Типы данных после transform:")
-        logging.info(df.dtypes)
+        logging.info(df.dtypes) 
         return df
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         features = list(MODEL_FEATURES.keys())
-        target_columns = [col for col in SCALABLE_FEATURES.keys() if col != 'timestamp']
+        target_columns = [col for col in SCALABLE_FEATURES.keys()]
         missing_columns = [col for col in target_columns if col not in df.columns]
         if missing_columns:
             logging.error("Отсутствующие целевые столбцы в DataFrame: %s", missing_columns)
@@ -159,7 +159,7 @@ class DataProcessor:
 
         # Убедимся, что 'timestamp' имеет числовой тип
         if 'timestamp' in df.columns:
-            df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)  # Или np.int64, если требуется
+            df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)
 
         object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
         if object_columns:

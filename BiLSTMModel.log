@@ -14833,3 +14833,1203 @@ dtype: object
 2024-10-03 19:31:35,280 - INFO - Epoch 2/5 - Loss: 8775200090794.6670
 2024-10-03 19:31:35,280 - INFO - No improvement in validation loss. (1/5)
 2024-10-03 19:31:35,280 - INFO - Reducing learning rate to: 0.00025
+2024-10-03 21:55:12,972 - INFO - Logging is set up.
+2024-10-03 21:55:12,973 - INFO - Используемое устройство: cuda
+2024-10-03 21:55:12,973 - INFO - Numerical columns for scaling: ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'interval']
+2024-10-03 21:55:13,025 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 21:55:13,078 - INFO - Порядок столбцов после fit_transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 21:55:13,078 - INFO - Типы данных после fit_transform:
+2024-10-03 21:55:13,078 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:55:13,083 - INFO - DataProcessor сохранен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 21:55:13,083 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 21:55:13,083 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 21:55:14,409 - WARNING - Файл модели models/enhanced_bilstm_model_ETHUSDT_v2.0.pth не найден. Будет создана новая модель.
+2024-10-03 21:55:14,411 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 21:55:14,414 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:55:14,418 - INFO - Типы данных после преобразования типов:
+2024-10-03 21:55:14,420 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:55:39,792 - INFO - Epoch 1/5 - Loss: 8751517311896.9941
+2024-10-03 21:55:39,873 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 21:55:39,873 - INFO - Validation loss improved to 8751517311896.9941. Model saved.
+2024-10-03 21:56:05,769 - INFO - Epoch 2/5 - Loss: 8767153401880.2363
+2024-10-03 21:56:05,770 - INFO - No improvement in validation loss. (1/5)
+2024-10-03 21:56:05,770 - INFO - Reducing learning rate to: 0.00025
+2024-10-03 21:56:31,699 - INFO - Epoch 3/5 - Loss: 8727667095564.1182
+2024-10-03 21:56:31,799 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 21:56:31,800 - INFO - Validation loss improved to 8727667095564.1182. Model saved.
+2024-10-03 21:56:57,725 - INFO - Epoch 4/5 - Loss: 8749345340276.6387
+2024-10-03 21:56:57,725 - INFO - No improvement in validation loss. (1/5)
+2024-10-03 21:56:57,725 - INFO - Reducing learning rate to: 0.000125
+2024-10-03 21:57:23,495 - INFO - Epoch 5/5 - Loss: 8749620731079.9531
+2024-10-03 21:57:23,495 - INFO - No improvement in validation loss. (2/5)
+2024-10-03 21:57:23,495 - INFO - Reducing learning rate to: 6.25e-05
+2024-10-03 21:57:23,496 - INFO - Скрипт запущен
+2024-10-03 21:57:23,909 - INFO - Binance API доступен. Время сервера: 2024-10-03 18:57:23
+2024-10-03 21:57:25,087 - INFO - Обновление данных для ETHUSDT с 1727976120001 до 1727981820000 (2024-10-03 17:22:00 до 2024-10-03 18:57:00)
+2024-10-03 21:57:25,573 - INFO - Данные сохранены в data/ETHUSDT_1_data.csv
+2024-10-03 21:57:26,259 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:26,262 - INFO - Сводка данных для ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727981820000        ETHUSDT    1          1727981820000 2346.3798828125 2346.530029296875 2345.760009765625 2346.260009765625 9.315600395202637 21855.373046875 546        4.317999839782715 10129.6513671875 18         0          -1.0       -1.8369701465288538e-16 0.0        1.0       
+Last                 1727194140000        ETHUSDT    1          1727194140000 2613.0     2614.199951171875 2611.550048828125 2612.1201171875 148.4376983642578 387799.21875 2793       84.86219787597656 221695.9375 16         5          -0.8660253882408142 -0.5       -0.9749279022216797 -0.22252093255519867
+
+2024-10-03 21:57:26,980 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:26,981 - INFO - ------------------------
+2024-10-03 21:57:29,134 - INFO - Обновление данных для ETHUSDT с 1727976000001 до 1727981700000 (2024-10-03 17:20:00 до 2024-10-03 18:55:00)
+2024-10-03 21:57:30,028 - INFO - Данные сохранены в data/ETHUSDT_5_data.csv
+2024-10-03 21:57:30,716 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:30,717 - INFO - Сводка данных для ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727981700000        ETHUSDT    5          1727981700000 2344.800048828125 2347.199951171875 2344.800048828125 2346.27001953125 72.143798828125 169280.5   2240       49.65679931640625 116511.7890625 18         0          -1.0       -1.8369701465288538e-16 0.0        1.0       
+Last                 1726416600000        ETHUSDT    5          1726416600000 2404.31005859375 2404.31005859375 2399.60009765625 2400.60009765625 479.52191162109375 1151601.875 3967       170.806396484375 410212.28125 16         3          -0.8660253882408142 -0.5       0.4338837265968323 -0.9009688496589661
+
+2024-10-03 21:57:31,389 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:31,390 - INFO - ------------------------
+2024-10-03 21:57:33,507 - INFO - Обновление данных для ETHUSDT с 1727975700001 до 1727981100000 (2024-10-03 17:15:00 до 2024-10-03 18:45:00)
+2024-10-03 21:57:33,983 - INFO - Данные сохранены в data/ETHUSDT_15_data.csv
+2024-10-03 21:57:34,636 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:34,638 - INFO - Сводка данных для ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727981100000        ETHUSDT    15         1727981100000 2344.010009765625 2348.659912109375 2342.6201171875 2345.969970703125 854.6159057617188 2004626.125 12827      348.90899658203125 818531.4375 18         0          -1.0       -1.8369701465288538e-16 0.0        1.0       
+Last                 1724861700000        ETHUSDT    15         1724861700000 2475.47998046875 2487.10009765625 2456.18994140625 2483.639892578125 13357.34765625 32992186.0 69902      6384.640625 15775643.0 16         6          -0.8660253882408142 -0.5       -0.7818315029144287 0.6234897971153259
+
+2024-10-03 21:57:35,291 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:35,293 - INFO - ------------------------
+2024-10-03 21:57:37,538 - INFO - Обновление данных для BTCUSDT с 1727976120001 до 1727981820000 (2024-10-03 17:22:00 до 2024-10-03 18:57:00)
+2024-10-03 21:57:38,059 - INFO - Данные сохранены в data/BTCUSDT_1_data.csv
+2024-10-03 21:57:38,760 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:38,762 - INFO - Сводка данных для BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727981820000        BTCUSDT    1          1727981820000 60788.6484375 60788.6484375 60774.0    60775.6796875 9.695659637451172 589279.5   700        7.877709865570068 478779.0625 18         0          -1.0       -1.8369701465288538e-16 0.0        1.0       
+Last                 1727194140000        BTCUSDT    1          1727194140000 63178.0    63190.7109375 63110.23046875 63120.0    32.92543029785156 2079061.125 4788       9.085539817810059 573683.8125 16         5          -0.8660253882408142 -0.5       -0.9749279022216797 -0.22252093255519867
+
+2024-10-03 21:57:39,434 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:39,435 - INFO - ------------------------
+2024-10-03 21:57:41,557 - INFO - Обновление данных для BTCUSDT с 1727976000001 до 1727981700000 (2024-10-03 17:20:00 до 2024-10-03 18:55:00)
+2024-10-03 21:57:41,994 - INFO - Данные сохранены в data/BTCUSDT_5_data.csv
+2024-10-03 21:57:42,650 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:42,652 - INFO - Сводка данных для BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727981700000        BTCUSDT    5          1727981700000 60737.75   60809.98828125 60737.75   60773.828125 33.259239196777344 2021704.875 3997       27.402999877929688 1665692.125 18         0          -1.0       -1.8369701465288538e-16 0.0        1.0       
+Last                 1726416600000        BTCUSDT    5          1726416600000 60220.01171875 60224.0    60169.51171875 60171.5390625 163.57444763183594 9846322.0  10559      46.21527099609375 2781698.0  16         3          -0.8660253882408142 -0.5       0.4338837265968323 -0.9009688496589661
+
+2024-10-03 21:57:43,312 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:43,313 - INFO - ------------------------
+2024-10-03 21:57:45,689 - INFO - Обновление данных для BTCUSDT с 1727975700001 до 1727981100000 (2024-10-03 17:15:00 до 2024-10-03 18:45:00)
+2024-10-03 21:57:46,121 - INFO - Данные сохранены в data/BTCUSDT_15_data.csv
+2024-10-03 21:57:46,780 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:46,782 - INFO - Сводка данных для BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727981100000        BTCUSDT    15         1727981100000 60656.01171875 60809.98828125 60622.76953125 60750.01171875 116.74906158447266 7091920.0  34558      73.59754943847656 4471164.5  18         0          -1.0       -1.8369701465288538e-16 0.0        1.0       
+Last                 1724861700000        BTCUSDT    15         1724861700000 58590.921875 58621.1015625 57860.0    58417.0    2141.703125 124515552.0 155594     762.26708984375 44327140.0 16         6          -0.8660253882408142 -0.5       -0.7818315029144287 0.6234897971153259
+
+2024-10-03 21:57:47,447 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 21:57:47,449 - INFO - ------------------------
+2024-10-03 21:57:48,456 - INFO - Все файлы обновлены с последними ценами.
+2024-10-03 21:57:48,456 - INFO - Выполнение методов get_current_price и get_latest_prices для всех символов и интервалов.
+2024-10-03 21:57:48,851 - INFO - Текущая цена для ETHUSDT (1):
+    symbol  interval      timestamp         open         high     low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0  ETHUSDT         1  1727981820000  2346.379883  2346.530029  2345.0  ...    18          0      -1.0 -1.836970e-16      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 21:57:48,903 - INFO - Последняя цена для ETHUSDT (1):
+      symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0    ETHUSDT         1  1727981820000  2346.38  2346.53  2345.76  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+2    ETHUSDT         1  1727981760000  2346.57  2347.08  2346.10  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+4    ETHUSDT         1  1727981700000  2344.80  2347.20  2344.80  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+8    ETHUSDT         1  1727981640000  2346.48  2346.48  2344.22  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+11   ETHUSDT         1  1727981580000  2347.00  2347.20  2345.80  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+..       ...       ...            ...      ...      ...      ...  ...   ...        ...       ...           ...      ...      ...
+747  ETHUSDT         1  1727964120000  2348.37  2355.12  2346.77  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+749  ETHUSDT         1  1727964060000  2347.15  2351.42  2346.26  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+750  ETHUSDT         1  1727964000000  2347.30  2351.78  2345.80  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+756  ETHUSDT         1  1727963940000  2348.27  2349.00  2346.04  ...    13          0 -0.258819 -9.659258e-01      0.0      1.0
+759  ETHUSDT         1  1727963880000  2345.99  2350.80  2345.98  ...    13          0 -0.258819 -9.659258e-01      0.0      1.0
+
+[300 rows x 18 columns]
+2024-10-03 21:57:50,295 - INFO - Текущая цена для ETHUSDT (5):
+    symbol  interval      timestamp         open         high          low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0  ETHUSDT         5  1727981700000  2344.800049  2347.199951  2344.800049  ...    18          0      -1.0 -1.836970e-16      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 21:57:50,346 - INFO - Последняя цена для ETHUSDT (5):
+       symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day  cos_day
+5     ETHUSDT         5  1727981700000  2344.80  2347.20  2344.80  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+17    ETHUSDT         5  1727981400000  2345.02  2348.40  2344.22  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+32    ETHUSDT         5  1727981100000  2344.01  2348.66  2342.62  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+42    ETHUSDT         5  1727980800000  2342.02  2345.92  2340.98  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+54    ETHUSDT         5  1727980500000  2340.23  2343.61  2339.99  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+...       ...       ...            ...      ...      ...      ...  ...   ...        ...       ...           ...       ...      ...
+3741  ETHUSDT         5  1727893200000  2402.61  2415.20  2396.75  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3755  ETHUSDT         5  1727892900000  2415.57  2419.00  2397.00  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3766  ETHUSDT         5  1727892600000  2432.40  2432.74  2412.55  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3781  ETHUSDT         5  1727892300000  2436.17  2436.78  2428.33  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3791  ETHUSDT         5  1727892000000  2446.71  2447.15  2435.86  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+
+[300 rows x 18 columns]
+2024-10-03 21:57:51,747 - INFO - Текущая цена для ETHUSDT (15):
+    symbol  interval      timestamp        open         high          low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0  ETHUSDT        15  1727981100000  2344.01001  2348.659912  2342.620117  ...    18          0      -1.0 -1.836970e-16      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 21:57:51,797 - INFO - Последняя цена для ETHUSDT (15):
+        symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day   cos_day
+28     ETHUSDT        15  1727981100000  2344.01  2348.66  2342.62  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+71     ETHUSDT        15  1727980200000  2343.41  2345.92  2337.65  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+109    ETHUSDT        15  1727979300000  2345.68  2351.70  2342.04  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+145    ETHUSDT        15  1727978400000  2343.83  2348.68  2342.23  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+183    ETHUSDT        15  1727977500000  2340.65  2347.27  2338.34  ...    17          0 -0.965926 -2.588190e-01  0.000000  1.000000
+...        ...       ...            ...      ...      ...      ...  ...   ...        ...       ...           ...       ...       ...
+11242  ETHUSDT        15  1727715600000  2603.60  2607.70  2599.35  ...    17          4 -0.965926 -2.588190e-01 -0.433884 -0.900969
+11276  ETHUSDT        15  1727714700000  2602.99  2608.65  2601.62  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11315  ETHUSDT        15  1727713800000  2608.12  2609.15  2599.10  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11352  ETHUSDT        15  1727712900000  2604.99  2610.00  2603.56  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11393  ETHUSDT        15  1727712000000  2595.99  2607.60  2590.00  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+
+[300 rows x 18 columns]
+2024-10-03 21:57:53,239 - INFO - Текущая цена для BTCUSDT (1):
+    symbol  interval      timestamp          open          high           low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0  BTCUSDT         1  1727981820000  60788.648438  60788.648438  60746.988281  ...    18          0      -1.0 -1.836970e-16      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 21:57:53,295 - INFO - Последняя цена для BTCUSDT (1):
+      symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+1    BTCUSDT         1  1727981820000  60788.65  60788.65  60774.00  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+3    BTCUSDT         1  1727981760000  60800.00  60809.99  60788.63  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+7    BTCUSDT         1  1727981700000  60737.75  60806.21  60737.75  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+9    BTCUSDT         1  1727981640000  60771.99  60772.00  60719.99  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+10   BTCUSDT         1  1727981580000  60760.67  60773.00  60744.92  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+..       ...       ...            ...       ...       ...       ...  ...   ...        ...       ...           ...      ...      ...
+746  BTCUSDT         1  1727964120000  60434.01  60597.98  60400.00  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+748  BTCUSDT         1  1727964060000  60371.91  60472.00  60359.90  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+753  BTCUSDT         1  1727964000000  60382.06  60487.99  60336.00  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+757  BTCUSDT         1  1727963940000  60428.00  60460.56  60358.00  ...    13          0 -0.258819 -9.659258e-01      0.0      1.0
+758  BTCUSDT         1  1727963880000  60364.00  60500.00  60362.08  ...    13          0 -0.258819 -9.659258e-01      0.0      1.0
+
+[300 rows x 18 columns]
+2024-10-03 21:57:54,707 - INFO - Текущая цена для BTCUSDT (5):
+    symbol  interval      timestamp      open          high       low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0  BTCUSDT         5  1727981700000  60737.75  60809.988281  60737.75  ...    18          0      -1.0 -1.836970e-16      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 21:57:54,757 - INFO - Последняя цена для BTCUSDT (5):
+       symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day  cos_day
+6     BTCUSDT         5  1727981700000  60737.75  60809.99  60737.75  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+19    BTCUSDT         5  1727981400000  60695.65  60786.75  60695.64  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+31    BTCUSDT         5  1727981100000  60656.01  60757.58  60622.77  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+45    BTCUSDT         5  1727980800000  60617.00  60735.67  60596.00  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+55    BTCUSDT         5  1727980500000  60556.00  60660.00  60546.80  ...    18          0      -1.0 -1.836970e-16  0.000000  1.00000
+...       ...       ...            ...       ...       ...       ...  ...   ...        ...       ...           ...       ...      ...
+3742  BTCUSDT         5  1727893200000  60916.00  61238.48  60858.00  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3754  BTCUSDT         5  1727892900000  61104.83  61191.74  60832.00  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3767  BTCUSDT         5  1727892600000  61475.99  61500.00  61082.00  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3778  BTCUSDT         5  1727892300000  61515.17  61515.17  61404.00  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+3790  BTCUSDT         5  1727892000000  61628.01  61691.00  61515.16  ...    18          6      -1.0 -1.836970e-16 -0.781832  0.62349
+
+[300 rows x 18 columns]
+2024-10-03 21:57:56,209 - INFO - Текущая цена для BTCUSDT (15):
+    symbol  interval      timestamp          open          high           low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0  BTCUSDT        15  1727981100000  60656.011719  60809.988281  60622.769531  ...    18          0      -1.0 -1.836970e-16      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 21:57:56,260 - INFO - Последняя цена для BTCUSDT (15):
+        symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day   cos_day
+30     BTCUSDT        15  1727981100000  60656.01  60809.99  60622.77  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+68     BTCUSDT        15  1727980200000  60666.01  60735.67  60531.85  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+108    BTCUSDT        15  1727979300000  60630.00  60858.31  60600.00  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+143    BTCUSDT        15  1727978400000  60632.00  60660.00  60555.72  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+181    BTCUSDT        15  1727977500000  60577.78  60704.00  60492.50  ...    17          0 -0.965926 -2.588190e-01  0.000000  1.000000
+...        ...       ...            ...       ...       ...       ...  ...   ...        ...       ...           ...       ...       ...
+11243  BTCUSDT        15  1727715600000  63486.98  63559.56  63416.13  ...    17          4 -0.965926 -2.588190e-01 -0.433884 -0.900969
+11277  BTCUSDT        15  1727714700000  63525.75  63615.98  63472.01  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11314  BTCUSDT        15  1727713800000  63630.01  63647.99  63462.59  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11357  BTCUSDT        15  1727712900000  63642.79  63732.00  63619.90  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11391  BTCUSDT        15  1727712000000  63561.42  63680.00  63528.00  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+
+[300 rows x 18 columns]
+2024-10-03 21:57:57,270 - INFO - Завершено.
+2024-10-03 21:57:57,310 - INFO - Latest dataset loaded with 300 records.
+2024-10-03 21:57:57,313 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 21:57:57,313 - INFO - Типы данных после transform:
+2024-10-03 21:57:57,314 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:57:57,315 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 21:57:57,316 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:57:57,318 - INFO - Типы данных после преобразования типов:
+2024-10-03 21:57:57,319 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:57:57,408 - INFO - Predicted prices saved to data/predictions.csv.
+2024-10-03 21:57:57,409 - INFO - Logging is set up.
+2024-10-03 21:57:57,410 - INFO - Используемое устройство: cuda
+2024-10-03 21:57:57,410 - INFO - DataProcessor загружен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 21:57:57,455 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 21:57:57,495 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 21:57:57,495 - INFO - Типы данных после transform:
+2024-10-03 21:57:57,495 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:57:57,496 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 21:57:57,497 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 21:57:57,690 - INFO - Оптимизатор загружен из models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 21:57:57,690 - INFO - Модель загружена из models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-03 21:57:57,691 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 21:57:57,693 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:57:57,696 - INFO - Типы данных после преобразования типов:
+2024-10-03 21:57:57,698 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 21:58:23,147 - INFO - Epoch 1/5 - Loss: 8700160231110.7764
+2024-10-03 21:58:23,244 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 21:58:23,244 - INFO - Validation loss improved to 8700160231110.7764. Model saved.
+2024-10-03 21:58:49,232 - INFO - Epoch 2/5 - Loss: 8752289268675.7646
+2024-10-03 21:58:49,233 - INFO - No improvement in validation loss. (1/5)
+2024-10-03 21:58:49,233 - INFO - Reducing learning rate to: 0.00025
+2024-10-03 21:59:15,413 - INFO - Epoch 3/5 - Loss: 8690413375632.5645
+2024-10-03 21:59:15,513 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 21:59:15,513 - INFO - Validation loss improved to 8690413375632.5645. Model saved.
+2024-10-03 21:59:41,669 - INFO - Epoch 4/5 - Loss: 8673887102373.6475
+2024-10-03 21:59:41,766 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 21:59:41,767 - INFO - Validation loss improved to 8673887102373.6475. Model saved.
+2024-10-03 22:00:07,665 - INFO - Epoch 5/5 - Loss: 8756025207723.6709
+2024-10-03 22:00:07,666 - INFO - No improvement in validation loss. (1/5)
+2024-10-03 22:00:07,666 - INFO - Reducing learning rate to: 0.000125
+2024-10-03 22:00:07,666 - INFO - Скрипт запущен
+2024-10-03 22:00:08,102 - INFO - Binance API доступен. Время сервера: 2024-10-03 19:00:07
+2024-10-03 22:00:09,175 - INFO - Обновление данных для ETHUSDT с 1727981820001 до 1727982000000 (2024-10-03 18:57:00 до 2024-10-03 19:00:00)
+2024-10-03 22:00:09,644 - INFO - Данные сохранены в data/ETHUSDT_1_data.csv
+2024-10-03 22:00:10,273 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:10,274 - INFO - Сводка данных для ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727982000000        ETHUSDT    1          1727982000000 2344.139892578125 2344.139892578125 2343.0     2343.989990234375 78.9303970336914 184977.609375 538        11.976699829101562 28065.724609375 19         0          -0.9659258127212524 0.258819043636322 0.0        1.0       
+Last                 1727194140000        ETHUSDT    1          1727194140000 2613.0     2614.199951171875 2611.550048828125 2612.1201171875 148.4376983642578 387799.21875 2793       84.86219787597656 221695.9375 16         5          -0.8660253882408142 -0.5       -0.9749279022216797 -0.22252093255519867
+
+2024-10-03 22:00:10,901 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:10,902 - INFO - ------------------------
+2024-10-03 22:00:12,974 - INFO - Обновление данных для ETHUSDT с 1727981700001 до 1727982000000 (2024-10-03 18:55:00 до 2024-10-03 19:00:00)
+2024-10-03 22:00:13,431 - INFO - Данные сохранены в data/ETHUSDT_5_data.csv
+2024-10-03 22:00:14,120 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:14,121 - INFO - Сводка данных для ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727982000000        ETHUSDT    5          1727982000000 2344.139892578125 2344.139892578125 2343.0     2343.989990234375 80.06050109863281 187626.546875 576        12.11400032043457 28387.5546875 19         0          -0.9659258127212524 0.258819043636322 0.0        1.0       
+Last                 1726416600000        ETHUSDT    5          1726416600000 2404.31005859375 2404.31005859375 2399.60009765625 2400.60009765625 479.52191162109375 1151601.875 3967       170.806396484375 410212.28125 16         3          -0.8660253882408142 -0.5       0.4338837265968323 -0.9009688496589661
+
+2024-10-03 22:00:14,821 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:14,821 - INFO - ------------------------
+2024-10-03 22:00:16,841 - INFO - Обновление данных для ETHUSDT с 1727981100001 до 1727982000000 (2024-10-03 18:45:00 до 2024-10-03 19:00:00)
+2024-10-03 22:00:17,285 - INFO - Данные сохранены в data/ETHUSDT_15_data.csv
+2024-10-03 22:00:17,900 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:17,901 - INFO - Сводка данных для ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727982000000        ETHUSDT    15         1727982000000 2344.139892578125 2344.139892578125 2343.0     2343.2099609375 117.4573974609375 275261.46875 825        12.133099555969238 28432.322265625 19         0          -0.9659258127212524 0.258819043636322 0.0        1.0       
+Last                 1724861700000        ETHUSDT    15         1724861700000 2475.47998046875 2487.10009765625 2456.18994140625 2483.639892578125 13357.34765625 32992186.0 69902      6384.640625 15775643.0 16         6          -0.8660253882408142 -0.5       -0.7818315029144287 0.6234897971153259
+
+2024-10-03 22:00:18,525 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:18,526 - INFO - ------------------------
+2024-10-03 22:00:20,663 - INFO - Обновление данных для BTCUSDT с 1727981820001 до 1727982000000 (2024-10-03 18:57:00 до 2024-10-03 19:00:00)
+2024-10-03 22:00:21,114 - INFO - Данные сохранены в data/BTCUSDT_1_data.csv
+2024-10-03 22:00:21,768 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:21,770 - INFO - Сводка данных для BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727982000000        BTCUSDT    1          1727982000000 60722.30859375 60722.30859375 60686.0    60703.98828125 6.630720138549805 402512.5625 1142       1.0988600254058838 66694.890625 19         0          -0.9659258127212524 0.258819043636322 0.0        1.0       
+Last                 1727194140000        BTCUSDT    1          1727194140000 63178.0    63190.7109375 63110.23046875 63120.0    32.92543029785156 2079061.125 4788       9.085539817810059 573683.8125 16         5          -0.8660253882408142 -0.5       -0.9749279022216797 -0.22252093255519867
+
+2024-10-03 22:00:22,454 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:22,455 - INFO - ------------------------
+2024-10-03 22:00:24,532 - INFO - Обновление данных для BTCUSDT с 1727981700001 до 1727982000000 (2024-10-03 18:55:00 до 2024-10-03 19:00:00)
+2024-10-03 22:00:24,957 - INFO - Данные сохранены в data/BTCUSDT_5_data.csv
+2024-10-03 22:00:25,591 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:25,592 - INFO - Сводка данных для BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727982000000        BTCUSDT    5          1727982000000 60722.30859375 60722.30859375 60686.0    60703.98828125 6.63746976852417 402922.3125 1145       1.1043699979782104 67029.3671875 19         0          -0.9659258127212524 0.258819043636322 0.0        1.0       
+Last                 1726416600000        BTCUSDT    5          1726416600000 60220.01171875 60224.0    60169.51171875 60171.5390625 163.57444763183594 9846322.0  10559      46.21527099609375 2781698.0  16         3          -0.8660253882408142 -0.5       0.4338837265968323 -0.9009688496589661
+
+2024-10-03 22:00:26,227 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:26,227 - INFO - ------------------------
+2024-10-03 22:00:28,354 - INFO - Обновление данных для BTCUSDT с 1727981100001 до 1727982000000 (2024-10-03 18:45:00 до 2024-10-03 19:00:00)
+2024-10-03 22:00:28,750 - INFO - Данные сохранены в data/BTCUSDT_15_data.csv
+2024-10-03 22:00:29,384 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:29,385 - INFO - Сводка данных для BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1727982000000        BTCUSDT    15         1727982000000 60722.30859375 60722.30859375 60686.0    60708.51171875 7.419410228729248 450390.4375 1317       1.7367600202560425 105418.4296875 19         0          -0.9659258127212524 0.258819043636322 0.0        1.0       
+Last                 1724861700000        BTCUSDT    15         1724861700000 58590.921875 58621.1015625 57860.0    58417.0    2141.703125 124515552.0 155594     762.26708984375 44327140.0 16         6          -0.8660253882408142 -0.5       -0.7818315029144287 0.6234897971153259
+
+2024-10-03 22:00:30,017 - INFO - Комбинированный набор данных обновлен: data/combined_dataset.csv
+2024-10-03 22:00:30,017 - INFO - ------------------------
+2024-10-03 22:00:31,028 - INFO - Все файлы обновлены с последними ценами.
+2024-10-03 22:00:31,029 - INFO - Выполнение методов get_current_price и get_latest_prices для всех символов и интервалов.
+2024-10-03 22:00:31,391 - INFO - Текущая цена для ETHUSDT (1):
+    symbol  interval      timestamp         open         high         low  ...  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  ETHUSDT         1  1727982000000  2344.139893  2344.199951  2342.73999  ...    19          0 -0.965926  0.258819      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 22:00:31,438 - INFO - Последняя цена для ETHUSDT (1):
+      symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+1    ETHUSDT         1  1727982000000  2344.14  2344.14  2343.00  ...    19          0 -0.965926  2.588190e-01      0.0      1.0
+6    ETHUSDT         1  1727981940000  2344.84  2344.84  2344.14  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+9    ETHUSDT         1  1727981880000  2344.66  2345.43  2344.54  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+11   ETHUSDT         1  1727981820000  2346.38  2346.53  2345.76  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+12   ETHUSDT         1  1727981760000  2346.57  2347.08  2346.10  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+..       ...       ...            ...      ...      ...      ...  ...   ...        ...       ...           ...      ...      ...
+748  ETHUSDT         1  1727964300000  2349.42  2354.94  2348.82  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+752  ETHUSDT         1  1727964240000  2347.37  2350.94  2346.76  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+754  ETHUSDT         1  1727964180000  2352.87  2353.81  2346.08  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+757  ETHUSDT         1  1727964120000  2348.37  2355.12  2346.77  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+758  ETHUSDT         1  1727964060000  2347.15  2351.42  2346.26  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+
+[300 rows x 18 columns]
+2024-10-03 22:00:32,724 - INFO - Текущая цена для ETHUSDT (5):
+    symbol  interval      timestamp         open         high         low  ...  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  ETHUSDT         5  1727982000000  2344.139893  2344.199951  2342.73999  ...    19          0 -0.965926  0.258819      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 22:00:32,767 - INFO - Последняя цена для ETHUSDT (5):
+       symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day  cos_day
+4     ETHUSDT         5  1727982000000  2344.14  2344.14  2343.00  ...    19          0 -0.965926  2.588190e-01  0.000000  1.00000
+16    ETHUSDT         5  1727981700000  2344.80  2347.20  2344.80  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+28    ETHUSDT         5  1727981400000  2345.02  2348.40  2344.22  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+38    ETHUSDT         5  1727981100000  2344.01  2348.66  2342.62  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+52    ETHUSDT         5  1727980800000  2342.02  2345.92  2340.98  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+...       ...       ...            ...      ...      ...      ...  ...   ...        ...       ...           ...       ...      ...
+3738  ETHUSDT         5  1727893500000  2414.69  2417.79  2406.90  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3752  ETHUSDT         5  1727893200000  2402.61  2415.20  2396.75  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3765  ETHUSDT         5  1727892900000  2415.57  2419.00  2397.00  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3776  ETHUSDT         5  1727892600000  2432.40  2432.74  2412.55  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3790  ETHUSDT         5  1727892300000  2436.17  2436.78  2428.33  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+
+[300 rows x 18 columns]
+2024-10-03 22:00:34,164 - INFO - Текущая цена для ETHUSDT (15):
+    symbol  interval      timestamp         open         high         low  ...  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  ETHUSDT        15  1727982000000  2344.139893  2344.199951  2342.73999  ...    19          0 -0.965926  0.258819      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 22:00:34,208 - INFO - Последняя цена для ETHUSDT (15):
+        symbol  interval      timestamp     open     high      low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day   cos_day
+5      ETHUSDT        15  1727982000000  2344.14  2344.14  2343.00  ...    19          0 -0.965926  2.588190e-01  0.000000  1.000000
+40     ETHUSDT        15  1727981100000  2344.01  2348.66  2342.62  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+77     ETHUSDT        15  1727980200000  2343.41  2345.92  2337.65  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+118    ETHUSDT        15  1727979300000  2345.68  2351.70  2342.04  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+157    ETHUSDT        15  1727978400000  2343.83  2348.68  2342.23  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+...        ...       ...            ...      ...      ...      ...  ...   ...        ...       ...           ...       ...       ...
+11213  ETHUSDT        15  1727716500000  2602.70  2607.38  2598.30  ...    17          4 -0.965926 -2.588190e-01 -0.433884 -0.900969
+11249  ETHUSDT        15  1727715600000  2603.60  2607.70  2599.35  ...    17          4 -0.965926 -2.588190e-01 -0.433884 -0.900969
+11286  ETHUSDT        15  1727714700000  2602.99  2608.65  2601.62  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11326  ETHUSDT        15  1727713800000  2608.12  2609.15  2599.10  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11362  ETHUSDT        15  1727712900000  2604.99  2610.00  2603.56  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+
+[300 rows x 18 columns]
+2024-10-03 22:00:35,566 - INFO - Текущая цена для BTCUSDT (1):
+    symbol  interval      timestamp          open          high           low  ...  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  BTCUSDT         1  1727982000000  60722.308594  60722.308594  60680.410156  ...    19          0 -0.965926  0.258819      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 22:00:35,609 - INFO - Последняя цена для BTCUSDT (1):
+      symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour      cos_hour  sin_day  cos_day
+0    BTCUSDT         1  1727982000000  60722.31  60722.31  60686.00  ...    19          0 -0.965926  2.588190e-01      0.0      1.0
+7    BTCUSDT         1  1727981940000  60728.01  60733.02  60722.30  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+8    BTCUSDT         1  1727981880000  60735.43  60741.18  60724.00  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+10   BTCUSDT         1  1727981820000  60788.65  60788.65  60774.00  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+13   BTCUSDT         1  1727981760000  60800.00  60809.99  60788.63  ...    18          0 -1.000000 -1.836970e-16      0.0      1.0
+..       ...       ...            ...       ...       ...       ...  ...   ...        ...       ...           ...      ...      ...
+751  BTCUSDT         1  1727964300000  60480.81  60717.37  60459.91  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+753  BTCUSDT         1  1727964240000  60418.00  60503.24  60399.91  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+755  BTCUSDT         1  1727964180000  60566.02  60571.96  60396.00  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+756  BTCUSDT         1  1727964120000  60434.01  60597.98  60400.00  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+759  BTCUSDT         1  1727964060000  60371.91  60472.00  60359.90  ...    14          0 -0.500000 -8.660254e-01      0.0      1.0
+
+[300 rows x 18 columns]
+2024-10-03 22:00:36,956 - INFO - Текущая цена для BTCUSDT (5):
+    symbol  interval      timestamp          open          high           low  ...  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  BTCUSDT         5  1727982000000  60722.308594  60722.308594  60680.410156  ...    19          0 -0.965926  0.258819      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 22:00:36,998 - INFO - Последняя цена для BTCUSDT (5):
+       symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day  cos_day
+3     BTCUSDT         5  1727982000000  60722.31  60722.31  60686.00  ...    19          0 -0.965926  2.588190e-01  0.000000  1.00000
+17    BTCUSDT         5  1727981700000  60737.75  60809.99  60737.75  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+26    BTCUSDT         5  1727981400000  60695.65  60786.75  60695.64  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+43    BTCUSDT         5  1727981100000  60656.01  60757.58  60622.77  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+53    BTCUSDT         5  1727980800000  60617.00  60735.67  60596.00  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.00000
+...       ...       ...            ...       ...       ...       ...  ...   ...        ...       ...           ...       ...      ...
+3741  BTCUSDT         5  1727893500000  61236.01  61280.00  61074.00  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3751  BTCUSDT         5  1727893200000  60916.00  61238.48  60858.00  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3763  BTCUSDT         5  1727892900000  61104.83  61191.74  60832.00  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3777  BTCUSDT         5  1727892600000  61475.99  61500.00  61082.00  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+3788  BTCUSDT         5  1727892300000  61515.17  61515.17  61404.00  ...    18          6 -1.000000 -1.836970e-16 -0.781832  0.62349
+
+[300 rows x 18 columns]
+2024-10-03 22:00:38,397 - INFO - Текущая цена для BTCUSDT (15):
+    symbol  interval      timestamp          open          high           low  ...  hour  dayofweek  sin_hour  cos_hour  sin_day  cos_day
+0  BTCUSDT        15  1727982000000  60722.308594  60722.308594  60680.410156  ...    19          0 -0.965926  0.258819      0.0      1.0
+
+[1 rows x 18 columns]
+2024-10-03 22:00:38,440 - INFO - Последняя цена для BTCUSDT (15):
+        symbol  interval      timestamp      open      high       low  ...  hour  dayofweek  sin_hour      cos_hour   sin_day   cos_day
+2      BTCUSDT        15  1727982000000  60722.31  60722.31  60686.00  ...    19          0 -0.965926  2.588190e-01  0.000000  1.000000
+41     BTCUSDT        15  1727981100000  60656.01  60809.99  60622.77  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+79     BTCUSDT        15  1727980200000  60666.01  60735.67  60531.85  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+116    BTCUSDT        15  1727979300000  60630.00  60858.31  60600.00  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+156    BTCUSDT        15  1727978400000  60632.00  60660.00  60555.72  ...    18          0 -1.000000 -1.836970e-16  0.000000  1.000000
+...        ...       ...            ...       ...       ...       ...  ...   ...        ...       ...           ...       ...       ...
+11212  BTCUSDT        15  1727716500000  63456.00  63670.28  63440.00  ...    17          4 -0.965926 -2.588190e-01 -0.433884 -0.900969
+11250  BTCUSDT        15  1727715600000  63486.98  63559.56  63416.13  ...    17          4 -0.965926 -2.588190e-01 -0.433884 -0.900969
+11290  BTCUSDT        15  1727714700000  63525.75  63615.98  63472.01  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11327  BTCUSDT        15  1727713800000  63630.01  63647.99  63462.59  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+11366  BTCUSDT        15  1727712900000  63642.79  63732.00  63619.90  ...    16          4 -0.866025 -5.000000e-01 -0.433884 -0.900969
+
+[300 rows x 18 columns]
+2024-10-03 22:00:39,440 - INFO - Завершено.
+2024-10-03 22:00:39,473 - INFO - Latest dataset loaded with 300 records.
+2024-10-03 22:00:39,476 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 22:00:39,476 - INFO - Типы данных после transform:
+2024-10-03 22:00:39,476 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:00:39,478 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 22:00:39,479 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:00:39,481 - INFO - Типы данных после преобразования типов:
+2024-10-03 22:00:39,481 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:00:39,560 - INFO - Predicted prices saved to data/predictions.csv.
+2024-10-03 22:00:39,561 - INFO - Logging is set up.
+2024-10-03 22:00:39,561 - INFO - Используемое устройство: cuda
+2024-10-03 22:00:39,561 - INFO - DataProcessor загружен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 22:00:39,601 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 22:00:39,640 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 22:00:39,640 - INFO - Типы данных после transform:
+2024-10-03 22:00:39,641 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:00:39,642 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 22:00:39,642 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 22:00:39,834 - INFO - Оптимизатор загружен из models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 22:00:39,834 - INFO - Модель загружена из models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-03 22:00:39,836 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 22:00:39,837 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:00:39,840 - INFO - Типы данных после преобразования типов:
+2024-10-03 22:00:39,842 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:19:19,972 - INFO - Logging is set up.
+2024-10-03 22:19:19,973 - INFO - Используемое устройство: cuda
+2024-10-03 22:19:19,973 - INFO - Numerical columns for scaling: ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'interval']
+2024-10-03 22:19:20,028 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-03 22:19:20,083 - INFO - Порядок столбцов после fit_transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 22:19:20,083 - INFO - Типы данных после fit_transform:
+2024-10-03 22:19:20,084 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:19:20,088 - INFO - DataProcessor сохранен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-03 22:19:20,089 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-03 22:19:20,089 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-03 22:19:21,431 - WARNING - Файл модели models/enhanced_bilstm_model_ETHUSDT_v2.0.pth не найден. Будет создана новая модель.
+2024-10-03 22:19:21,433 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-03 22:19:21,436 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:19:21,440 - INFO - Типы данных после преобразования типов:
+2024-10-03 22:19:21,442 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-03 22:19:22,597 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:22,782 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:23,225 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:23,536 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:23,921 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:24,417 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:24,884 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,434 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,484 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,535 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,585 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,633 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,681 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,730 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,776 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,826 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,873 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,922 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:25,970 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,018 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,065 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,113 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,161 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,210 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,258 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,305 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,353 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,400 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,448 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,496 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,544 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,592 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,639 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,687 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,735 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,784 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,833 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,881 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,929 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:26,975 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,023 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,071 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,118 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,167 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,215 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,262 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,311 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,359 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,407 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,454 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,502 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,550 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,598 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,647 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,696 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,745 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,794 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,841 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,780 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,828 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,876 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,925 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:27,973 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,020 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,068 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,114 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,160 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,206 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,254 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,298 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,345 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,392 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,438 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,484 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,531 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,578 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,624 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,670 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,717 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,764 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,810 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,857 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,903 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,948 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:28,994 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,041 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,089 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,135 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,181 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,228 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,273 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,321 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,367 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,413 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,460 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,506 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,553 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,600 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,647 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,693 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,740 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,786 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,833 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,880 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,926 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:29,972 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,020 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,065 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,112 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,159 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,206 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,253 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,300 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,347 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,394 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,440 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,486 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,533 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,579 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,628 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,674 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,720 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,769 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,816 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,862 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,909 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:30,955 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,001 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,048 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,096 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,142 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,190 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,237 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,284 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,331 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,380 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,426 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,473 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,520 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,567 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,615 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,661 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,708 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,755 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,802 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,850 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,896 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,944 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:31,990 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,038 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,085 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,133 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,180 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,229 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,276 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,325 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,371 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,417 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,465 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,513 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,560 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,607 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,654 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,701 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,749 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,797 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,844 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:32,891 - ERROR - Output shape torch.Size([149, 9]) does not match target shape torch.Size([149, 10])
+2024-10-03 22:19:33,601 - INFO - Epoch 1/5 - Loss: 0.0000
+2024-10-03 22:19:33,634 - INFO - Модель сохранена в models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, а оптимизатор в models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-03 22:19:33,634 - INFO - Validation loss improved to 0.0000. Model saved.
+2024-10-03 22:19:34,012 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-03 22:19:34,408 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:52,527 - INFO - Logging is set up.
+2024-10-04 07:55:52,528 - INFO - Используемое устройство: cuda
+2024-10-04 07:55:52,528 - INFO - DataProcessor загружен: models/data_processor_ETHUSDT_v2.0.pkl
+2024-10-04 07:55:52,585 - INFO - Комбинированные данные загружены из data/combined_dataset.csv
+2024-10-04 07:55:52,635 - INFO - Порядок столбцов после transform: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-04 07:55:52,635 - INFO - Типы данных после transform:
+2024-10-04 07:55:52,635 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-04 07:55:52,636 - INFO - num_symbols: 2, num_intervals: 16
+2024-10-04 07:55:52,637 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-04 07:55:54,043 - INFO - Оптимизатор загружен из models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-04 07:55:54,043 - INFO - Модель загружена из models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-04 07:55:54,045 - INFO - Типы данных перед преобразованием в тензоры:
+2024-10-04 07:55:54,048 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-04 07:55:54,051 - INFO - Типы данных после преобразования типов:
+2024-10-04 07:55:54,052 - INFO - symbol                            int64
+interval                          int64
+timestamp                         int64
+open                            float32
+high                            float32
+low                             float32
+close                           float32
+volume                          float32
+quote_asset_volume              float32
+number_of_trades                  int64
+taker_buy_base_asset_volume     float32
+taker_buy_quote_asset_volume    float32
+hour                              int64
+dayofweek                         int64
+sin_hour                        float32
+cos_hour                        float32
+sin_day                         float32
+cos_day                         float32
+dtype: object
+2024-10-04 07:55:55,252 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:55,403 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:55,833 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:56,250 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:56,640 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:57,073 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:57,823 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,490 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,541 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,592 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,642 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,693 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,742 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,790 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,839 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,887 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,936 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:58,985 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,033 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,080 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,129 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,178 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,226 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,275 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,324 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,372 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,421 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,469 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,518 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,566 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,615 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,663 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,712 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,760 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,809 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,858 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,906 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:55:59,955 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,005 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,053 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,102 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,151 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,199 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,247 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,295 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,343 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,392 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,440 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,488 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,536 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,584 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,633 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,682 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,729 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,779 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,828 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,876 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,925 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:00,973 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,021 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,069 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,118 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,166 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,213 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,261 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,309 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,357 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,406 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,454 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,502 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,550 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,598 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,647 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,695 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,743 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,791 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,839 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,886 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,935 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:01,983 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,032 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,080 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,129 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,178 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,225 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,273 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,321 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,370 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,418 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,466 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,514 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,562 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,610 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,658 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,707 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,754 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,802 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,850 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,899 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,948 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:02,997 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,045 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,094 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,142 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,191 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,239 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,287 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,335 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,383 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,432 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,480 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,528 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,576 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,624 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,672 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,720 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,768 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,816 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,864 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,912 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:03,960 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,008 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,056 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,105 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,154 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,203 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,251 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,300 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,348 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,396 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,444 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,491 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,539 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,588 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,636 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,683 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,731 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,780 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,828 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,876 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,924 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:04,972 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,021 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,071 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,120 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,168 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,217 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,266 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,314 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,362 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,411 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,459 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,508 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,555 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,604 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
+2024-10-04 07:56:05,651 - ERROR - Output shape torch.Size([256, 9]) does not match target shape torch.Size([256, 10])
