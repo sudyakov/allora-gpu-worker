@@ -9932,3 +9932,716 @@ INFO - Combined data loaded from data/combined_dataset.csv
 INFO - Combined data loaded from data/combined_dataset.csv
 INFO - Combined data loaded from data/combined_dataset.csv
 INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-10-04 15:16:55
+INFO - Updating data for ETHUSDT from 1727277415942 to 1728054960000 (2024-09-25 15:16:55 to 2024-10-04 15:16:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054960000        ETHUSDT    1          1728054960000 15.0       1.0        2388.489990234375 2393.510009765625 2387.8701171875 2393.280029296875 289.44390869140625 692034.8125 1305.0     212.26480102539062 507567.53125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1726499823826 to 1728054900000 (2024-09-16 15:17:03 to 2024-10-04 15:15:00)
+INFO - Data saved to data/ETHUSDT_5_data.csv
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    5          1728054900000 15.0       1.0        2387.010009765625 2393.510009765625 2385.7099609375 2393.409912109375 695.92138671875 1662613.375 4134.0     522.777099609375 1249012.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15.0       4.0        2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1724944628812 to 1728054900000 (2024-08-29 15:17:08 to 2024-10-04 15:15:00)
+INFO - Data saved to data/ETHUSDT_15_data.csv
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15.0       1.0        2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15.0       0.0        2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1727277432972 to 1728055020000 (2024-09-25 15:17:12 to 2024-10-04 15:17:00)
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055020000        BTCUSDT    1          1728055020000 15.0       1.0        61730.0    61760.2109375 61729.98828125 61760.2109375 7.069580078125 436570.53125 1454.0     6.684539794921875 412795.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1726499841145 to 1728054900000 (2024-09-16 15:17:21 to 2024-10-04 15:15:00)
+INFO - Data saved to data/BTCUSDT_5_data.csv
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    5          1728054900000 15.0       1.0        61626.828125 61760.2109375 61600.0    61754.0    55.715118408203125 3436141.25 15141.0    35.64176940917969 2198405.75 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15.0       4.0        57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1724944646827 to 1728054900000 (2024-08-29 15:17:26 to 2024-10-04 15:15:00)
+INFO - Data saved to data/BTCUSDT_15_data.csv
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15.0       1.0        61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15.0       0.0        61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - All files have been updated with the latest prices.
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Script started
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-10-04 15:19:56
+INFO - Binance API is available. Server time: 2024-10-04 15:19:56
+INFO - Updating data for ETHUSDT from 1728054960001 to 1728055140000 (2024-10-04 15:16:00 to 2024-10-04 15:19:00)
+INFO - Updating data for ETHUSDT from 1728054960001 to 1728055140000 (2024-10-04 15:16:00 to 2024-10-04 15:19:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055140000        ETHUSDT    1          1728055140000 15.0       1.0        2391.659912109375 2392.699951171875 2390.81005859375 2392.35009765625 169.14480590820312 404574.75  2633.0     119.85910034179688 286679.15625 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055140000        ETHUSDT    1          1728055140000 15.0       1.0        2391.659912109375 2392.699951171875 2390.81005859375 2392.35009765625 169.14480590820312 404574.75  2633.0     119.85910034179688 286679.15625 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - Updating data for ETHUSDT from 1728054900001 to 1728055200000 (2024-10-04 15:15:00 to 2024-10-04 15:20:00)
+INFO - Updating data for ETHUSDT from 1728054900001 to 1728055200000 (2024-10-04 15:15:00 to 2024-10-04 15:20:00)
+INFO - Data saved to data/ETHUSDT_5_data.csv
+INFO - Data saved to data/ETHUSDT_5_data.csv
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15.0       1.0        2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15.0       4.0        2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15.0       1.0        2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15.0       4.0        2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1728055020001 to 1728055200000 (2024-10-04 15:17:00 to 2024-10-04 15:20:00)
+INFO - Updating data for BTCUSDT from 1728055020001 to 1728055200000 (2024-10-04 15:17:00 to 2024-10-04 15:20:00)
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    1          1728055200000 15.0       1.0        61628.01171875 61632.0    61600.0    61600.01171875 6.569109916687012 404747.9375 1090.0     0.6810500025749207 41960.6796875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    1          1728055200000 15.0       1.0        61628.01171875 61632.0    61600.0    61600.01171875 6.569109916687012 404747.9375 1090.0     0.6810500025749207 41960.6796875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1728054900001 to 1728055200000 (2024-10-04 15:15:00 to 2024-10-04 15:20:00)
+INFO - Updating data for BTCUSDT from 1728054900001 to 1728055200000 (2024-10-04 15:15:00 to 2024-10-04 15:20:00)
+INFO - Data saved to data/BTCUSDT_5_data.csv
+INFO - Data saved to data/BTCUSDT_5_data.csv
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15.0       1.0        61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15.0       4.0        57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15.0       1.0        61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15.0       4.0        57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Script started
+INFO - Script started
+INFO - Script started
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-10-04 15:22:03
+INFO - Binance API is available. Server time: 2024-10-04 15:22:03
+INFO - Binance API is available. Server time: 2024-10-04 15:22:03
+INFO - Binance API is available. Server time: 2024-10-04 15:22:03
+INFO - Updating data for ETHUSDT from 1728055140001 to 1728055320000 (2024-10-04 15:19:00 to 2024-10-04 15:22:00)
+INFO - Updating data for ETHUSDT from 1728055140001 to 1728055320000 (2024-10-04 15:19:00 to 2024-10-04 15:22:00)
+INFO - Updating data for ETHUSDT from 1728055140001 to 1728055320000 (2024-10-04 15:19:00 to 2024-10-04 15:22:00)
+INFO - Updating data for ETHUSDT from 1728055140001 to 1728055320000 (2024-10-04 15:19:00 to 2024-10-04 15:22:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        ETHUSDT    1          1728055320000 15.0       1.0        2394.280029296875 2394.280029296875 2393.820068359375 2393.89990234375 8.59000015258789 20563.255859375 560.0      7.264200210571289 17389.25   -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        ETHUSDT    1          1728055320000 15.0       1.0        2394.280029296875 2394.280029296875 2393.820068359375 2393.89990234375 8.59000015258789 20563.255859375 560.0      7.264200210571289 17389.25   -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        ETHUSDT    1          1728055320000 15.0       1.0        2394.280029296875 2394.280029296875 2393.820068359375 2393.89990234375 8.59000015258789 20563.255859375 560.0      7.264200210571289 17389.25   -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        ETHUSDT    1          1728055320000 15.0       1.0        2394.280029296875 2394.280029296875 2393.820068359375 2393.89990234375 8.59000015258789 20563.255859375 560.0      7.264200210571289 17389.25   -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1728055200001 to 1728055320000 (2024-10-04 15:20:00 to 2024-10-04 15:22:00)
+INFO - Updating data for BTCUSDT from 1728055200001 to 1728055320000 (2024-10-04 15:20:00 to 2024-10-04 15:22:00)
+INFO - Updating data for BTCUSDT from 1728055200001 to 1728055320000 (2024-10-04 15:20:00 to 2024-10-04 15:22:00)
+INFO - Updating data for BTCUSDT from 1728055200001 to 1728055320000 (2024-10-04 15:20:00 to 2024-10-04 15:22:00)
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        BTCUSDT    1          1728055320000 15.0       1.0        61636.0    61636.0    61625.0703125 61628.0    11.431180000305176 704512.1875 809.0      0.425790011882782 26240.818359375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        BTCUSDT    1          1728055320000 15.0       1.0        61636.0    61636.0    61625.0703125 61628.0    11.431180000305176 704512.1875 809.0      0.425790011882782 26240.818359375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        BTCUSDT    1          1728055320000 15.0       1.0        61636.0    61636.0    61625.0703125 61628.0    11.431180000305176 704512.1875 809.0      0.425790011882782 26240.818359375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055320000        BTCUSDT    1          1728055320000 15.0       1.0        61636.0    61636.0    61625.0703125 61628.0    11.431180000305176 704512.1875 809.0      0.425790011882782 26240.818359375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Script started
+INFO - Script started
+INFO - Script started
+INFO - Script started
+INFO - Script started
+INFO - Script started
+INFO - Binance API is available. Server time: 2024-10-04 15:24:08
+INFO - Binance API is available. Server time: 2024-10-04 15:24:08
+INFO - Binance API is available. Server time: 2024-10-04 15:24:08
+INFO - Binance API is available. Server time: 2024-10-04 15:24:08
+INFO - Binance API is available. Server time: 2024-10-04 15:24:08
+INFO - Binance API is available. Server time: 2024-10-04 15:24:08
+INFO - Updating data for ETHUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for ETHUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for ETHUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for ETHUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for ETHUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for ETHUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data saved to data/ETHUSDT_1_data.csv
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        ETHUSDT    1          1728055440000 15.0       1.0        2392.760009765625 2393.179931640625 2392.2900390625 2392.81005859375 26.838600158691406 64219.5546875 699.0      17.828699111938477 42660.734375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        ETHUSDT    1          1728055440000 15.0       1.0        2392.760009765625 2393.179931640625 2392.2900390625 2392.81005859375 26.838600158691406 64219.5546875 699.0      17.828699111938477 42660.734375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        ETHUSDT    1          1728055440000 15.0       1.0        2392.760009765625 2393.179931640625 2392.2900390625 2392.81005859375 26.838600158691406 64219.5546875 699.0      17.828699111938477 42660.734375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        ETHUSDT    1          1728055440000 15.0       1.0        2392.760009765625 2393.179931640625 2392.2900390625 2392.81005859375 26.838600158691406 64219.5546875 699.0      17.828699111938477 42660.734375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        ETHUSDT    1          1728055440000 15.0       1.0        2392.760009765625 2393.179931640625 2392.2900390625 2392.81005859375 26.838600158691406 64219.5546875 699.0      17.828699111938477 42660.734375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        ETHUSDT    1          1728055440000 15.0       1.0        2392.760009765625 2393.179931640625 2392.2900390625 2392.81005859375 26.838600158691406 64219.5546875 699.0      17.828699111938477 42660.734375 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277420000        ETHUSDT    1          1727277420000 15.0       6.0        2617.419921875 2620.5     2617.419921875 2620.0400390625 86.59809875488281 226791.84375 1686.0     61.80220031738281 161855.921875 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        ETHUSDT    5          1728055200000 15         1          2392.760009765625 2392.760009765625 2392.760009765625 2392.760009765625 0.0        0.0        0.0        0.0        0.0        -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        ETHUSDT    5          1726500000000 15         4          2289.800048828125 2294.530029296875 2289.010009765625 2294.14990234375 647.7030029296875 1484253.75 9327.0     384.2164001464844 880417.6875 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data for ETHUSDT does not require updating. Using current data.
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        ETHUSDT    15         1728054900000 15         1          2387.010009765625 2393.510009765625 2385.7099609375 2393.39990234375 703.1964111328125 1680025.375 4149.0     525.3023071289062 1255055.875 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        ETHUSDT    15         1724945400000 15         0          2583.010009765625 2595.39990234375 2579.47998046875 2580.659912109375 7139.62744140625 18488830.0 26227.0    3851.498046875 9975753.0  -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Updating data for BTCUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for BTCUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for BTCUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for BTCUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for BTCUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Updating data for BTCUSDT from 1728055320001 to 1728055440000 (2024-10-04 15:22:00 to 2024-10-04 15:24:00)
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data saved to data/BTCUSDT_1_data.csv
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        BTCUSDT    1          1728055440000 15.0       1.0        61605.98828125 61616.0    61598.0    61615.98828125 2.365880012512207 145757.828125 1844.0     2.0087099075317383 123754.5703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        BTCUSDT    1          1728055440000 15.0       1.0        61605.98828125 61616.0    61598.0    61615.98828125 2.365880012512207 145757.828125 1844.0     2.0087099075317383 123754.5703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        BTCUSDT    1          1728055440000 15.0       1.0        61605.98828125 61616.0    61598.0    61615.98828125 2.365880012512207 145757.828125 1844.0     2.0087099075317383 123754.5703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        BTCUSDT    1          1728055440000 15.0       1.0        61605.98828125 61616.0    61598.0    61615.98828125 2.365880012512207 145757.828125 1844.0     2.0087099075317383 123754.5703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        BTCUSDT    1          1728055440000 15.0       1.0        61605.98828125 61616.0    61598.0    61615.98828125 2.365880012512207 145757.828125 1844.0     2.0087099075317383 123754.5703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055440000        BTCUSDT    1          1728055440000 15.0       1.0        61605.98828125 61616.0    61598.0    61615.98828125 2.365880012512207 145757.828125 1844.0     2.0087099075317383 123754.5703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1727277480000        BTCUSDT    1          1727277480000 15.0       6.0        63814.2109375 63870.0    63814.2109375 63869.98828125 8.760589599609375 559308.5   4857.0     5.976860046386719 381584.28125 -0.7071067690849304 -0.7071067690849304 -0.7818315029144287 0.6234897971153259
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728055200000        BTCUSDT    5          1728055200000 15         1          61628.01171875 61632.0    61600.0    61600.01171875 6.854609966278076 422334.75  1129.0     0.9499099850654602 58522.45703125 -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1726500000000        BTCUSDT    5          1726500000000 15         4          57892.0    57970.0    57886.0    57970.0    100.9601821899414 5848886.5  13739.0    52.12620162963867 3019729.25 -0.7071067690849304 -0.7071067690849304 -0.4338837265968323 -0.9009688496589661
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data for BTCUSDT does not require updating. Using current data.
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Hour       Dayofweek  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728054900000        BTCUSDT    15         1728054900000 15         1          61626.828125 61760.2109375 61600.0    61758.66015625 57.50444030761719 3546637.0  15484.0    37.28007888793945 2299576.0  -0.7071067690849304 -0.7071067690849304 0.7818315029144287 0.6234897971153259
+Last                 1724945400000        BTCUSDT    15         1724945400000 15         0          61020.0    61166.98828125 60900.0    60900.01171875 422.541259765625 25799724.0 47288.0    199.53994750976562 12185370.0 -0.7071067690849304 -0.7071067690849304 0.0        1.0       
+
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - Combined dataset updated: data/combined_dataset.csv
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - ------------------------
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - All files have been updated with the latest prices.
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv
+INFO - Combined data loaded from data/combined_dataset.csv

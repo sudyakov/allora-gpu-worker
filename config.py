@@ -55,6 +55,7 @@ RAW_FEATURES = OrderedDict([
 # Temporal features
 TIME_FEATURES = OrderedDict([
     ('timestamp', np.int64),
+
 ])
 
 # Scalable features
@@ -68,12 +69,12 @@ SCALABLE_FEATURES = OrderedDict([
     ('number_of_trades', np.float32),
     ('taker_buy_base_asset_volume', np.float32),
     ('taker_buy_quote_asset_volume', np.float32),
+    ('hour', np.float32),
+    ('dayofweek', np.float32),
 ])
 
 # Temporal cyclic features
 ADD_FEATURES = OrderedDict([
-    ('hour', np.float32),
-    ('dayofweek', np.float32),
     ('sin_hour', np.float32),
     ('cos_hour', np.float32),
     ('sin_day', np.float32),
