@@ -252,11 +252,6 @@ class DataProcessor:
 
         return train_loader, val_loader
 
-    def save(self, filepath: str) -> None:
-        self.ensure_file_exists(filepath)
-        with open(filepath, 'wb') as f:
-            pickle.dump(self, f)
-
     def ensure_file_exists(self, filepath: str) -> None:
         directory = os.path.dirname(filepath)
         if directory and not os.path.exists(directory):
@@ -264,11 +259,6 @@ class DataProcessor:
         if not os.path.exists(filepath):
             df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
             df.to_csv(filepath, index=False)
-
-    def load(self, filepath: str) -> 'DataProcessor':
-        with open(filepath, 'rb') as f:
-            processor = pickle.load(f)
-        return processor
 
     def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
         combined_dataset_path = PATHS['combined_dataset']
