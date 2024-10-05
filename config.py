@@ -34,7 +34,7 @@ IntervalKey = int
 SYMBOL_MAPPING: OrderedDict[str, int] = {
     "ETHUSDT": 0,
     "BTCUSDT": 1,
-    # "BNBUSDT": 2,
+    "BNBUSDT": 2,
     # "SOLUSDT": 3,
     # "ARBUSDT": 4
 }

@@ -51,7 +51,7 @@ class GetBinanceData:
         self.data_processor = shared_data_processor
 
     def configure_logging(self):
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.INFO)
         formatter = logging.Formatter('%(levelname)s - %(message)s')
         file_handler = logging.FileHandler(LOG_FILE)
         file_handler.setFormatter(formatter)
