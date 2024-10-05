@@ -22,7 +22,8 @@ from config import (
     get_current_time,
 )
 from data_utils import (
-    DataProcessor,
+    # DataProcessor,  # Удалить этот импорт
+    shared_data_processor,  # Импортировать глобальный экземпляр
 )
 
 LOG_FILE = 'get_binance_data.log'
@@ -48,7 +49,7 @@ class GetBinanceData:
 
         self.logger = logging.getLogger("GetBinanceData")
         self.configure_logging()
-        self.data_processor = DataProcessor()
+        self.data_processor = shared_data_processor
 
     def configure_logging(self):
         logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')

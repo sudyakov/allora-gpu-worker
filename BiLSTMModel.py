@@ -1,6 +1,7 @@
 import logging
 import os
 from typing import Dict, List, Optional, Tuple, Sequence
+
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -8,6 +9,7 @@ from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 import numpy as np
+
 from get_binance_data import main as get_binance_data_main
 from config import (
     ADD_FEATURES,
@@ -26,9 +28,10 @@ from config import (
     TRAINING_PARAMS,
     MODEL_PARAMS
 )
-from data_utils import DataProcessor
+from data_utils import shared_data_processor  # Импортируем общий экземпляр
 from get_binance_data import GetBinanceData
 from model_utils import create_dataloader, get_device, load_model, save_model
+
 
 def setup_logging():
     logging.basicConfig(
@@ -41,6 +44,7 @@ def setup_logging():
     )
     logging.info("Logging is set up.")
 
+
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super().__init__()
@@ -52,6 +56,7 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
+
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -134,6 +139,7 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
+
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     dataloader: DataLoader,
@@ -202,21 +208,24 @@ def train_and_save_model(
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
     return model, optimizer
 
+
 def predict_future_price(
     model: EnhancedBiLSTMModel,
     latest_df: pd.DataFrame,
-    data_processor: DataProcessor,
     prediction_minutes: int = PREDICTION_MINUTES,
     device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
 ) -> pd.DataFrame:
+    """
+    Функция предсказывает будущие цены на основе модели и последних данных.
+    """
     model.eval()
     with torch.no_grad():
         if len(latest_df) < SEQ_LENGTH:
             logging.warning("Insufficient data for prediction.")
             return pd.DataFrame()
 
-        latest_df_transformed = data_processor.transform(latest_df)
-        tensor_dataset = data_processor.prepare_dataset(latest_df_transformed, SEQ_LENGTH)
+        latest_df_transformed = shared_data_processor.transform(latest_df)
+        tensor_dataset = shared_data_processor.prepare_dataset(latest_df_transformed, SEQ_LENGTH)
         if len(tensor_dataset) == 0:
             logging.warning("No data after dataset preparation.")
             return pd.DataFrame()
@@ -224,9 +233,9 @@ def predict_future_price(
         inputs, _ = tensor_dataset[-1]
         inputs = inputs.unsqueeze(0).to(device)
         predictions = model(inputs).cpu().numpy()
-        predictions_df = pd.DataFrame(predictions, columns=[col for col in SCALABLE_FEATURES.keys()])
+        predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
-        predictions_df_denormalized = data_processor.inverse_transform(predictions_df)
+        predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
 
         last_timestamp = latest_df["timestamp"].iloc[-1]
         if pd.isna(last_timestamp):
@@ -245,22 +254,23 @@ def predict_future_price(
         predictions_df_denormalized["timestamp"] = next_timestamp
 
         predictions_df_denormalized = predictions_df_denormalized[
-            ["symbol", "interval", "timestamp"] + [col for col in SCALABLE_FEATURES.keys()]
+            ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
         ]
 
-        predictions_df_prepared = data_processor.fill_missing_add_features(predictions_df_denormalized)
+        predictions_df_prepared = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
 
     return predictions_df_prepared
+
 
 def main():
     setup_logging()
     device = get_device()
+
     if os.path.exists(DATA_PROCESSOR_FILENAME):
-        data_processor = DataProcessor.load(DATA_PROCESSOR_FILENAME)
+        shared_data_processor.load(DATA_PROCESSOR_FILENAME)
     else:
-        data_processor = DataProcessor()
-        logging.info(f"Numerical columns for scaling: {data_processor.numerical_columns}")
-        logging.info(f"Categorical columns: {data_processor.categorical_columns}")
+        logging.info(f"Numerical columns for scaling: {shared_data_processor.numerical_columns}")
+        logging.info(f"Categorical columns: {shared_data_processor.categorical_columns}")
 
     get_binance_data = GetBinanceData()
     combined_data = get_binance_data.fetch_combined_data()
@@ -268,15 +278,15 @@ def main():
         logging.error("Combined data is empty. Exiting.")
         return
 
-    combined_data = data_processor.preprocess_binance_data(combined_data)
-    combined_data = data_processor.fill_missing_add_features(combined_data)
+    combined_data = shared_data_processor.preprocess_binance_data(combined_data)
+    combined_data = shared_data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
     if os.path.exists(DATA_PROCESSOR_FILENAME):
-        combined_data = data_processor.transform(combined_data)
+        combined_data = shared_data_processor.transform(combined_data)
     else:
-        combined_data = data_processor.fit_transform(combined_data)
-        data_processor.save(DATA_PROCESSOR_FILENAME)
+        combined_data = shared_data_processor.fit_transform(combined_data)
+        shared_data_processor.save(DATA_PROCESSOR_FILENAME)
 
     MODEL_PARAMS["num_symbols"] = max(
         combined_data["symbol"].max() + 1, MODEL_PARAMS.get("num_symbols", 0)
@@ -301,8 +311,8 @@ def main():
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
 
     model = EnhancedBiLSTMModel(
-        categorical_columns=data_processor.categorical_columns,
-        numerical_columns=data_processor.numerical_columns,
+        categorical_columns=shared_data_processor.categorical_columns,
+        numerical_columns=shared_data_processor.numerical_columns,
         column_name_to_index=column_name_to_index,
     ).to(device)
     optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
@@ -313,20 +323,20 @@ def main():
     if np.isinf(combined_data.values).any():
         logging.warning("Data contains infinite values.")
 
-    tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
+    tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
     model, optimizer = train_and_save_model(model, dataloader, device)
     get_binance_data_main()
-    latest_df = data_processor.get_latest_dataset_prices(
+    latest_df = shared_data_processor.get_latest_dataset_prices(
         TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH
     )
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
     if not latest_df.empty:
-        predicted_df = predict_future_price(model, latest_df, data_processor, PREDICTION_MINUTES, device)
+        predicted_df = predict_future_price(model, latest_df, PREDICTION_MINUTES, device)
         if not predicted_df.empty:
             predictions_path = PATHS["predictions"]
-            DataProcessor.ensure_file_exists(predictions_path)
+            shared_data_processor.ensure_file_exists(predictions_path)
 
             existing_predictions = pd.read_csv(predictions_path)
             current_timestamp = predicted_df["timestamp"].iloc[0]
@@ -343,6 +353,7 @@ def main():
             logging.warning("Predictions were not made due to previous errors.")
     else:
         logging.warning("Latest dataset is empty. Skipping prediction.")
+
 
 if __name__ == "__main__":
     while True:

@@ -57,9 +57,17 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
-
 class DataProcessor:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(DataProcessor, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
+        if hasattr(self, 'initialized') and self.initialized:
+            return
         self.is_fitted = False
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: Sequence[str] = ['symbol', 'interval']
@@ -70,6 +78,7 @@ class DataProcessor:
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
         self.scalers: Dict[str, MinMaxScaler] = {}  # Updated type hint
+        self.initialized = True
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
@@ -80,6 +89,18 @@ class DataProcessor:
             if col in df.columns:
                 df[col] = df[col].astype(dtype)
         return df
+
+    def save(self, filepath: str) -> None:
+        self.ensure_file_exists(filepath)
+        with open(filepath, 'wb') as f:
+            pickle.dump(self, f)
+
+    def load(self, filepath: str) -> 'DataProcessor':
+        with open(filepath, 'rb') as f:
+            processor = pickle.load(f)
+        # Обновить текущий экземпляр
+        self.__dict__.update(processor.__dict__)
+        return self
 
     def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
         if 'timestamp' in df.columns:
@@ -270,3 +291,6 @@ class DataProcessor:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+
+# Создание глобального экземпляра DataProcessor
+shared_data_processor = DataProcessor()
