@@ -3389,3 +3389,32 @@ Last                 1720333800000        ARBUSDT    15         1720333800000 0.
 2024-10-05 10:01:24,185 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
 2024-10-05 10:01:24,362 - INFO - Optimizer loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
 2024-10-05 10:01:24,362 - INFO - Model loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-05 10:42:03,514 - INFO - Logging is set up.
+2024-10-05 10:42:03,515 - INFO - Using device: cuda
+2024-10-05 10:42:03,515 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 10:42:03,515 - INFO - Categorical columns: ['symbol', 'interval']
+2024-10-05 10:42:03,607 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 10:42:03,667 - INFO - num_symbols: 2, num_intervals: 3
+2024-10-05 10:42:03,668 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 10:42:04,682 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-05 10:42:28,283 - INFO - Logging is set up.
+2024-10-05 10:42:28,283 - INFO - Using device: cuda
+2024-10-05 10:42:28,284 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 10:42:28,284 - INFO - Categorical columns: ['symbol', 'interval']
+2024-10-05 10:42:28,360 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 10:42:28,416 - INFO - num_symbols: 2, num_intervals: 3
+2024-10-05 10:42:28,416 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 10:42:29,105 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-05 10:43:04,918 - INFO - Epoch 1/3 - Loss: 0.0905
+2024-10-05 10:46:20,850 - INFO - Logging is set up.
+2024-10-05 10:46:20,850 - INFO - Using device: cuda
+2024-10-05 10:46:20,925 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 10:46:20,973 - INFO - num_symbols: 2, num_intervals: 3
+2024-10-05 10:46:20,973 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 10:46:21,695 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-05 10:46:57,496 - INFO - Epoch 1/3 - Loss: 0.0905
+2024-10-05 10:46:57,591 - INFO - Model and optimizer saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-05 10:46:57,591 - INFO - Validation loss improved to 0.0905. Model saved.
+2024-10-05 10:47:32,088 - INFO - Epoch 2/3 - Loss: 0.0891
+2024-10-05 10:47:32,179 - INFO - Model and optimizer saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-05 10:47:32,179 - INFO - Validation loss improved to 0.0891. Model saved.

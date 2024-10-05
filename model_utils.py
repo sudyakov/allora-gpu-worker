@@ -26,7 +26,8 @@ from config import (
     IntervalConfig,
     TRAINING_PARAMS
 )
-from data_utils import DataProcessor
+
+from data_utils import shared_data_processor
 
 
 def get_device() -> torch.device:
@@ -44,12 +45,13 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
     )
 
 
-def save_model(model: nn.Module, optimizer: Adam, filepath: str) -> None:
-    DataProcessor.ensure_file_exists(filepath)
-    torch.save(model.state_dict(), filepath)
-    optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
-    torch.save(optimizer.state_dict(), optimizer_filepath)
-    logging.info(f"Model saved to {filepath}, and optimizer to {optimizer_filepath}.")
+def save_model(model, optimizer, filepath):
+    shared_data_processor.ensure_file_exists(filepath)
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, filepath)
+    logging.info(f"Model and optimizer saved to {filepath}.")
 
 
 def load_model(
