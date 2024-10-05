@@ -22,8 +22,7 @@ from config import (
     get_current_time,
 )
 from data_utils import (
-    # DataProcessor,  # Удалить этот импорт
-    shared_data_processor,  # Импортировать глобальный экземпляр
+    shared_data_processor
 )
 
 LOG_FILE = 'get_binance_data.log'
@@ -52,10 +51,9 @@ class GetBinanceData:
         self.data_processor = shared_data_processor
 
     def configure_logging(self):
-        logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
-        file_handler = logging.FileHandler(LOG_FILE)
-        file_handler.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(levelname)s - %(message)s')
+        file_handler = logging.FileHandler(LOG_FILE)
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
 
@@ -72,7 +70,8 @@ class GetBinanceData:
             data = response.json()
             if not data:
                 return None
-            df = pd.DataFrame(data, columns=self.BINANCE_API_COLUMNS)
+            df = pd.DataFrame(data)
+            df.columns = self.BINANCE_API_COLUMNS
             df = df.drop(columns=['close_time', 'ignore'])
             df = self.data_processor.preprocess_binance_data(df)
             return df
@@ -224,8 +223,11 @@ class GetBinanceData:
 
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
             df_existing = pd.read_csv(filename, dtype=dtype_dict)
-            df_existing = self.data_processor.fill_missing_add_features(df_existing)
-            last_timestamp = int(df_existing['timestamp'].max())
+            if not df_existing.empty:
+                df_existing = self.data_processor.fill_missing_add_features(df_existing)
+                last_timestamp = int(df_existing['timestamp'].max())
+            else:
+                last_timestamp = server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
         else:
             df_existing = pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
             last_timestamp = server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
