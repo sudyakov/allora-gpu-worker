@@ -185,6 +185,8 @@ class DataProcessor:
                 df_inv[col] = scaler.inverse_transform(df_inv[[col]])
             else:
                 raise KeyError(f"Column {col} is missing in DataFrame.")
+        # Обеспечиваем порядок столбцов
+        df_inv = df_inv[list(MODEL_FEATURES.keys())]
         return df_inv
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
