@@ -31,13 +31,14 @@ from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
 
 
-def log(message: str):
-    logging.info(message)
-
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s - %(message)s',
+)
 
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    log(f"Using device: {device}")
+    logging.info(f"Using device: {device}")
     return device
 
 
@@ -46,18 +47,18 @@ def save_model(model, optimizer, filename: str) -> None:
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
     }, filename, _use_new_zipfile_serialization=True)
-    log(f"Model saved to {filename}")
+    logging.info(f"Model saved to {filename}")
 
 
 def load_model(model, optimizer, filename: str, device: torch.device) -> None:
     if os.path.exists(filename):
-        log(f"Loading model from {filename}")
+        logging.info(f"Loading model from {filename}")
         checkpoint = torch.load(filename, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        log("Model and optimizer state loaded.")
+        logging.info("Model and optimizer state loaded.")
     else:
-        log(f"No model file found at {filename}. Starting from scratch.")
+        logging.info(f"No model file found at {filename}. Starting from scratch.")
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -247,13 +248,13 @@ def predict_future_price(
     model.eval()
     with torch.no_grad():
         if len(latest_df) < SEQ_LENGTH:
-            logging.warning("Insufficient data for prediction.")
+            logging.info("Insufficient data for prediction.")
             return pd.DataFrame()
 
         latest_df_transformed = shared_data_processor.transform(latest_df)
         tensor_dataset = shared_data_processor.prepare_dataset(latest_df_transformed, SEQ_LENGTH)
         if len(tensor_dataset) == 0:
-            logging.warning("No data after dataset preparation.")
+            logging.info("No data after dataset preparation.")
             return pd.DataFrame()
 
         inputs, _ = tensor_dataset[-1]
@@ -346,9 +347,9 @@ def main():
     load_model(model, optimizer, MODEL_FILENAME, device)
 
     if combined_data.isnull().values.any():
-        logging.warning("Data contains missing values.")
+        logging.info("Data contains missing values.")
     if np.isinf(combined_data.values).any():
-        logging.warning("Data contains infinite values.")
+        logging.info("Data contains infinite values.")
 
     tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
 
@@ -395,10 +396,11 @@ def main():
                 )
                 logging.info(f"Predicted prices saved to {predictions_path}.")
         else:
-            logging.warning("Predictions were not made due to previous errors.")
+            logging.info("Predictions were not made due to previous errors.")
     else:
-        logging.warning("Latest dataset is empty. Skipping prediction.")
+        logging.info("Latest dataset is empty. Skipping prediction.")
 
 
 if __name__ == "__main__":
-    main()
+    while True:
+        main()

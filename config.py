@@ -58,7 +58,7 @@ RAW_FEATURES = OrderedDict([
 
 # Temporal features
 TIME_FEATURES = OrderedDict([
-    ('timestamp', np.int64),
+    ('timestamp', np.float32),
 
 ])
 
