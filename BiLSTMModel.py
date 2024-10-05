@@ -36,6 +36,7 @@ logging.basicConfig(
     format='%(levelname)s - %(message)s',
 )
 
+
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
@@ -59,6 +60,7 @@ def load_model(model, optimizer, filename: str, device: torch.device) -> None:
         logging.info("Model and optimizer state loaded.")
     else:
         logging.info(f"No model file found at {filename}. Starting from scratch.")
+
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -116,6 +118,9 @@ class EnhancedBiLSTMModel(nn.Module):
             MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
 
+        # Добавляем экспоненциальную функцию активации
+        self.activation = nn.Softplus()  # Альтернативный вариант вместо экспоненты
+
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -138,6 +143,9 @@ class EnhancedBiLSTMModel(nn.Module):
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
+
+        # Применяем экспоненциальную функцию активации
+        predictions = self.activation(predictions)
 
         return predictions
 
@@ -172,6 +180,7 @@ def train_and_save_model(
     for epoch in range(TRAINING_PARAMS["initial_epochs"]):
         model.train()
         total_loss = 0.0
+        total_corr = 0.0  # Для накопления корреляции
         progress_bar = tqdm(
             train_loader,
             desc=f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']}",
@@ -202,24 +211,47 @@ def train_and_save_model(
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-            progress_bar.set_postfix(loss=f"{loss.item():.4f}")
+
+            # Вычисление корреляции между предсказаниями и целевыми значениями
+            preds = outputs.detach().cpu().numpy()
+            truths = targets.detach().cpu().numpy()
+            corr = np.mean([
+                np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
+                for i in range(len(preds))
+            ])
+            total_corr += corr
+
+            progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
 
         avg_loss = total_loss / len(train_loader)
+        avg_corr = total_corr / len(train_loader)
         logging.info(
-            f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Training Loss: {avg_loss:.4f}"
+            f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Training Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
 
         # Model validation
         model.eval()
         val_loss = 0.0
+        val_corr = 0.0
         with torch.no_grad():
             for inputs, targets in val_loader:
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)
                 val_loss += loss.item()
+
+                # Вычисление корреляции на валидации
+                preds = outputs.cpu().numpy()
+                truths = targets.cpu().numpy()
+                corr = np.mean([
+                    np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
+                    for i in range(len(preds))
+                ])
+                val_corr += corr
+
         avg_val_loss = val_loss / len(val_loader)
-        logging.info(f"Validation Loss: {avg_val_loss:.4f}")
+        avg_val_corr = val_corr / len(val_loader)
+        logging.info(f"Validation Loss: {avg_val_loss:.4f}, Validation Correlation: {avg_val_corr:.4f}")
 
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
@@ -238,6 +270,7 @@ def train_and_save_model(
                 param_group["lr"] = max(param_group["lr"] * 0.5, min_lr)
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
     return model, optimizer
+
 
 def predict_future_price(
     model: EnhancedBiLSTMModel,
@@ -284,7 +317,7 @@ def predict_future_price(
         # Добавляем дополнительные признаки
         predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
 
-        # Определяем окончательный порядок столбцов
+        # Определяем окончательный порядок столбцов после добавления всех необходимых столбцов
         final_columns = list(MODEL_FEATURES.keys())
         predictions_df_denormalized = predictions_df_denormalized[final_columns]
 
@@ -381,7 +414,6 @@ def main():
                 existing_predictions = existing_predictions[predicted_df.columns]
             except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
                 existing_predictions = pd.DataFrame(columns=predicted_df.columns)
-
 
             current_timestamp = predicted_df["timestamp"].iloc[0]
             if current_timestamp in existing_predictions["timestamp"].values:
