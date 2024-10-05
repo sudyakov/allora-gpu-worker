@@ -5,7 +5,7 @@ from typing import Dict, Optional, Tuple, Sequence
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch.optim.adam import Adam
+from torch.optim import AdamW
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 import numpy as np
@@ -119,7 +119,7 @@ class EnhancedBiLSTMModel(nn.Module):
         )
 
         # Добавляем экспоненциальную функцию активации
-        self.activation = nn.Softplus()  # Альтернативный вариант вместо экспоненты
+        self.activation = nn.Sigmoid()
 
         self.apply(self._initialize_weights)
 
@@ -168,9 +168,9 @@ def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
     val_loader: DataLoader,
-    optimizer: Adam,
+    optimizer: AdamW,
     device: torch.device,
-) -> Tuple[EnhancedBiLSTMModel, Adam]:
+) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     criterion = nn.MSELoss()
     best_val_loss = float("inf")
     epochs_no_improve = 0
@@ -376,7 +376,7 @@ def main():
         numerical_columns=shared_data_processor.numerical_columns,
         column_name_to_index=column_name_to_index,
     ).to(device)
-    optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
+    optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     load_model(model, optimizer, MODEL_FILENAME, device)
 
     if combined_data.isnull().values.any():
