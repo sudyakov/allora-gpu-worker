@@ -1,12 +1,12 @@
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Sequence
+from typing import Dict, Optional, Tuple, Sequence
 
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 import numpy as np
 
@@ -22,7 +22,6 @@ from config import (
     TARGET_SYMBOL,
     PATHS,
     PREDICTION_MINUTES,
-    IntervalConfig,
     IntervalKey,
     get_interval,
     TRAINING_PARAMS,
@@ -31,13 +30,16 @@ from config import (
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
 
+
 def log(message: str):
     logging.info(message)
+
 
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log(f"Using device: {device}")
     return device
+
 
 def save_model(model, optimizer, filename: str) -> None:
     torch.save({
@@ -45,6 +47,7 @@ def save_model(model, optimizer, filename: str) -> None:
         'optimizer_state_dict': optimizer.state_dict(),
     }, filename, _use_new_zipfile_serialization=True)
     log(f"Model saved to {filename}")
+
 
 def load_model(model, optimizer, filename: str, device: torch.device) -> None:
     if os.path.exists(filename):
@@ -55,18 +58,6 @@ def load_model(model, optimizer, filename: str, device: torch.device) -> None:
         log("Model and optimizer state loaded.")
     else:
         log(f"No model file found at {filename}. Starting from scratch.")
-
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler("BiLSTMModel.log"),
-        ],
-    )
-    logging.info("Logging is set up.")
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -184,7 +175,7 @@ def train_and_save_model(
             train_loader,
             desc=f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']}",
             unit="batch",
-            leave=False,
+            leave=True,
         )
         for inputs, targets in progress_bar:
             inputs, targets = inputs.to(device), targets.to(device)
@@ -217,7 +208,7 @@ def train_and_save_model(
             f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Training Loss: {avg_loss:.4f}"
         )
 
-        # Валидация модели
+        # Model validation
         model.eval()
         val_loss = 0.0
         with torch.no_grad():
@@ -247,7 +238,6 @@ def train_and_save_model(
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
     return model, optimizer
 
-
 def predict_future_price(
     model: EnhancedBiLSTMModel,
     latest_df: pd.DataFrame,
@@ -271,6 +261,7 @@ def predict_future_price(
         predictions = model(inputs).cpu().numpy()
         predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
+        # Denormalize predictions
         predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
 
         last_timestamp = latest_df["timestamp"].iloc[-1]
@@ -289,25 +280,21 @@ def predict_future_price(
         predictions_df_denormalized["interval"] = prediction_minutes
         predictions_df_denormalized["timestamp"] = next_timestamp
 
-        predictions_df_denormalized = predictions_df_denormalized[
-            ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
-        ]
+        # Добавляем дополнительные признаки
+        predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
 
-        #predictions_df_prepared = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
+        # Определяем окончательный порядок столбцов
+        final_columns = list(MODEL_FEATURES.keys())
+        predictions_df_denormalized = predictions_df_denormalized[final_columns]
 
     return predictions_df_denormalized
 
 
 def main():
     device = get_device()
-
-    if os.path.exists(DATA_PROCESSOR_FILENAME):
-        shared_data_processor.load(DATA_PROCESSOR_FILENAME)
-    else:
-        logging.error("Data processor file not found. Exiting.")
-        return
-
     get_binance_data = GetBinanceData()
+
+    # Загрузка данных
     combined_data = get_binance_data.fetch_combined_data()
     if combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
@@ -317,9 +304,13 @@ def main():
     combined_data = shared_data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
+    # Проверка наличия файла DataProcessor
     if os.path.exists(DATA_PROCESSOR_FILENAME):
+        shared_data_processor.load(DATA_PROCESSOR_FILENAME)
+        shared_data_processor.is_fitted = True
         combined_data = shared_data_processor.transform(combined_data)
     else:
+        logging.info("Data processor file not found. Fitting a new DataProcessor.")
         combined_data = shared_data_processor.fit_transform(combined_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
 
@@ -332,6 +323,7 @@ def main():
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
+
     if (combined_data['symbol'] < 0).any():
         raise ValueError("Negative indices found in 'symbol' column.")
     if (combined_data['interval'] < 0).any():
@@ -361,30 +353,42 @@ def main():
     tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
 
     # Создание загрузчиков данных
-    train_loader, val_loader = shared_data_processor(tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True)
+    train_loader, val_loader = shared_data_processor.create_dataloader(
+        tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
+    )
+
     model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
+
+    # Получение последних данных и предсказание
     get_binance_data_main()
+
     latest_df = shared_data_processor.get_latest_dataset_prices(
         TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH
     )
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
+
     if not latest_df.empty:
         predicted_df = predict_future_price(model, latest_df, PREDICTION_MINUTES, device)
         if not predicted_df.empty:
             predictions_path = PATHS["predictions"]
             shared_data_processor.ensure_file_exists(predictions_path)
-            
+
             try:
                 existing_predictions = pd.read_csv(predictions_path)
-            except (FileNotFoundError, pd.errors.EmptyDataError):
-                existing_predictions = pd.DataFrame()
-            
+                # Убедиться, что столбцы в правильном порядке
+                existing_predictions = existing_predictions[predicted_df.columns]
+            except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
+                existing_predictions = pd.DataFrame(columns=predicted_df.columns)
+
+
             current_timestamp = predicted_df["timestamp"].iloc[0]
             if current_timestamp in existing_predictions["timestamp"].values:
                 logging.info(f"Prediction for timestamp {current_timestamp} already exists. Skipping save.")
             else:
+                # Объединяем DataFrame с учётом порядка столбцов
                 combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
+                combined_predictions = combined_predictions[predicted_df.columns]
                 combined_predictions.to_csv(
                     predictions_path,
                     index=False
@@ -397,6 +401,4 @@ def main():
 
 
 if __name__ == "__main__":
-    setup_logging()
-    while True:
-        main()
+    main()

@@ -69,7 +69,7 @@ class DataProcessor:
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
-        self.scalers: Dict[str, MinMaxScaler] = {}  # Updated type hint
+        self.scalers: Dict[str, MinMaxScaler] = {}
         self.initialized = True
 
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -102,6 +102,8 @@ class DataProcessor:
             df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
             df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
         df = df.ffill().bfill()
+        # Обеспечиваем порядок столбцов
+        df = df[list(MODEL_FEATURES.keys())]
         return df
 
     def sort_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -224,7 +226,7 @@ class DataProcessor:
 
         return TensorDataset(sequences, targets)
 
-    def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
+    def create_dataloader(self, dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
         train_size = int(0.8 * len(dataset))
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
