@@ -16,6 +16,7 @@ from config import (
     ADD_FEATURES,
     PATHS,
     SYMBOL_MAPPING,
+    TRAINING_PARAMS
 )
 
 
@@ -185,6 +186,8 @@ class DataProcessor:
         return df_inv
 
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
+        if len(df) < seq_length:
+            raise ValueError("Not enough data to create sequences.")
         features = list(MODEL_FEATURES.keys())
         target_columns = [col for col in SCALABLE_FEATURES.keys()]
         missing_columns = [col for col in target_columns if col not in df.columns]
@@ -221,16 +224,8 @@ class DataProcessor:
 
         return TensorDataset(sequences, targets)
 
-    def create_dataloaders(
-        self,
-        dataset: TensorDataset,
-        batch_size: int = 32,
-        shuffle: bool = True,
-        split_ratio: Tuple[float, float] = (0.8, 0.2),
-        num_workers: int = 4,
-        pin_memory: bool = True
-    ) -> Tuple[DataLoader, DataLoader]:
-        train_size = int(split_ratio[0] * len(dataset))
+    def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
+        train_size = int(0.8 * len(dataset))
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
@@ -238,16 +233,14 @@ class DataProcessor:
             train_dataset,
             batch_size=batch_size,
             shuffle=shuffle,
-            num_workers=num_workers,
-            pin_memory=pin_memory
+            num_workers=TRAINING_PARAMS["num_workers"],
         )
 
         val_loader = DataLoader(
             val_dataset,
             batch_size=batch_size,
             shuffle=False,
-            num_workers=num_workers,
-            pin_memory=pin_memory
+            num_workers=TRAINING_PARAMS["num_workers"],
         )
 
         return train_loader, val_loader

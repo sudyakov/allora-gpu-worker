@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 from tqdm import tqdm
 import numpy as np
 
@@ -135,6 +135,7 @@ class EnhancedBiLSTMModel(nn.Module):
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.float().to(next(self.parameters()).device)
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
 
@@ -173,20 +174,22 @@ class EnhancedBiLSTMModel(nn.Module):
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
-    dataloader: DataLoader,
+    train_loader: DataLoader,
+    val_loader: DataLoader,
     optimizer: Adam,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, Adam]:
-    model.train()
     criterion = nn.MSELoss()
     best_val_loss = float("inf")
     epochs_no_improve = 0
     n_epochs_stop = 5
     min_lr = TRAINING_PARAMS["min_lr"]
+
     for epoch in range(TRAINING_PARAMS["initial_epochs"]):
+        model.train()
         total_loss = 0.0
         progress_bar = tqdm(
-            dataloader,
+            train_loader,
             desc=f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']}",
             unit="batch",
             leave=False,
@@ -217,12 +220,25 @@ def train_and_save_model(
             total_loss += loss.item()
             progress_bar.set_postfix(loss=f"{loss.item():.4f}")
 
-        avg_loss = total_loss / len(dataloader)
+        avg_loss = total_loss / len(train_loader)
         logging.info(
-            f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Loss: {avg_loss:.4f}"
+            f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Training Loss: {avg_loss:.4f}"
         )
-        if avg_loss < best_val_loss:
-            best_val_loss = avg_loss
+
+        # Валидация модели
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for inputs, targets in val_loader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model(inputs)
+                loss = criterion(outputs, targets)
+                val_loss += loss.item()
+        avg_val_loss = val_loss / len(val_loader)
+        logging.info(f"Validation Loss: {avg_val_loss:.4f}")
+
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
             epochs_no_improve = 0
             save_model(model, optimizer, MODEL_FILENAME)
             logging.info(f"Validation loss improved to {best_val_loss:.4f}. Model saved.")
@@ -246,9 +262,6 @@ def predict_future_price(
     prediction_minutes: int = PREDICTION_MINUTES,
     device: torch.device = get_device(),
 ) -> pd.DataFrame:
-    """
-    Функция предсказывает будущие цены на основе модели и последних данных.
-    """
     model.eval()
     with torch.no_grad():
         if len(latest_df) < SEQ_LENGTH:
@@ -288,9 +301,9 @@ def predict_future_price(
             ["symbol", "interval", "timestamp"] + list(SCALABLE_FEATURES.keys())
         ]
 
-        predictions_df_prepared = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
+        #predictions_df_prepared = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
 
-    return predictions_df_prepared
+    return predictions_df_denormalized
 
 
 def main():
@@ -299,8 +312,8 @@ def main():
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         shared_data_processor.load(DATA_PROCESSOR_FILENAME)
     else:
-        logging.info(f"Numerical columns for scaling: {shared_data_processor.numerical_columns}")
-        logging.info(f"Categorical columns: {shared_data_processor.categorical_columns}")
+        logging.error("Data processor file not found. Exiting.")
+        return
 
     get_binance_data = GetBinanceData()
     combined_data = get_binance_data.fetch_combined_data()
@@ -354,8 +367,17 @@ def main():
         logging.warning("Data contains infinite values.")
 
     tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
-    dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
-    model, optimizer = train_and_save_model(model, dataloader, optimizer, device)
+
+    # Разделение датасета на обучающую и валидационную выборки
+    train_size = int(0.8 * len(tensor_dataset))
+    val_size = len(tensor_dataset) - train_size
+    train_dataset, val_dataset = random_split(tensor_dataset, [train_size, val_size])
+
+    # Создание загрузчиков данных
+    train_loader = create_dataloader(train_dataset, TRAINING_PARAMS["batch_size"], shuffle=True)
+    val_loader = create_dataloader(val_dataset, TRAINING_PARAMS["batch_size"], shuffle=False)
+
+    model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
     get_binance_data_main()
     latest_df = shared_data_processor.get_latest_dataset_prices(
         TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH
@@ -370,9 +392,7 @@ def main():
             
             try:
                 existing_predictions = pd.read_csv(predictions_path)
-            except FileNotFoundError:
-                existing_predictions = pd.DataFrame()
-            except pd.errors.EmptyDataError:
+            except (FileNotFoundError, pd.errors.EmptyDataError):
                 existing_predictions = pd.DataFrame()
             
             current_timestamp = predicted_df["timestamp"].iloc[0]
