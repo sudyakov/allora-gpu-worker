@@ -28,7 +28,7 @@ from config import (
     TRAINING_PARAMS,
     MODEL_PARAMS
 )
-from data_utils import shared_data_processor  # Импортируем общий экземпляр
+from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
 
 def log(message: str):
@@ -38,14 +38,6 @@ def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log(f"Using device: {device}")
     return device
-
-def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
-    return DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=TRAINING_PARAMS["num_workers"],
-    )
 
 def save_model(model, optimizer, filename: str) -> None:
     torch.save({
@@ -368,15 +360,8 @@ def main():
 
     tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
 
-    # Разделение датасета на обучающую и валидационную выборки
-    train_size = int(0.8 * len(tensor_dataset))
-    val_size = len(tensor_dataset) - train_size
-    train_dataset, val_dataset = random_split(tensor_dataset, [train_size, val_size])
-
     # Создание загрузчиков данных
-    train_loader = create_dataloader(train_dataset, TRAINING_PARAMS["batch_size"], shuffle=True)
-    val_loader = create_dataloader(val_dataset, TRAINING_PARAMS["batch_size"], shuffle=False)
-
+    train_loader, val_loader = shared_data_processor(tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True)
     model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
     get_binance_data_main()
     latest_df = shared_data_processor.get_latest_dataset_prices(
