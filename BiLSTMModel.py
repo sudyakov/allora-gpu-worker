@@ -30,8 +30,39 @@ from config import (
 )
 from data_utils import shared_data_processor  # Импортируем общий экземпляр
 from get_binance_data import GetBinanceData
-from model_utils import create_dataloader, get_device, load_model, save_model
 
+def log(message: str):
+    logging.info(message)
+
+def get_device() -> torch.device:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    log(f"Using device: {device}")
+    return device
+
+def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> DataLoader:
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=TRAINING_PARAMS["num_workers"],
+    )
+
+def save_model(model, optimizer, filename: str) -> None:
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, filename, _use_new_zipfile_serialization=True)
+    log(f"Model saved to {filename}")
+
+def load_model(model, optimizer, filename: str, device: torch.device) -> None:
+    if os.path.exists(filename):
+        log(f"Loading model from {filename}")
+        checkpoint = torch.load(filename, map_location=device, weights_only=False)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        log("Model and optimizer state loaded.")
+    else:
+        log(f"No model file found at {filename}. Starting from scratch.")
 
 def setup_logging():
     logging.basicConfig(
