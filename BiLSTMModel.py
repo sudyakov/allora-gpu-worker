@@ -263,7 +263,6 @@ def predict_future_price(
 
 
 def main():
-    setup_logging()
     device = get_device()
 
     if os.path.exists(DATA_PROCESSOR_FILENAME):
@@ -356,5 +355,6 @@ def main():
 
 
 if __name__ == "__main__":
+    setup_logging()
     while True:
         main()

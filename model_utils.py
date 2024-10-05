@@ -30,16 +30,16 @@ def save_model(model, optimizer, filename: str) -> None:
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
-    }, filename)
+    }, filename, _use_new_zipfile_serialization=True)
     logging.info(f"Model saved to {filename}")
-
 
 def load_model(model, optimizer, filename: str, device: torch.device) -> None:
     if os.path.exists(filename):
         logging.info(f"Loading model from {filename}")
-        checkpoint = torch.load(filename, map_location=device)
+        checkpoint = torch.load(filename, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         logging.info("Model and optimizer state loaded.")
     else:
         logging.info(f"No model file found at {filename}. Starting from scratch.")
+

@@ -53,9 +53,19 @@ class GetBinanceData:
     def configure_logging(self):
         self.logger.setLevel(logging.INFO)
         formatter = logging.Formatter('%(levelname)s - %(message)s')
+
+        # Обработчик для файла
         file_handler = logging.FileHandler(LOG_FILE)
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
+
+        # Обработчик для консоли
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        self.logger.addHandler(console_handler)
+
+        # Отключаем передачу сообщений вышестоящим логгерам
+        self.logger.propagate = False
 
     def get_interval_info(self, interval_key: IntervalKey) -> IntervalConfig:
         if interval_key in self.INTERVAL_MAPPING:
@@ -310,6 +320,13 @@ def main():
 
 
 if __name__ == "__main__":
+    # Настраиваем корневой логгер для вывода ошибок из main()
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.ERROR)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+    root_logger.addHandler(console_handler)
+
     try:
         main()
     except Exception as e:
