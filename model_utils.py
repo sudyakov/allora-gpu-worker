@@ -45,30 +45,20 @@ def create_dataloader(dataset: TensorDataset, batch_size: int, shuffle: bool = T
     )
 
 
-def save_model(model, optimizer, filepath):
-    shared_data_processor.ensure_file_exists(filepath)
+def save_model(model, optimizer, filename: str) -> None:
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
-    }, filepath)
-    logging.info(f"Model and optimizer saved to {filepath}.")
+    }, filename)
+    logging.info(f"Model saved to {filename}")
 
 
-def load_model(
-    model: nn.Module,
-    optimizer: Adam,
-    filepath: str,
-    device: torch.device,
-) -> None:
-    if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
-        state_dict = torch.load(filepath, map_location=device, weights_only=True)
-        model.load_state_dict(state_dict)
-        model.to(device)
-        optimizer_filepath = filepath.replace(".pth", "_optimizer.pth")
-        if os.path.exists(optimizer_filepath):
-            optimizer_state_dict = torch.load(optimizer_filepath, map_location=device, weights_only=True)
-            optimizer.load_state_dict(optimizer_state_dict)
-            logging.info(f"Optimizer loaded from {optimizer_filepath}.")
-        logging.info(f"Model loaded from {filepath}.")
+def load_model(model, optimizer, filename: str, device: torch.device) -> None:
+    if os.path.exists(filename):
+        logging.info(f"Loading model from {filename}")
+        checkpoint = torch.load(filename, map_location=device, weights_only=True)
+        model.load_state_dict(checkpoint['model_state_dict'])  # Извлекаем состояние модели
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])  # Извлекаем состояние оптимизатора
+        logging.info("Model and optimizer state loaded.")
     else:
-        logging.warning(f"Model file {filepath} not found. A new model will be created.")
+        logging.info(f"No model file found at {filename}. Starting from scratch.")
