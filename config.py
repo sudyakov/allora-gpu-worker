@@ -1,11 +1,12 @@
 # Import necessary libraries
 import logging
-from typing import Optional, Dict, Literal, TypedDict, Union
+from typing import Optional, Dict, Literal, TypedDict, Union, Tuple
 import os
 from collections import OrderedDict
 import requests
 import time
 import numpy as np
+from datetime import datetime, timezone
 
 
 # Base URL for Binance API
@@ -33,9 +34,9 @@ IntervalKey = int
 SYMBOL_MAPPING: OrderedDict[str, int] = {
     "ETHUSDT": 0,
     "BTCUSDT": 1,
-    "BNBUSDT": 2,
-    "SOLUSDT": 3,
-    "ARBUSDT": 4
+    # "BNBUSDT": 2,
+    # "SOLUSDT": 3,
+    # "ARBUSDT": 4
 }
 
 # Target symbol and prediction interval
@@ -44,9 +45,9 @@ PREDICTION_MINUTES: int = 5
 
 # Mapping of intervals for different time spans
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = {
-    1: {"days": 90, "minutes": 1, "milliseconds": 60000},
-    5: {"days": 180, "minutes": 5, "milliseconds": 300000},
-    15: {"days": 360, "minutes": 15, "milliseconds": 900000},
+    1: {"days": 10, "minutes": 1, "milliseconds": 60000},
+    5: {"days": 60, "minutes": 5, "milliseconds": 300000},
+    15: {"days": 90, "minutes": 15, "milliseconds": 900000},
 }
 
 # Categorical features
@@ -110,7 +111,7 @@ MODEL_PARAMS: ModelParams = {
     "embedding_dim": 128,
     "num_symbols": 2,
     "num_intervals": 3,
-    "timestamp_embedding_dim": 64,
+    "timestamp_embedding_dim": 128,
 }
 
 # Definition of training parameters
@@ -124,8 +125,8 @@ class TrainingParams(TypedDict):
     num_workers: int
 
 TRAINING_PARAMS: TrainingParams = {
-    "batch_size": 256,
-    "initial_epochs": 5,
+    "batch_size": 512,
+    "initial_epochs": 3,
     "initial_lr": 0.0005,
     "max_epochs": 100,
     "min_lr": 0.00001,
@@ -172,3 +173,14 @@ def get_interval(minutes: int) -> Optional[IntervalKey]:
             return key
     logging.error("Interval for %d minutes not found.", minutes)
     return None
+
+def timestamp_to_readable_time(timestamp: int) -> str:
+    return datetime.fromtimestamp(timestamp / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def get_current_time() -> Tuple[int, str]:
+    response = requests.get(f"{API_BASE_URL}/time")
+    response.raise_for_status()
+    server_time = response.json().get('serverTime')
+    readable_time = timestamp_to_readable_time(server_time)
+    return server_time, readable_time

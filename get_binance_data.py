@@ -18,11 +18,11 @@ from config import (
     PATHS,
     IntervalConfig,
     IntervalKey,
+    timestamp_to_readable_time,
+    get_current_time,
 )
 from data_utils import (
     DataProcessor,
-    get_current_time,
-    timestamp_to_readable_time,
 )
 
 LOG_FILE = 'get_binance_data.log'

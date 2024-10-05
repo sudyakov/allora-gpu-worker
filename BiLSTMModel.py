@@ -1,7 +1,6 @@
 import logging
 import os
 from typing import Dict, List, Optional, Tuple, Sequence
-
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -9,7 +8,6 @@ from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 import numpy as np
-
 from get_binance_data import main as get_binance_data_main
 from config import (
     ADD_FEATURES,
@@ -32,7 +30,6 @@ from data_utils import DataProcessor
 from get_binance_data import GetBinanceData
 from model_utils import create_dataloader, get_device, load_model, save_model
 
-
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
@@ -43,7 +40,6 @@ def setup_logging():
         ],
     )
     logging.info("Logging is set up.")
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -56,7 +52,6 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -139,14 +134,13 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
-
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     dataloader: DataLoader,
-    optimizer: Adam,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, Adam]:
     model.train()
+    optimizer = Adam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     criterion = nn.MSELoss()
     best_val_loss = float("inf")
     epochs_no_improve = 0
@@ -185,6 +179,7 @@ def train_and_save_model(
             optimizer.step()
             total_loss += loss.item()
             progress_bar.set_postfix(loss=f"{loss.item():.4f}")
+
         avg_loss = total_loss / len(dataloader)
         logging.info(
             f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Loss: {avg_loss:.4f}"
@@ -207,13 +202,12 @@ def train_and_save_model(
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
     return model, optimizer
 
-
 def predict_future_price(
     model: EnhancedBiLSTMModel,
     latest_df: pd.DataFrame,
     data_processor: DataProcessor,
     prediction_minutes: int = PREDICTION_MINUTES,
-    device: torch.device = get_device(),
+    device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
@@ -221,7 +215,6 @@ def predict_future_price(
             logging.warning("Insufficient data for prediction.")
             return pd.DataFrame()
 
-        # Transform the latest data
         latest_df_transformed = data_processor.transform(latest_df)
         tensor_dataset = data_processor.prepare_dataset(latest_df_transformed, SEQ_LENGTH)
         if len(tensor_dataset) == 0:
@@ -233,7 +226,6 @@ def predict_future_price(
         predictions = model(inputs).cpu().numpy()
         predictions_df = pd.DataFrame(predictions, columns=[col for col in SCALABLE_FEATURES.keys()])
 
-        # Inverse transform the predictions to return to the original scale
         predictions_df_denormalized = data_processor.inverse_transform(predictions_df)
 
         last_timestamp = latest_df["timestamp"].iloc[-1]
@@ -246,7 +238,7 @@ def predict_future_price(
             logging.error("Invalid prediction interval.")
             return pd.DataFrame()
 
-        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
+        next_timestamp = int(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
 
         predictions_df_denormalized["symbol"] = TARGET_SYMBOL
         predictions_df_denormalized["interval"] = prediction_minutes
@@ -256,11 +248,9 @@ def predict_future_price(
             ["symbol", "interval", "timestamp"] + [col for col in SCALABLE_FEATURES.keys()]
         ]
 
-        # Подготовка DataFrame для сохранения
-        predictions_df_prepared = data_processor.prepare_dataframe_for_save(predictions_df_denormalized, prediction_minutes)
+        predictions_df_prepared = data_processor.fill_missing_add_features(predictions_df_denormalized)
 
     return predictions_df_prepared
-
 
 def main():
     setup_logging()
@@ -282,7 +272,7 @@ def main():
     combined_data = data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
-    if isinstance(data_processor, DataProcessor) and hasattr(data_processor, 'is_fitted') and data_processor.is_fitted:
+    if os.path.exists(DATA_PROCESSOR_FILENAME):
         combined_data = data_processor.transform(combined_data)
     else:
         combined_data = data_processor.fit_transform(combined_data)
@@ -324,11 +314,8 @@ def main():
         logging.warning("Data contains infinite values.")
 
     tensor_dataset = data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
-    if len(tensor_dataset) == 0:
-        logging.error("No data available after dataset preparation.")
-        return
     dataloader = create_dataloader(tensor_dataset, TRAINING_PARAMS["batch_size"])
-    model, optimizer = train_and_save_model(model, dataloader, optimizer, device)
+    model, optimizer = train_and_save_model(model, dataloader, device)
     get_binance_data_main()
     latest_df = data_processor.get_latest_dataset_prices(
         TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH
@@ -341,19 +328,11 @@ def main():
             predictions_path = PATHS["predictions"]
             DataProcessor.ensure_file_exists(predictions_path)
 
-            try:
-                existing_predictions = pd.read_csv(predictions_path)
-            except FileNotFoundError:
-                existing_predictions = pd.DataFrame()
-            except pd.errors.EmptyDataError:
-                existing_predictions = pd.DataFrame()
-            
-            # Проверка наличия текущего timestamp
+            existing_predictions = pd.read_csv(predictions_path)
             current_timestamp = predicted_df["timestamp"].iloc[0]
             if current_timestamp in existing_predictions["timestamp"].values:
                 logging.info(f"Prediction for timestamp {current_timestamp} already exists. Skipping save.")
             else:
-                # Добавление новых предсказаний наверх
                 combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
                 combined_predictions.to_csv(
                     predictions_path,
@@ -364,7 +343,6 @@ def main():
             logging.warning("Predictions were not made due to previous errors.")
     else:
         logging.warning("Latest dataset is empty. Skipping prediction.")
-
 
 if __name__ == "__main__":
     while True:

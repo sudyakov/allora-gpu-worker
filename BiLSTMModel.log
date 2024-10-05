@@ -3032,3 +3032,360 @@ Last                 1724945400000        BTCUSDT    15         1724945400000 15
 2024-10-04 19:06:22,147 - INFO - num_symbols: 5, num_intervals: 3
 2024-10-04 19:06:22,148 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
 2024-10-04 19:06:23,045 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-05 09:37:49,095 - INFO - Logging is set up.
+2024-10-05 09:37:49,096 - INFO - Using device: cuda
+2024-10-05 09:37:49,279 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 09:37:49,389 - INFO - num_symbols: 5, num_intervals: 3
+2024-10-05 09:37:49,389 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 09:37:50,199 - INFO - Optimizer loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:37:50,199 - INFO - Model loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-05 09:38:01,543 - INFO - Logging is set up.
+2024-10-05 09:38:01,544 - INFO - Using device: cuda
+2024-10-05 09:38:01,544 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 09:38:01,544 - INFO - Categorical columns: ['symbol', 'interval']
+2024-10-05 09:38:01,741 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 09:38:01,858 - INFO - num_symbols: 5, num_intervals: 3
+2024-10-05 09:38:01,859 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 09:38:02,561 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-05 09:39:46,034 - INFO - Epoch 1/5 - Loss: 0.0639
+2024-10-05 09:39:46,110 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:39:46,110 - INFO - Validation loss improved to 0.0639. Model saved.
+2024-10-05 09:43:29,388 - INFO - Logging is set up.
+2024-10-05 09:43:29,388 - INFO - Using device: cuda
+2024-10-05 09:43:29,388 - INFO - Numerical columns for scaling: ['open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 09:43:29,388 - INFO - Categorical columns: ['symbol', 'interval']
+2024-10-05 09:43:29,573 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 09:43:29,685 - INFO - num_symbols: 5, num_intervals: 3
+2024-10-05 09:43:29,685 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 09:43:30,382 - WARNING - Model file models/enhanced_bilstm_model_ETHUSDT_v2.0.pth not found. A new model will be created.
+2024-10-05 09:44:56,901 - INFO - Epoch 1/5 - Loss: 0.0640
+2024-10-05 09:44:56,980 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:44:56,980 - INFO - Validation loss improved to 0.0640. Model saved.
+2024-10-05 09:46:20,810 - INFO - Epoch 2/5 - Loss: 0.0636
+2024-10-05 09:46:20,899 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:46:20,899 - INFO - Validation loss improved to 0.0636. Model saved.
+2024-10-05 09:47:44,811 - INFO - Epoch 3/5 - Loss: 0.0636
+2024-10-05 09:47:44,899 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:47:44,899 - INFO - Validation loss improved to 0.0636. Model saved.
+2024-10-05 09:49:08,899 - INFO - Epoch 4/5 - Loss: 0.0636
+2024-10-05 09:49:08,899 - INFO - No improvement in validation loss. (1/5)
+2024-10-05 09:49:08,899 - INFO - Reducing learning rate to: 0.00025
+2024-10-05 09:50:32,915 - INFO - Epoch 5/5 - Loss: 0.0636
+2024-10-05 09:50:33,001 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:50:33,001 - INFO - Validation loss improved to 0.0636. Model saved.
+2024-10-05 09:50:33,001 - INFO - Script started
+2024-10-05 09:50:33,382 - INFO - Binance API is available. Server time: 2024-10-05 06:50:32
+2024-10-05 09:50:34,371 - INFO - Updating data for ETHUSDT from 1728110100001 to 1728111000000 (2024-10-05 06:35:00 to 2024-10-05 06:50:00)
+2024-10-05 09:50:34,820 - INFO - Data saved to data/ETHUSDT_1_data.csv
+2024-10-05 09:50:34,821 - INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        ETHUSDT    1          1728111000000 2424.510009765625 2425.0     2424.510009765625 2424.989990234375 18.854000091552734 45719.40234375 488.0      17.152999877929688 41594.51953125 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1727245500000        ETHUSDT    1          1727245500000 2614.10009765625 2614.409912109375 2612.929931640625 2613.39990234375 209.0720977783203 546452.125 1671.0     78.79650115966797 205944.578125 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 09:50:36,659 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:50:36,659 - INFO - ------------------------
+2024-10-05 09:50:38,751 - INFO - Updating data for ETHUSDT from 1728110100001 to 1728111000000 (2024-10-05 06:35:00 to 2024-10-05 06:50:00)
+2024-10-05 09:50:39,219 - INFO - Data saved to data/ETHUSDT_5_data.csv
+2024-10-05 09:50:39,220 - INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        ETHUSDT    5          1728111000000 2424.510009765625 2425.0     2424.510009765625 2424.989990234375 19.464000701904297 47198.6484375 491.0      17.155500411987305 41600.58203125 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1722925500000        ETHUSDT    5          1722925500000 2525.8701171875 2527.550048828125 2521.199951171875 2522.2900390625 1667.568603515625 4210421.5  7839.0     969.3214111328125 2447445.0  6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 09:50:41,081 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:50:41,081 - INFO - ------------------------
+2024-10-05 09:50:43,139 - INFO - Updating data for ETHUSDT from 1728109800001 to 1728110700000 (2024-10-05 06:30:00 to 2024-10-05 06:45:00)
+2024-10-05 09:50:43,563 - INFO - Data saved to data/ETHUSDT_15_data.csv
+2024-10-05 09:50:43,563 - INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728110700000        ETHUSDT    15         1728110700000 2421.7900390625 2425.0     2421.7900390625 2425.0     349.6752014160156 847462.9375 3731.0     240.3074951171875 582396.1875 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        ETHUSDT    15         1720333800000 3034.580078125 3038.929931640625 3031.800048828125 3038.18994140625 1191.063232421875 3616188.75 5533.0     890.3966064453125 2703325.25 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 09:50:45,446 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:50:45,446 - INFO - ------------------------
+2024-10-05 09:50:47,529 - INFO - Updating data for BTCUSDT from 1728110160001 to 1728111000000 (2024-10-05 06:36:00 to 2024-10-05 06:50:00)
+2024-10-05 09:50:47,983 - INFO - Data saved to data/BTCUSDT_1_data.csv
+2024-10-05 09:50:47,983 - INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        BTCUSDT    1          1728111000000 62204.01171875 62204.01171875 62204.0    62204.0    1.8767900466918945 116743.8515625 171.0      0.25804999470710754 16051.7451171875 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1727245500000        BTCUSDT    1          1727245500000 63909.98828125 63918.5    63909.98828125 63912.671875 6.9099202156066895 441641.75  1128.0     1.8804899454116821 120186.4921875 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 09:50:49,940 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:50:49,940 - INFO - ------------------------
+2024-10-05 09:50:52,032 - INFO - Updating data for BTCUSDT from 1728110100001 to 1728111000000 (2024-10-05 06:35:00 to 2024-10-05 06:50:00)
+2024-10-05 09:50:52,533 - INFO - Data saved to data/BTCUSDT_5_data.csv
+2024-10-05 09:50:52,533 - INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        BTCUSDT    5          1728111000000 62204.01171875 62204.01171875 62204.0    62204.01171875 1.9766000509262085 122952.4296875 191.0      0.30562999844551086 19011.412109375 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1722925500000        BTCUSDT    5          1722925500000 55898.0    55945.7109375 55800.51171875 55832.91015625 97.39553833007812 5440965.0  8680.0     40.87192916870117 2283432.75 6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 09:50:54,443 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:50:54,443 - INFO - ------------------------
+2024-10-05 09:50:56,830 - INFO - Updating data for BTCUSDT from 1728109800001 to 1728110700000 (2024-10-05 06:30:00 to 2024-10-05 06:45:00)
+2024-10-05 09:50:57,245 - INFO - Data saved to data/BTCUSDT_15_data.csv
+2024-10-05 09:50:57,246 - INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728110700000        BTCUSDT    15         1728110700000 62206.0    62246.109375 62204.0    62204.01171875 24.852489471435547 1546214.125 5537.0     16.04376983642578 998188.5   6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        BTCUSDT    15         1720333800000 57745.66015625 57789.1796875 57714.0    57778.01171875 137.18807983398438 7924077.0  9429.0     48.596290588378906 2807014.5  6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 09:50:59,169 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:50:59,169 - INFO - ------------------------
+2024-10-05 09:51:01,250 - INFO - Updating data for BNBUSDT from 1728110160001 to 1728111000000 (2024-10-05 06:36:00 to 2024-10-05 06:50:00)
+2024-10-05 09:51:01,698 - INFO - Data saved to data/BNBUSDT_1_data.csv
+2024-10-05 09:51:01,699 - INFO - Data summary for BNBUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        BNBUSDT    1          1728111000000 559.4000244140625 559.5      559.4000244140625 559.4000244140625 31.31800079345703 17521.8359375 113.0      25.475000381469727 14253.2626953125 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1727245560000        BNBUSDT    1          1727245560000 598.2000122070312 599.0999755859375 598.0      598.2999877929688 878.0980224609375 525586.5   1106.0     237.76300048828125 142334.28125 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 09:51:03,612 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:03,612 - INFO - ------------------------
+2024-10-05 09:51:05,601 - INFO - Updating data for BNBUSDT from 1728110100001 to 1728111000000 (2024-10-05 06:35:00 to 2024-10-05 06:50:00)
+2024-10-05 09:51:06,065 - INFO - Data saved to data/BNBUSDT_5_data.csv
+2024-10-05 09:51:06,066 - INFO - Data summary for BNBUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        BNBUSDT    5          1728111000000 559.4000244140625 559.5      559.4000244140625 559.4000244140625 35.31399917602539 19757.39453125 120.0      27.42799949645996 15345.9658203125 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1722925800000        BNBUSDT    5          1722925800000 488.5      490.0      488.0      489.6000061035156 3323.639892578125 1625745.125 2946.0     1762.9520263671875 862330.3125 6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 09:51:07,953 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:07,953 - INFO - ------------------------
+2024-10-05 09:51:10,004 - INFO - Updating data for BNBUSDT from 1728109800001 to 1728110700000 (2024-10-05 06:30:00 to 2024-10-05 06:45:00)
+2024-10-05 09:51:10,420 - INFO - Data saved to data/BNBUSDT_15_data.csv
+2024-10-05 09:51:10,421 - INFO - Data summary for BNBUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728110700000        BNBUSDT    15         1728110700000 559.2000122070312 559.7000122070312 559.2000122070312 559.4000244140625 651.822998046875 364733.6875 1177.0     519.0709838867188 290454.0   6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        BNBUSDT    15         1720333800000 512.2000122070312 515.2000122070312 511.79998779296875 514.0999755859375 7053.21484375 3620442.75 3356.0     5866.0791015625 3010721.25 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 09:51:12,354 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:12,354 - INFO - ------------------------
+2024-10-05 09:51:14,475 - INFO - Updating data for SOLUSDT from 1728110160001 to 1728111060000 (2024-10-05 06:36:00 to 2024-10-05 06:51:00)
+2024-10-05 09:51:14,933 - INFO - Data saved to data/SOLUSDT_1_data.csv
+2024-10-05 09:51:14,934 - INFO - Data summary for SOLUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111060000        SOLUSDT    1          1728111060000 144.3000030517578 144.3000030517578 144.25     144.25     85.6520004272461 12356.0712890625 196.0      1.9559999704360962 282.1771240234375 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1727245560000        SOLUSDT    1          1727245560000 149.97000122070312 150.24000549316406 149.9600067138672 149.99000549316406 14420.0576171875 2163531.5  1435.0     9023.7138671875 1353750.125 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 09:51:16,841 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:16,841 - INFO - ------------------------
+2024-10-05 09:51:18,955 - INFO - Updating data for SOLUSDT from 1728110100001 to 1728111000000 (2024-10-05 06:35:00 to 2024-10-05 06:50:00)
+2024-10-05 09:51:19,422 - INFO - Data saved to data/SOLUSDT_5_data.csv
+2024-10-05 09:51:19,422 - INFO - Data summary for SOLUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        SOLUSDT    5          1728111000000 144.25999450683594 144.35000610351562 144.24000549316406 144.24000549316406 3188.157958984375 460082.625 1085.0     2121.001953125 306097.15625 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1722925800000        SOLUSDT    5          1722925800000 142.44000244140625 143.0500030517578 142.0399932861328 142.85000610351562 26016.88671875 3707373.25 14044.0    13442.6162109375 1916104.5  6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 09:51:21,378 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:21,378 - INFO - ------------------------
+2024-10-05 09:51:23,475 - INFO - Updating data for SOLUSDT from 1728109800001 to 1728110700000 (2024-10-05 06:30:00 to 2024-10-05 06:45:00)
+2024-10-05 09:51:23,905 - INFO - Data saved to data/SOLUSDT_15_data.csv
+2024-10-05 09:51:23,906 - INFO - Data summary for SOLUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728110700000        SOLUSDT    15         1728110700000 144.14999389648438 144.38999938964844 144.13999938964844 144.2100067138672 14249.5830078125 2056435.875 4906.0     8118.43505859375 1171596.5  6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        SOLUSDT    15         1720333800000 140.69000244140625 140.99000549316406 140.33999633789062 140.80999755859375 7644.837890625 1075599.75 3994.0     3766.169921875 529695.9375 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 09:51:25,815 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:25,815 - INFO - ------------------------
+2024-10-05 09:51:27,905 - INFO - Updating data for ARBUSDT from 1728110160001 to 1728111060000 (2024-10-05 06:36:00 to 2024-10-05 06:51:00)
+2024-10-05 09:51:28,350 - INFO - Data saved to data/ARBUSDT_1_data.csv
+2024-10-05 09:51:28,351 - INFO - Data summary for ARBUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111060000        ARBUSDT    1          1728111060000 0.5644000172615051 0.5645999908447266 0.5644000172615051 0.5644000172615051 11459.099609375 6468.49462890625 54.0       6697.0     3780.559814453125 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1727245620000        ARBUSDT    1          1727245620000 0.6150000095367432 0.616100013256073 0.6150000095367432 0.616100013256073 84562.5    52043.47265625 151.0      73204.703125 45050.82421875 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 09:51:30,389 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:30,389 - INFO - ------------------------
+2024-10-05 09:51:32,496 - INFO - Updating data for ARBUSDT from 1728110100001 to 1728111000000 (2024-10-05 06:35:00 to 2024-10-05 06:50:00)
+2024-10-05 09:51:32,964 - INFO - Data saved to data/ARBUSDT_5_data.csv
+2024-10-05 09:51:32,964 - INFO - Data summary for ARBUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111000000        ARBUSDT    5          1728111000000 0.5644999742507935 0.5645999908447266 0.5644000172615051 0.5644000172615051 14099.0    7958.67822265625 77.0       6697.0     3780.559814453125 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1722925800000        ARBUSDT    5          1722925800000 0.5145999789237976 0.5181999802589417 0.5142999887466431 0.5170000195503235 445696.5   230085.1875 1161.0     199580.59375 103022.6796875 6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 09:51:34,838 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:34,838 - INFO - ------------------------
+2024-10-05 09:51:36,877 - INFO - Updating data for ARBUSDT from 1728109800001 to 1728110700000 (2024-10-05 06:30:00 to 2024-10-05 06:45:00)
+2024-10-05 09:51:37,286 - INFO - Data saved to data/ARBUSDT_15_data.csv
+2024-10-05 09:51:37,286 - INFO - Data summary for ARBUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728110700000        ARBUSDT    15         1728110700000 0.5644999742507935 0.5648999810218811 0.564300000667572 0.564300000667572 131297.5   74128.140625 531.0      70491.0    39800.421875 6.0        2.0        1.0        6.123234262925839e-17 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        ARBUSDT    15         1720333800000 0.6938999891281128 0.6942999958992004 0.690500020980835 0.6934999823570251 221741.59375 153578.28125 950.0      124209.0   86028.7109375 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 09:51:39,187 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 09:51:39,187 - INFO - ------------------------
+2024-10-05 09:51:40,190 - INFO - All files have been updated with the latest prices.
+2024-10-05 09:51:40,336 - INFO - Latest dataset loaded with 300 records.
+2024-10-05 09:51:40,427 - INFO - Predicted prices saved to data/predictions.csv.
+2024-10-05 09:51:40,432 - INFO - Logging is set up.
+2024-10-05 09:51:40,432 - INFO - Using device: cuda
+2024-10-05 09:51:40,608 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 09:51:40,704 - INFO - num_symbols: 5, num_intervals: 3
+2024-10-05 09:51:40,704 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 09:51:40,879 - INFO - Optimizer loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:51:40,879 - INFO - Model loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-05 09:53:14,492 - INFO - Logging is set up.
+2024-10-05 09:53:14,492 - INFO - Using device: cuda
+2024-10-05 09:53:14,678 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 09:53:14,788 - INFO - num_symbols: 5, num_intervals: 3
+2024-10-05 09:53:14,789 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 09:53:15,515 - INFO - Optimizer loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:53:15,515 - INFO - Model loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
+2024-10-05 09:54:42,118 - INFO - Epoch 1/5 - Loss: 0.0636
+2024-10-05 09:54:42,204 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:54:42,204 - INFO - Validation loss improved to 0.0636. Model saved.
+2024-10-05 09:56:06,226 - INFO - Epoch 2/5 - Loss: 0.0636
+2024-10-05 09:56:06,310 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:56:06,310 - INFO - Validation loss improved to 0.0636. Model saved.
+2024-10-05 09:57:30,491 - INFO - Epoch 3/5 - Loss: 0.0636
+2024-10-05 09:57:30,576 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:57:30,577 - INFO - Validation loss improved to 0.0636. Model saved.
+2024-10-05 09:58:54,588 - INFO - Epoch 4/5 - Loss: 0.0635
+2024-10-05 09:58:54,672 - INFO - Model saved to models/enhanced_bilstm_model_ETHUSDT_v2.0.pth, and optimizer to models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 09:58:54,673 - INFO - Validation loss improved to 0.0635. Model saved.
+2024-10-05 10:00:18,728 - INFO - Epoch 5/5 - Loss: 0.0636
+2024-10-05 10:00:18,728 - INFO - No improvement in validation loss. (1/5)
+2024-10-05 10:00:18,728 - INFO - Reducing learning rate to: 0.00025
+2024-10-05 10:00:18,729 - INFO - Script started
+2024-10-05 10:00:19,102 - INFO - Binance API is available. Server time: 2024-10-05 07:00:18
+2024-10-05 10:00:20,073 - INFO - Updating data for ETHUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:20,492 - INFO - Data saved to data/ETHUSDT_1_data.csv
+2024-10-05 10:00:20,493 - INFO - Data summary for ETHUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        ETHUSDT    1          1728111600000 2424.280029296875 2424.2900390625 2424.27001953125 2424.280029296875 3.046099901199341 7384.5888671875 43.0       1.3650000095367432 3309.146240234375 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1727245500000        ETHUSDT    1          1727245500000 2614.10009765625 2614.409912109375 2612.929931640625 2613.39990234375 209.0720977783203 546452.125 1671.0     78.79650115966797 205944.578125 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 10:00:22,379 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:22,379 - INFO - ------------------------
+2024-10-05 10:00:24,352 - INFO - Updating data for ETHUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:24,793 - INFO - Data saved to data/ETHUSDT_5_data.csv
+2024-10-05 10:00:24,794 - INFO - Data summary for ETHUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        ETHUSDT    5          1728111600000 2424.280029296875 2424.2900390625 2424.27001953125 2424.280029296875 5.063199996948242 12274.623046875 63.0       3.2964000701904297 7991.419921875 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1722925500000        ETHUSDT    5          1722925500000 2525.8701171875 2527.550048828125 2521.199951171875 2522.2900390625 1667.568603515625 4210421.5  7839.0     969.3214111328125 2447445.0  6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 10:00:26,696 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:26,696 - INFO - ------------------------
+2024-10-05 10:00:28,779 - INFO - Updating data for ETHUSDT from 1728110700001 to 1728111600000 (2024-10-05 06:45:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:29,193 - INFO - Data saved to data/ETHUSDT_15_data.csv
+2024-10-05 10:00:29,194 - INFO - Data summary for ETHUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        ETHUSDT    15         1728111600000 2424.280029296875 2424.300048828125 2424.27001953125 2424.300048828125 5.124899864196777 12424.2021484375 81.0       3.3422999382019043 8102.69482421875 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        ETHUSDT    15         1720333800000 3034.580078125 3038.929931640625 3031.800048828125 3038.18994140625 1191.063232421875 3616188.75 5533.0     890.3966064453125 2703325.25 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 10:00:31,190 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:31,190 - INFO - ------------------------
+2024-10-05 10:00:33,094 - INFO - Updating data for BTCUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:33,501 - INFO - Data saved to data/BTCUSDT_1_data.csv
+2024-10-05 10:00:33,502 - INFO - Data summary for BTCUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        BTCUSDT    1          1728111600000 62224.0    62232.0    62223.98828125 62232.0    1.073099970817566 66777.0    485.0      0.8408799767494202 52326.2578125 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1727245500000        BTCUSDT    1          1727245500000 63909.98828125 63918.5    63909.98828125 63912.671875 6.9099202156066895 441641.75  1128.0     1.8804899454116821 120186.4921875 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 10:00:35,399 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:35,399 - INFO - ------------------------
+2024-10-05 10:00:37,361 - INFO - Updating data for BTCUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:37,789 - INFO - Data saved to data/BTCUSDT_5_data.csv
+2024-10-05 10:00:37,790 - INFO - Data summary for BTCUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        BTCUSDT    5          1728111600000 62224.0    62232.0    62223.98828125 62231.98828125 1.132680058479309 70484.78125 504.0      0.8883299827575684 55279.1640625 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1722925500000        BTCUSDT    5          1722925500000 55898.0    55945.7109375 55800.51171875 55832.91015625 97.39553833007812 5440965.0  8680.0     40.87192916870117 2283432.75 6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 10:00:39,733 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:39,733 - INFO - ------------------------
+2024-10-05 10:00:41,689 - INFO - Updating data for BTCUSDT from 1728110700001 to 1728111600000 (2024-10-05 06:45:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:42,068 - INFO - Data saved to data/BTCUSDT_15_data.csv
+2024-10-05 10:00:42,069 - INFO - Data summary for BTCUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        BTCUSDT    15         1728111600000 62224.0    62236.4609375 62223.98828125 62236.4609375 1.3507100343704224 84053.5703125 681.0      1.1012400388717651 68529.3125 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        BTCUSDT    15         1720333800000 57745.66015625 57789.1796875 57714.0    57778.01171875 137.18807983398438 7924077.0  9429.0     48.596290588378906 2807014.5  6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 10:00:43,940 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:43,940 - INFO - ------------------------
+2024-10-05 10:00:45,912 - INFO - Updating data for BNBUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:46,340 - INFO - Data saved to data/BNBUSDT_1_data.csv
+2024-10-05 10:00:46,340 - INFO - Data summary for BNBUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        BNBUSDT    1          1728111600000 561.2999877929688 561.4000244140625 561.2000122070312 561.2000122070312 193.83999633789062 108802.2890625 241.0      106.7699966430664 59930.17578125 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1727245560000        BNBUSDT    1          1727245560000 598.2000122070312 599.0999755859375 598.0      598.2999877929688 878.0980224609375 525586.5   1106.0     237.76300048828125 142334.28125 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 10:00:48,237 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:48,237 - INFO - ------------------------
+2024-10-05 10:00:50,215 - INFO - Updating data for BNBUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:50,646 - INFO - Data saved to data/BNBUSDT_5_data.csv
+2024-10-05 10:00:50,647 - INFO - Data summary for BNBUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        BNBUSDT    5          1728111600000 561.2999877929688 561.4000244140625 561.2000122070312 561.2999877929688 193.96200561523438 108870.765625 245.0      106.89199829101562 59998.65625 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1722925800000        BNBUSDT    5          1722925800000 488.5      490.0      488.0      489.6000061035156 3323.639892578125 1625745.125 2946.0     1762.9520263671875 862330.3125 6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 10:00:52,585 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:52,585 - INFO - ------------------------
+2024-10-05 10:00:54,557 - INFO - Updating data for BNBUSDT from 1728110700001 to 1728111600000 (2024-10-05 06:45:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:54,938 - INFO - Data saved to data/BNBUSDT_15_data.csv
+2024-10-05 10:00:54,939 - INFO - Data summary for BNBUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        BNBUSDT    15         1728111600000 561.2999877929688 561.4000244140625 561.2000122070312 561.2999877929688 199.03799438476562 111719.921875 250.0      111.94300079345703 62833.78125 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        BNBUSDT    15         1720333800000 512.2000122070312 515.2000122070312 511.79998779296875 514.0999755859375 7053.21484375 3620442.75 3356.0     5866.0791015625 3010721.25 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 10:00:56,891 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:00:56,891 - INFO - ------------------------
+2024-10-05 10:00:58,854 - INFO - Updating data for SOLUSDT from 1728111060001 to 1728111600000 (2024-10-05 06:51:00 to 2024-10-05 07:00:00)
+2024-10-05 10:00:59,274 - INFO - Data saved to data/SOLUSDT_1_data.csv
+2024-10-05 10:00:59,275 - INFO - Data summary for SOLUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        SOLUSDT    1          1728111600000 144.36000061035156 144.42999267578125 144.35000610351562 144.41000366210938 1212.4139404296875 175069.546875 307.0      415.2090148925781 59947.828125 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1727245560000        SOLUSDT    1          1727245560000 149.97000122070312 150.24000549316406 149.9600067138672 149.99000549316406 14420.0576171875 2163531.5  1435.0     9023.7138671875 1353750.125 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 10:01:01,211 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:01:01,211 - INFO - ------------------------
+2024-10-05 10:01:03,089 - INFO - Updating data for SOLUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:01:03,516 - INFO - Data saved to data/SOLUSDT_5_data.csv
+2024-10-05 10:01:03,516 - INFO - Data summary for SOLUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        SOLUSDT    5          1728111600000 144.36000061035156 144.4600067138672 144.35000610351562 144.4499969482422 2472.780029296875 357110.78125 474.0      1673.781982421875 241730.140625 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1722925800000        SOLUSDT    5          1722925800000 142.44000244140625 143.0500030517578 142.0399932861328 142.85000610351562 26016.88671875 3707373.25 14044.0    13442.6162109375 1916104.5  6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 10:01:05,390 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:01:05,390 - INFO - ------------------------
+2024-10-05 10:01:07,335 - INFO - Updating data for SOLUSDT from 1728110700001 to 1728111600000 (2024-10-05 06:45:00 to 2024-10-05 07:00:00)
+2024-10-05 10:01:07,710 - INFO - Data saved to data/SOLUSDT_15_data.csv
+2024-10-05 10:01:07,711 - INFO - Data summary for SOLUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        SOLUSDT    15         1728111600000 144.36000061035156 144.4600067138672 144.35000610351562 144.4499969482422 2478.97802734375 358006.09375 479.0      1674.427001953125 241823.3125 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        SOLUSDT    15         1720333800000 140.69000244140625 140.99000549316406 140.33999633789062 140.80999755859375 7644.837890625 1075599.75 3994.0     3766.169921875 529695.9375 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 10:01:09,636 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:01:09,637 - INFO - ------------------------
+2024-10-05 10:01:11,596 - INFO - Updating data for ARBUSDT from 1728111060001 to 1728111660000 (2024-10-05 06:51:00 to 2024-10-05 07:01:00)
+2024-10-05 10:01:12,005 - INFO - Data saved to data/ARBUSDT_1_data.csv
+2024-10-05 10:01:12,006 - INFO - Data summary for ARBUSDT (1):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111660000        ARBUSDT    1          1728111660000 0.5648999810218811 0.5649999976158142 0.5648999810218811 0.5648999810218811 10480.7001953125 5920.63671875 43.0       1458.5999755859375 824.0028076171875 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1727245620000        ARBUSDT    1          1727245620000 0.6150000095367432 0.616100013256073 0.6150000095367432 0.616100013256073 84562.5    52043.47265625 151.0      73204.703125 45050.82421875 6.0        6.0        1.0        6.123234262925839e-17 -0.7818315029144287 0.6234897971153259
+
+2024-10-05 10:01:13,981 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:01:13,981 - INFO - ------------------------
+2024-10-05 10:01:15,942 - INFO - Updating data for ARBUSDT from 1728111000001 to 1728111600000 (2024-10-05 06:50:00 to 2024-10-05 07:00:00)
+2024-10-05 10:01:16,378 - INFO - Data saved to data/ARBUSDT_5_data.csv
+2024-10-05 10:01:16,378 - INFO - Data summary for ARBUSDT (5):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        ARBUSDT    5          1728111600000 0.564300000667572 0.5649999976158142 0.564300000667572 0.5647000074386597 37209.19921875 21012.7890625 178.0      26154.19921875 14768.5712890625 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1722925800000        ARBUSDT    5          1722925800000 0.5145999789237976 0.5181999802589417 0.5142999887466431 0.5170000195503235 445696.5   230085.1875 1161.0     199580.59375 103022.6796875 6.0        5.0        1.0        6.123234262925839e-17 -0.9749279022216797 -0.22252093255519867
+
+2024-10-05 10:01:18,343 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:01:18,343 - INFO - ------------------------
+2024-10-05 10:01:20,315 - INFO - Updating data for ARBUSDT from 1728110700001 to 1728111600000 (2024-10-05 06:45:00 to 2024-10-05 07:00:00)
+2024-10-05 10:01:20,691 - INFO - Data saved to data/ARBUSDT_15_data.csv
+2024-10-05 10:01:20,692 - INFO - Data summary for ARBUSDT (15):
+Timestamp            Symbol     Interval   Timestamp  Open       High       Low        Close      Volume     Quote_asset_volume Number_of_trades Taker_buy_base_asset_volume Taker_buy_quote_asset_volume Hour       Dayofweek  Sin_hour   Cos_hour   Sin_day    Cos_day   
+First                1728111600000        ARBUSDT    15         1728111600000 0.564300000667572 0.5649999976158142 0.564300000667572 0.5647000074386597 37391.80078125 21115.904296875 179.0      26154.19921875 14768.5712890625 7.0        2.0        0.9659258127212524 -0.258819043636322 0.9749279022216797 -0.22252093255519867
+Last                 1720333800000        ARBUSDT    15         1720333800000 0.6938999891281128 0.6942999958992004 0.690500020980835 0.6934999823570251 221741.59375 153578.28125 950.0      124209.0   86028.7109375 6.0        3.0        1.0        6.123234262925839e-17 0.4338837265968323 -0.9009688496589661
+
+2024-10-05 10:01:22,646 - INFO - Combined dataset updated: data/combined_dataset.csv
+2024-10-05 10:01:22,646 - INFO - ------------------------
+2024-10-05 10:01:23,654 - INFO - All files have been updated with the latest prices.
+2024-10-05 10:01:23,798 - INFO - Latest dataset loaded with 300 records.
+2024-10-05 10:01:23,891 - INFO - Predicted prices saved to data/predictions.csv.
+2024-10-05 10:01:23,897 - INFO - Logging is set up.
+2024-10-05 10:01:23,897 - INFO - Using device: cuda
+2024-10-05 10:01:24,083 - INFO - Combined data loaded from data/combined_dataset.csv
+2024-10-05 10:01:24,185 - INFO - num_symbols: 5, num_intervals: 3
+2024-10-05 10:01:24,185 - INFO - Columns after processing: ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'hour', 'dayofweek', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day']
+2024-10-05 10:01:24,362 - INFO - Optimizer loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0_optimizer.pth.
+2024-10-05 10:01:24,362 - INFO - Model loaded from models/enhanced_bilstm_model_ETHUSDT_v2.0.pth.
