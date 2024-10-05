@@ -33,7 +33,6 @@ BINANCE_API_COLUMNS = [
     'taker_buy_quote_asset_volume', 'ignore'
 ]
 
-
 class GetBinanceData:
     def __init__(self):
         self.API_BASE_URL = API_BASE_URL
@@ -46,26 +45,8 @@ class GetBinanceData:
         self.MODEL_FEATURES = MODEL_FEATURES
         self.PATHS = PATHS
 
-        self.logger = logging.getLogger("GetBinanceData")
-        self.configure_logging()
+        # Больше не нужно создавать индивидуальный логгер
         self.data_processor = shared_data_processor
-
-    def configure_logging(self):
-        self.logger.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(levelname)s - %(message)s')
-
-        # Обработчик для файла
-        file_handler = logging.FileHandler(LOG_FILE)
-        file_handler.setFormatter(formatter)
-        self.logger.addHandler(file_handler)
-
-        # Обработчик для консоли
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-        self.logger.addHandler(console_handler)
-
-        # Отключаем передачу сообщений вышестоящим логгерам
-        self.logger.propagate = False
 
     def get_interval_info(self, interval_key: IntervalKey) -> IntervalConfig:
         if interval_key in self.INTERVAL_MAPPING:
@@ -86,7 +67,7 @@ class GetBinanceData:
             df = self.data_processor.preprocess_binance_data(df)
             return df
         except RequestException as e:
-            self.logger.warning(f"Request error: {e}")
+            logging.warning(f"Request error: {e}")
             return None
 
     def get_binance_data(
@@ -115,7 +96,7 @@ class GetBinanceData:
             df['symbol'] = symbol
             df['interval'] = interval_info['minutes']
             df['interval_str'] = interval_str
-            self.logger.debug(f"Raw DataFrame: {df.head()}")
+            logging.debug(f"Raw DataFrame: {df.head()}")
 
             df = self.data_processor.preprocess_binance_data(df)
             df = self.data_processor.fill_missing_add_features(df)
@@ -144,7 +125,7 @@ class GetBinanceData:
         df['symbol'] = symbol
         df['interval'] = interval_info['minutes']
         df['interval_str'] = interval_str
-        self.logger.debug(f"Raw DataFrame: {df.head()}")
+        logging.debug(f"Raw DataFrame: {df.head()}")
 
         df = self.data_processor.preprocess_binance_data(df)
         df = self.data_processor.fill_missing_add_features(df)
@@ -164,11 +145,11 @@ class GetBinanceData:
         prepared_df = self.prepare_dataframe_for_save(df)
         if not prepared_df.empty:
             prepared_df.to_csv(filename, index=False)
-            self.logger.info(f"Data saved to {filename}")
+            logging.info(f"Data saved to {filename}")
 
     def save_combined_dataset(self, data: Dict[str, pd.DataFrame], filename: str):
         if not data:
-            self.logger.warning("No data to save to the combined dataset.")
+            logging.warning("No data to save to the combined dataset.")
             return
 
         self.data_processor.ensure_file_exists(filename)
@@ -191,20 +172,20 @@ class GetBinanceData:
         combined_data = self.data_processor.fill_missing_add_features(combined_data)
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
-        self.logger.info(f"Combined dataset updated: {filename}")
-        self.logger.info("------------------------")
+        logging.info(f"Combined dataset updated: {filename}")
+        logging.info("------------------------")
 
     def fetch_combined_data(self) -> pd.DataFrame:
         combined_path = self.PATHS['combined_dataset']
         if os.path.exists(combined_path) and os.path.getsize(combined_path) > 0:
             try:
                 df = pd.read_csv(combined_path, dtype=self.MODEL_FEATURES)
-                self.logger.info(f"Combined data loaded from {combined_path}")
+                logging.info(f"Combined data loaded from {combined_path}")
                 return df
             except Exception as e:
-                self.logger.error(f"Error loading combined data: {e}")
+                logging.error(f"Error loading combined data: {e}")
         else:
-            self.logger.warning(f"Combined data file not found or is empty: {combined_path}")
+            logging.warning(f"Combined data file not found or is empty: {combined_path}")
         return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
     def print_data_summary(self, df: pd.DataFrame, symbol: str, interval_key: IntervalKey):
@@ -222,7 +203,7 @@ class GetBinanceData:
             ])
             summary += f"{label:<20} {timestamp:<20} {feature_values}\n"
 
-        self.logger.info(summary)
+        logging.info(summary)
 
     def update_data(self, symbol: str, interval_key: IntervalKey) -> Tuple[pd.DataFrame, Optional[int], Optional[int]]:
         interval_info = self.get_interval_info(interval_key)
@@ -254,7 +235,7 @@ class GetBinanceData:
 
                 readable_start = timestamp_to_readable_time(start_time)
                 readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
-                self.logger.info(
+                logging.info(
                     f"Updating data for {symbol} from {start_time} to {df_new['timestamp'].max()} "
                     f"({readable_start} to {readable_newest})"
                 )
@@ -273,25 +254,25 @@ class GetBinanceData:
                 self.save_to_csv(df_updated, filename)
                 return df_updated, df_new['timestamp'].min(), df_new['timestamp'].max()
             else:
-                self.logger.warning(f"Failed to retrieve new data for {symbol}.")
+                logging.warning(f"Failed to retrieve new data for {symbol}.")
                 return df_existing, None, None
         else:
-            self.logger.info(f"Data for {symbol} does not require updating. Using current data.")
+            logging.info(f"Data for {symbol} does not require updating. Using current data.")
             return df_existing, None, None
 
-
 def main():
+    logging.info("Script started")
+
     download_data = GetBinanceData()
-    download_data.logger.info("Script started")
 
     try:
         response = requests.get(f"{download_data.API_BASE_URL}/time")
         response.raise_for_status()
         server_time = response.json()['serverTime']
         readable_time = timestamp_to_readable_time(server_time)
-        download_data.logger.info(f"Binance API is available. Server time: {readable_time}")
+        logging.info(f"Binance API is available. Server time: {readable_time}")
     except Exception as e:
-        download_data.logger.error(f"Failed to access Binance API: {e}")
+        logging.error(f"Failed to access Binance API: {e}")
         return
 
     symbols = list(download_data.SYMBOL_MAPPING.keys())
@@ -311,21 +292,22 @@ def main():
                         download_data.PATHS['combined_dataset']
                     )
                 else:
-                    download_data.logger.error(f"Failed to update data for pair {symbol} and interval {interval_key}")
+                    logging.error(f"Failed to update data for pair {symbol} and interval {interval_key}")
                 time.sleep(1)
             except Exception as e:
-                download_data.logger.error(f"Error updating data for {symbol} with interval {interval_key}: {e}")
+                logging.error(f"Error updating data for {symbol} with interval {interval_key}: {e}")
 
-    download_data.logger.info("All files have been updated with the latest prices.")
-
+    logging.info("All files have been updated with the latest prices.")
 
 if __name__ == "__main__":
-    # Настраиваем корневой логгер для вывода ошибок из main()
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.ERROR)
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-    root_logger.addHandler(console_handler)
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(LOG_FILE),
+            logging.StreamHandler()
+        ]
+    )
 
     try:
         main()

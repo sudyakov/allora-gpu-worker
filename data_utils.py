@@ -1,11 +1,8 @@
 import os
-import logging
 import numpy as np
 import pandas as pd
 import torch
-from typing import Tuple, Optional, Dict, Union, List, Any, Sequence
-from datetime import datetime, timezone
-import requests
+from typing import Tuple, Optional, Dict, Any, Sequence
 import pickle
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.preprocessing import MinMaxScaler
@@ -19,12 +16,6 @@ from config import (
     ADD_FEATURES,
     PATHS,
     SYMBOL_MAPPING,
-    API_BASE_URL,
-    IntervalConfig,
-    IntervalKey,
-    get_interval,
-    timestamp_to_readable_time,
-    get_current_time,
 )
 
 
@@ -98,7 +89,6 @@ class DataProcessor:
     def load(self, filepath: str) -> 'DataProcessor':
         with open(filepath, 'rb') as f:
             processor = pickle.load(f)
-        # Обновить текущий экземпляр
         self.__dict__.update(processor.__dict__)
         return self
 
