@@ -33,7 +33,7 @@ IntervalKey = int
 # Mapping of cryptocurrency symbols
 SYMBOL_MAPPING: OrderedDict[str, int] = {
     "ETHUSDT": 0,
-    # "BTCUSDT": 1,
+    "BTCUSDT": 1,
     # "BNBUSDT": 2,
     # # "SOLUSDT": 3,
     # # "ARBUSDT": 4
@@ -45,9 +45,9 @@ PREDICTION_MINUTES: int = 5
 
 # Mapping of intervals for different time spans
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = {
-    1: {"days": 90, "minutes": 1, "milliseconds": 60000},
-    5: {"days": 180, "minutes": 5, "milliseconds": 300000},
-    15: {"days": 360, "minutes": 15, "milliseconds": 900000},
+    1: {"days": 10, "minutes": 1, "milliseconds": 60000},
+    5: {"days": 30, "minutes": 5, "milliseconds": 300000},
+    15: {"days": 90, "minutes": 15, "milliseconds": 900000},
 }
 
 # Categorical features
