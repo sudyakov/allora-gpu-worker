@@ -16,7 +16,9 @@ from config import (
     ADD_FEATURES,
     PATHS,
     SYMBOL_MAPPING,
-    TRAINING_PARAMS
+    TRAINING_PARAMS,
+    TARGET_SYMBOL,
+    PREDICTION_MINUTES
 )
 
 
@@ -190,6 +192,7 @@ class DataProcessor:
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         if len(df) < seq_length:
             raise ValueError("Not enough data to create sequences.")
+
         features = list(MODEL_FEATURES.keys())
         target_columns = [col for col in SCALABLE_FEATURES.keys()]
         missing_columns = [col for col in target_columns if col not in df.columns]
@@ -201,30 +204,38 @@ class DataProcessor:
         if 'timestamp' in df.columns:
             df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)
 
-        object_columns = df[features].select_dtypes(include=['object']).columns.tolist()
-        if object_columns:
-            for col in object_columns:
-                try:
-                    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(-1).astype(np.float32)
-                except Exception as e:
-                    raise
+        # Преобразуем символы и интервалы целевой валюты и интервала в числовые значения
+        target_symbol_encoded = self.label_encoders['symbol'].transform(pd.Series([TARGET_SYMBOL]))[0]
+        target_interval_encoded = self.label_encoders['interval'].transform(pd.Series([PREDICTION_MINUTES]))[0]
 
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
         target_indices = torch.tensor([features.index(col) for col in target_columns])
 
         sequences = []
         targets = []
-        for i in range(len(data_tensor) - seq_length + 1):
-            sequences.append(data_tensor[i:i + seq_length])
-            if i + seq_length < len(data_tensor):
-                targets.append(data_tensor[i + seq_length].index_select(0, target_indices))
+        for i in range(len(data_tensor) - seq_length):
+            sequence = data_tensor[i:i + seq_length]
+            next_step = data_tensor[i + seq_length]
+
+            # Проверяем, является ли следующий шаг целевым символом и интервалом
+            symbol_idx = features.index('symbol')
+            interval_idx = features.index('interval')
+            if next_step[symbol_idx].item() == target_symbol_encoded and next_step[interval_idx].item() == target_interval_encoded:
+                sequences.append(sequence)
+                target = next_step.index_select(0, target_indices)
+                targets.append(target)
             else:
-                targets.append(data_tensor[-1].index_select(0, target_indices))
+                # Пропускаем данный пример, так как target не соответствует целевому символу и интервалу
+                continue
+
+        if not sequences:
+            raise ValueError("No sequences with the target symbol and interval were found.")
 
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
 
         return TensorDataset(sequences, targets)
+
 
     def create_dataloader(self, dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
         train_size = int(0.8 * len(dataset))
@@ -255,17 +266,34 @@ class DataProcessor:
             df = pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
             df.to_csv(filepath, index=False)
 
-    def get_latest_dataset_prices(self, symbol: str, interval: int, count: int = SEQ_LENGTH) -> pd.DataFrame:
+    def get_latest_dataset_prices(
+        self,
+        symbol: Optional[str] = None,
+        interval: Optional[int] = None,
+        count: int = SEQ_LENGTH
+    ) -> pd.DataFrame:
         combined_dataset_path = PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
             df_combined = pd.read_csv(combined_dataset_path)
-            df_filtered = df_combined[
-                (df_combined['symbol'] == symbol) & (df_combined['interval'] == interval)
-            ]
+
+            df_filtered = df_combined.copy()
+
+            # Фильтрация по символу, если указан
+            if symbol is not None:
+                df_filtered = df_filtered[df_filtered['symbol'] == symbol]
+
+            # Фильтрация по интервалу, если указан
+            if interval is not None:
+                df_filtered = df_filtered[df_filtered['interval'] == interval]
+
+            # Проверяем, не пустой ли DataFrame после фильтрации
             if not df_filtered.empty:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
+
+        # Возвращаем пустой DataFrame с нужными столбцами, если данные не найдены
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+
 
 # Создание глобального экземпляра DataProcessor
 shared_data_processor = DataProcessor()

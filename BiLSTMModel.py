@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
 
@@ -118,7 +118,7 @@ class EnhancedBiLSTMModel(nn.Module):
             MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
 
-        # Добавляем экспоненциальную функцию активации
+        # Используем сигмоидную функцию активации
         self.activation = nn.Sigmoid()
 
         self.apply(self._initialize_weights)
@@ -144,7 +144,7 @@ class EnhancedBiLSTMModel(nn.Module):
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
 
-        # Применяем экспоненциальную функцию активации
+        # Применяем сигмоидную функцию активации
         predictions = self.activation(predictions)
 
         return predictions
@@ -280,22 +280,28 @@ def predict_future_price(
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
+        # Проверяем, хватает ли данных для последовательности
         if len(latest_df) < SEQ_LENGTH:
             logging.info("Insufficient data for prediction.")
             return pd.DataFrame()
 
+        # Трансформируем данные
         latest_df_transformed = shared_data_processor.transform(latest_df)
-        tensor_dataset = shared_data_processor.prepare_dataset(latest_df_transformed, SEQ_LENGTH)
-        if len(tensor_dataset) == 0:
-            logging.info("No data after dataset preparation.")
+
+        # Подготавливаем входную последовательность из последних SEQ_LENGTH записей
+        input_sequence = latest_df_transformed.tail(SEQ_LENGTH)
+        if len(input_sequence) < SEQ_LENGTH:
+            logging.info("Not enough data after transformation.")
             return pd.DataFrame()
 
-        inputs, _ = tensor_dataset[-1]
-        inputs = inputs.unsqueeze(0).to(device)
+        # Конвертируем в тензор и добавляем размерность батча
+        inputs = torch.tensor(input_sequence.values, dtype=torch.float32).unsqueeze(0).to(device)
+
+        # Получаем предсказания от модели
         predictions = model(inputs).cpu().numpy()
         predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
-        # Denormalize predictions
+        # Де-нормализуем предсказания
         predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
 
         last_timestamp = latest_df["timestamp"].iloc[-1]
@@ -317,7 +323,7 @@ def predict_future_price(
         # Добавляем дополнительные признаки
         predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
 
-        # Определяем окончательный порядок столбцов после добавления всех необходимых столбцов
+        # Определяем окончательный порядок столбцов
         final_columns = list(MODEL_FEATURES.keys())
         predictions_df_denormalized = predictions_df_denormalized[final_columns]
 
@@ -384,6 +390,7 @@ def main():
     if np.isinf(combined_data.values).any():
         logging.info("Data contains infinite values.")
 
+    # Подготовка датасета с учётом изменений
     tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
 
     # Создание загрузчиков данных
@@ -393,12 +400,9 @@ def main():
 
     model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
 
-    # Получение последних данных и предсказание
+    # Получение последних данных и создаем предсказание
     get_binance_data_main()
-
-    latest_df = shared_data_processor.get_latest_dataset_prices(
-        TARGET_SYMBOL, PREDICTION_MINUTES, SEQ_LENGTH
-    )
+    latest_df = shared_data_processor.get_latest_dataset_prices(SEQ_LENGTH)
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
 
