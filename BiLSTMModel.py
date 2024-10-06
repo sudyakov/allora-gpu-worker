@@ -30,7 +30,6 @@ from config import (
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s - %(message)s',
@@ -118,9 +117,6 @@ class EnhancedBiLSTMModel(nn.Module):
             MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
 
-        # Используем сигмоидную функцию активации
-        self.activation = nn.Sigmoid()
-
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -144,8 +140,8 @@ class EnhancedBiLSTMModel(nn.Module):
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
 
-        # Применяем сигмоидную функцию активации
-        predictions = self.activation(predictions)
+        predictions = torch.clamp(predictions, min=-10, max=10)
+        predictions = torch.exp(predictions)
 
         return predictions
 
@@ -180,7 +176,7 @@ def train_and_save_model(
     for epoch in range(TRAINING_PARAMS["initial_epochs"]):
         model.train()
         total_loss = 0.0
-        total_corr = 0.0  # Для накопления корреляции
+        total_corr = 0.0
         progress_bar = tqdm(
             train_loader,
             desc=f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']}",
@@ -212,7 +208,6 @@ def train_and_save_model(
             optimizer.step()
             total_loss += loss.item()
 
-            # Вычисление корреляции между предсказаниями и целевыми значениями
             preds = outputs.detach().cpu().numpy()
             truths = targets.detach().cpu().numpy()
             corr = np.mean([
@@ -229,7 +224,6 @@ def train_and_save_model(
             f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Training Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
 
-        # Model validation
         model.eval()
         val_loss = 0.0
         val_corr = 0.0
@@ -240,7 +234,6 @@ def train_and_save_model(
                 loss = criterion(outputs, targets)
                 val_loss += loss.item()
 
-                # Вычисление корреляции на валидации
                 preds = outputs.cpu().numpy()
                 truths = targets.cpu().numpy()
                 corr = np.mean([
@@ -280,28 +273,22 @@ def predict_future_price(
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
-        # Проверяем, хватает ли данных для последовательности
         if len(latest_df) < SEQ_LENGTH:
             logging.info("Insufficient data for prediction.")
             return pd.DataFrame()
 
-        # Трансформируем данные
         latest_df_transformed = shared_data_processor.transform(latest_df)
 
-        # Подготавливаем входную последовательность из последних SEQ_LENGTH записей
         input_sequence = latest_df_transformed.tail(SEQ_LENGTH)
         if len(input_sequence) < SEQ_LENGTH:
             logging.info("Not enough data after transformation.")
             return pd.DataFrame()
 
-        # Конвертируем в тензор и добавляем размерность батча
         inputs = torch.tensor(input_sequence.values, dtype=torch.float32).unsqueeze(0).to(device)
 
-        # Получаем предсказания от модели
         predictions = model(inputs).cpu().numpy()
         predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
-        # Де-нормализуем предсказания
         predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
 
         last_timestamp = latest_df["timestamp"].iloc[-1]
@@ -320,10 +307,8 @@ def predict_future_price(
         predictions_df_denormalized["interval"] = prediction_minutes
         predictions_df_denormalized["timestamp"] = next_timestamp
 
-        # Добавляем дополнительные признаки
         predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
 
-        # Определяем окончательный порядок столбцов
         final_columns = list(MODEL_FEATURES.keys())
         predictions_df_denormalized = predictions_df_denormalized[final_columns]
 
@@ -334,7 +319,6 @@ def main():
     device = get_device()
     get_binance_data = GetBinanceData()
 
-    # Загрузка данных
     combined_data = get_binance_data.fetch_combined_data()
     if combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
@@ -344,7 +328,6 @@ def main():
     combined_data = shared_data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
 
-    # Проверка наличия файла DataProcessor
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         shared_data_processor.load(DATA_PROCESSOR_FILENAME)
         shared_data_processor.is_fitted = True
@@ -390,19 +373,16 @@ def main():
     if np.isinf(combined_data.values).any():
         logging.info("Data contains infinite values.")
 
-    # Подготовка датасета с учётом изменений
     tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
 
-    # Создание загрузчиков данных
     train_loader, val_loader = shared_data_processor.create_dataloader(
         tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
     )
 
     model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
 
-    # Получение последних данных и создаем предсказание
     get_binance_data_main()
-    latest_df = shared_data_processor.get_latest_dataset_prices(SEQ_LENGTH)
+    latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=PREDICTION_MINUTES)
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
 
@@ -414,7 +394,6 @@ def main():
 
             try:
                 existing_predictions = pd.read_csv(predictions_path)
-                # Убедиться, что столбцы в правильном порядке
                 existing_predictions = existing_predictions[predicted_df.columns]
             except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
                 existing_predictions = pd.DataFrame(columns=predicted_df.columns)
@@ -423,7 +402,6 @@ def main():
             if current_timestamp in existing_predictions["timestamp"].values:
                 logging.info(f"Prediction for timestamp {current_timestamp} already exists. Skipping save.")
             else:
-                # Объединяем DataFrame с учётом порядка столбцов
                 combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
                 combined_predictions = combined_predictions[predicted_df.columns]
                 combined_predictions.to_csv(

@@ -51,6 +51,7 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
+
 class DataProcessor:
     _instance = None
 
@@ -104,7 +105,6 @@ class DataProcessor:
             df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
             df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
         df = df.ffill().bfill()
-        # Обеспечиваем порядок столбцов
         df = df[list(MODEL_FEATURES.keys())]
         return df
 
@@ -114,14 +114,11 @@ class DataProcessor:
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         self.is_fitted = True
-        # Encode categorical columns
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 raise ValueError(f"Encoder not found for column {col}.")
             df[col] = encoder.transform(df[col])
-
-        # Fit and transform scalable features using MinMaxScaler
         for col in self.scalable_columns:
             if col in df.columns:
                 scaler = MinMaxScaler(feature_range=(0, 1))
@@ -129,30 +126,23 @@ class DataProcessor:
                 self.scalers[col] = scaler
             else:
                 raise KeyError(f"Column {col} is missing in DataFrame.")
-
-        # Ensure numerical columns have correct data types
         for col in self.numerical_columns:
             if col in df.columns:
                 dtype = MODEL_FEATURES.get(col, np.float32)
                 df[col] = df[col].astype(dtype)
             else:
                 raise KeyError(f"Column {col} is missing in DataFrame.")
-
         if 'timestamp' in df.columns:
             df['timestamp'] = df['timestamp'].astype(np.int64)
-
         df = df[list(MODEL_FEATURES.keys())]
         return df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Encode categorical columns
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
                 raise ValueError(f"LabelEncoder not found for column {col}.")
             df[col] = encoder.transform(df[col])
-
-        # Transform scalable features using existing MinMaxScalers
         for col in self.scalable_columns:
             if col in df.columns:
                 scaler = self.scalers.get(col)
@@ -161,24 +151,19 @@ class DataProcessor:
                 df[col] = scaler.transform(df[[col]])
             else:
                 raise KeyError(f"Column {col} is missing in DataFrame.")
-
-        # Ensure numerical columns have correct data types
         for col in self.numerical_columns:
             if col in df.columns:
                 dtype = MODEL_FEATURES.get(col, np.float32)
                 df[col] = df[col].astype(dtype)
             else:
                 raise KeyError(f"Column {col} is missing in DataFrame.")
-
         if 'timestamp' in df.columns:
             df['timestamp'] = df['timestamp'].astype(np.int64)
-
         df = df[list(MODEL_FEATURES.keys())]
         return df
 
     def inverse_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         df_inv = df.copy()
-        # Inverse transform scalable features
         for col in self.scalable_columns:
             if col in df_inv.columns:
                 scaler = self.scalers.get(col)
@@ -192,32 +177,23 @@ class DataProcessor:
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         if len(df) < seq_length:
             raise ValueError("Not enough data to create sequences.")
-
         features = list(MODEL_FEATURES.keys())
         target_columns = [col for col in SCALABLE_FEATURES.keys()]
         missing_columns = [col for col in target_columns if col not in df.columns]
         if missing_columns:
             raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
-
         df = df[features]
-
         if 'timestamp' in df.columns:
             df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)
-
-        # Преобразуем символы и интервалы целевой валюты и интервала в числовые значения
         target_symbol_encoded = self.label_encoders['symbol'].transform(pd.Series([TARGET_SYMBOL]))[0]
         target_interval_encoded = self.label_encoders['interval'].transform(pd.Series([PREDICTION_MINUTES]))[0]
-
         data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
         target_indices = torch.tensor([features.index(col) for col in target_columns])
-
         sequences = []
         targets = []
         for i in range(len(data_tensor) - seq_length):
             sequence = data_tensor[i:i + seq_length]
             next_step = data_tensor[i + seq_length]
-
-            # Проверяем, является ли следующий шаг целевым символом и интервалом
             symbol_idx = features.index('symbol')
             interval_idx = features.index('interval')
             if next_step[symbol_idx].item() == target_symbol_encoded and next_step[interval_idx].item() == target_interval_encoded:
@@ -225,37 +201,29 @@ class DataProcessor:
                 target = next_step.index_select(0, target_indices)
                 targets.append(target)
             else:
-                # Пропускаем данный пример, так как target не соответствует целевому символу и интервалу
                 continue
-
         if not sequences:
             raise ValueError("No sequences with the target symbol and interval were found.")
-
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
-
         return TensorDataset(sequences, targets)
-
 
     def create_dataloader(self, dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
         train_size = int(0.8 * len(dataset))
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-
         train_loader = DataLoader(
             train_dataset,
             batch_size=batch_size,
             shuffle=shuffle,
             num_workers=TRAINING_PARAMS["num_workers"],
         )
-
         val_loader = DataLoader(
             val_dataset,
             batch_size=batch_size,
             shuffle=False,
             num_workers=TRAINING_PARAMS["num_workers"],
         )
-
         return train_loader, val_loader
 
     def ensure_file_exists(self, filepath: str) -> None:
@@ -275,25 +243,15 @@ class DataProcessor:
         combined_dataset_path = PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
             df_combined = pd.read_csv(combined_dataset_path)
-
             df_filtered = df_combined.copy()
-
-            # Фильтрация по символу, если указан
             if symbol is not None:
                 df_filtered = df_filtered[df_filtered['symbol'] == symbol]
-
-            # Фильтрация по интервалу, если указан
             if interval is not None:
                 df_filtered = df_filtered[df_filtered['interval'] == interval]
-
-            # Проверяем, не пустой ли DataFrame после фильтрации
             if not df_filtered.empty:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
-
-        # Возвращаем пустой DataFrame с нужными столбцами, если данные не найдены
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
 
 
-# Создание глобального экземпляра DataProcessor
 shared_data_processor = DataProcessor()

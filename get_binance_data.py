@@ -45,7 +45,6 @@ class GetBinanceData:
         self.MODEL_FEATURES = MODEL_FEATURES
         self.PATHS = PATHS
 
-        # Больше не нужно создавать индивидуальный логгер
         self.data_processor = shared_data_processor
 
     def get_interval_info(self, interval_key: IntervalKey) -> IntervalConfig:
@@ -136,7 +135,6 @@ class GetBinanceData:
         df = self.data_processor.preprocess_binance_data(df[df['timestamp'] <= current_time])
         df = self.data_processor.fill_missing_add_features(df)
         df = self.data_processor.sort_dataframe(df)
-
         df = df.astype(self.MODEL_FEATURES)
         return df
 
