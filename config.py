@@ -46,7 +46,7 @@ PREDICTION_MINUTES: int = 5
 # Mapping of intervals for different time spans
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = {
     1: {"days": 10, "minutes": 1, "milliseconds": 60000},
-    5: {"days": 30, "minutes": 5, "milliseconds": 300000},
+    5: {"days": 60, "minutes": 5, "milliseconds": 300000},
     15: {"days": 90, "minutes": 15, "milliseconds": 900000},
 }
 

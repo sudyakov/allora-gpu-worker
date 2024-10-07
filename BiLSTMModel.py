@@ -35,12 +35,10 @@ logging.basicConfig(
     format='%(levelname)s - %(message)s',
 )
 
-
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
-
 
 def save_model(model, optimizer, filename: str) -> None:
     torch.save({
@@ -48,7 +46,6 @@ def save_model(model, optimizer, filename: str) -> None:
         'optimizer_state_dict': optimizer.state_dict(),
     }, filename, _use_new_zipfile_serialization=True)
     logging.info(f"Model saved to {filename}")
-
 
 def load_model(model, optimizer, filename: str, device: torch.device) -> None:
     if os.path.exists(filename):
@@ -59,7 +56,6 @@ def load_model(model, optimizer, filename: str, device: torch.device) -> None:
         logging.info("Model and optimizer state loaded.")
     else:
         logging.info(f"No model file found at {filename}. Starting from scratch.")
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -72,7 +68,6 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -158,7 +153,6 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.orthogonal_(param.data)
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
-
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -262,14 +256,14 @@ def train_and_save_model(
             for param_group in optimizer.param_groups:
                 param_group["lr"] = max(param_group["lr"] * 0.5, min_lr)
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
-    return model, optimizer
 
+    return model, optimizer
 
 def predict_future_price(
     model: EnhancedBiLSTMModel,
     latest_df: pd.DataFrame,
+    device: torch.device,
     prediction_minutes: int = PREDICTION_MINUTES,
-    device: torch.device = get_device(),
 ) -> pd.DataFrame:
     model.eval()
     with torch.no_grad():
@@ -279,12 +273,7 @@ def predict_future_price(
 
         latest_df_transformed = shared_data_processor.transform(latest_df)
 
-        input_sequence = latest_df_transformed.tail(SEQ_LENGTH)
-        if len(input_sequence) < SEQ_LENGTH:
-            logging.info("Not enough data after transformation.")
-            return pd.DataFrame()
-
-        inputs = torch.tensor(input_sequence.values, dtype=torch.float32).unsqueeze(0).to(device)
+        inputs = torch.tensor(latest_df_transformed.values, dtype=torch.float32).unsqueeze(0).to(device)
 
         predictions = model(inputs).cpu().numpy()
         predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
@@ -296,12 +285,7 @@ def predict_future_price(
             logging.error("Invalid last timestamp value.")
             return pd.DataFrame()
 
-        interval_key: Optional[IntervalKey] = get_interval(prediction_minutes)
-        if interval_key is None:
-            logging.error("Invalid prediction interval.")
-            return pd.DataFrame()
-
-        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[interval_key]["milliseconds"]
+        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[get_interval(prediction_minutes)]["milliseconds"]
 
         predictions_df_denormalized["symbol"] = TARGET_SYMBOL
         predictions_df_denormalized["interval"] = prediction_minutes
@@ -313,7 +297,6 @@ def predict_future_price(
         predictions_df_denormalized = predictions_df_denormalized[final_columns]
 
     return predictions_df_denormalized
-
 
 def main():
     device = get_device()
@@ -337,12 +320,9 @@ def main():
         combined_data = shared_data_processor.fit_transform(combined_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
 
-    MODEL_PARAMS["num_symbols"] = max(
-        combined_data["symbol"].max() + 1, MODEL_PARAMS.get("num_symbols", 0)
-    )
-    MODEL_PARAMS["num_intervals"] = max(
-        combined_data["interval"].max() + 1, MODEL_PARAMS.get("num_intervals", 0)
-    )
+    MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
+    MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
+    
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
@@ -373,21 +353,29 @@ def main():
     if np.isinf(combined_data.values).any():
         logging.info("Data contains infinite values.")
 
-    tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
+    try:
+        tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
+    except Exception as e:
+        logging.error(f"Error preparing dataset: {e}")
+        return
 
     train_loader, val_loader = shared_data_processor.create_dataloader(
         tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
     )
 
-    model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
+    try:
+        model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
+    except Exception as e:
+        logging.error(f"Error during training: {e}")
+        return
 
     get_binance_data_main()
-    latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=PREDICTION_MINUTES)
+    latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=None, count=SEQ_LENGTH)
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
 
     if not latest_df.empty:
-        predicted_df = predict_future_price(model, latest_df, PREDICTION_MINUTES, device)
+        predicted_df = predict_future_price(model, latest_df, device, PREDICTION_MINUTES)
         if not predicted_df.empty:
             predictions_path = PATHS["predictions"]
             shared_data_processor.ensure_file_exists(predictions_path)
@@ -413,7 +401,6 @@ def main():
             logging.info("Predictions were not made due to previous errors.")
     else:
         logging.info("Latest dataset is empty. Skipping prediction.")
-
 
 if __name__ == "__main__":
     while True:

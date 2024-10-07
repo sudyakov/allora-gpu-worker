@@ -51,7 +51,6 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
-
 class DataProcessor:
     _instance = None
 
@@ -69,12 +68,24 @@ class DataProcessor:
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
         self.scalable_columns: Sequence[str] = list(SCALABLE_FEATURES.keys())
         self.symbol_mapping = SYMBOL_MAPPING
+        
+        # Убедитесь, что TARGET_SYMBOL присутствует в символах
+        if TARGET_SYMBOL not in self.symbol_mapping:
+            max_symbol_code = max(self.symbol_mapping.values(), default=-1)
+            self.symbol_mapping[TARGET_SYMBOL] = max_symbol_code + 1
+        
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
+        
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
+        
+        # Убедитесь, что PREDICTION_MINUTES присутствует в интервалах
+        if PREDICTION_MINUTES not in self.interval_mapping:
+            max_interval_code = max(self.interval_mapping.values(), default=-1)
+            self.interval_mapping[PREDICTION_MINUTES] = max_interval_code + 1
+        
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
         self.scalers: Dict[str, MinMaxScaler] = {}
         self.initialized = True
-
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
         for col, dtype in RAW_FEATURES.items():
@@ -177,33 +188,45 @@ class DataProcessor:
     def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
         if len(df) < seq_length:
             raise ValueError("Not enough data to create sequences.")
+
         features = list(MODEL_FEATURES.keys())
         target_columns = [col for col in SCALABLE_FEATURES.keys()]
         missing_columns = [col for col in target_columns if col not in df.columns]
+
         if missing_columns:
             raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
+
         df = df[features]
+
         if 'timestamp' in df.columns:
             df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)
-        target_symbol_encoded = self.label_encoders['symbol'].transform(pd.Series([TARGET_SYMBOL]))[0]
-        target_interval_encoded = self.label_encoders['interval'].transform(pd.Series([PREDICTION_MINUTES]))[0]
-        data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
+
+        # Индексы для символов и интервалов
+        symbol_idx = features.index('symbol')
+        interval_idx = features.index('interval')
         target_indices = torch.tensor([features.index(col) for col in target_columns])
+
+        data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
+
         sequences = []
         targets = []
+
         for i in range(len(data_tensor) - seq_length):
             sequence = data_tensor[i:i + seq_length]
             next_step = data_tensor[i + seq_length]
-            symbol_idx = features.index('symbol')
-            interval_idx = features.index('interval')
-            if next_step[symbol_idx].item() == target_symbol_encoded and next_step[interval_idx].item() == target_interval_encoded:
+
+            # Проверяем, что следующий шаг соответствует TARGET_SYMBOL и PREDICTION_MINUTES
+            if next_step[symbol_idx].item() == self.label_encoders['symbol'].classes_[TARGET_SYMBOL] and \
+                next_step[interval_idx].item() == self.label_encoders['interval'].classes_[PREDICTION_MINUTES]:
                 sequences.append(sequence)
                 target = next_step.index_select(0, target_indices)
                 targets.append(target)
             else:
                 continue
+
         if not sequences:
             raise ValueError("No sequences with the target symbol and interval were found.")
+
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
         return TensorDataset(sequences, targets)
