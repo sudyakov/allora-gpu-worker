@@ -86,6 +86,7 @@ class DataProcessor:
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
         self.scalers: Dict[str, MinMaxScaler] = {}
         self.initialized = True
+    
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
         for col, dtype in RAW_FEATURES.items():
@@ -210,26 +211,32 @@ class DataProcessor:
 
         sequences = []
         targets = []
+        target_masks = []
+
+        target_symbol_code = self.label_encoders['symbol'].classes_[TARGET_SYMBOL]
+        target_interval_code = self.label_encoders['interval'].classes_[PREDICTION_MINUTES]
 
         for i in range(len(data_tensor) - seq_length):
             sequence = data_tensor[i:i + seq_length]
             next_step = data_tensor[i + seq_length]
 
-            # Проверяем, что следующий шаг соответствует TARGET_SYMBOL и PREDICTION_MINUTES
-            if next_step[symbol_idx].item() == self.label_encoders['symbol'].classes_[TARGET_SYMBOL] and \
-                next_step[interval_idx].item() == self.label_encoders['interval'].classes_[PREDICTION_MINUTES]:
-                sequences.append(sequence)
-                target = next_step.index_select(0, target_indices)
-                targets.append(target)
-            else:
-                continue
+            sequences.append(sequence)
+            target = next_step.index_select(0, target_indices)
+            targets.append(target)
 
-        if not sequences:
-            raise ValueError("No sequences with the target symbol and interval were found.")
+            # Создаем маску: 1, если следующий шаг соответствует TARGET_SYMBOL и PREDICTION_MINUTES, иначе 0
+            if next_step[symbol_idx].item() == target_symbol_code and \
+            next_step[interval_idx].item() == target_interval_code:
+                target_masks.append(1)
+            else:
+                target_masks.append(0)
 
         sequences = torch.stack(sequences)
         targets = torch.stack(targets)
-        return TensorDataset(sequences, targets)
+        target_masks = torch.tensor(target_masks, dtype=torch.float32)
+
+        return TensorDataset(sequences, targets, target_masks)
+
 
     def create_dataloader(self, dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
         train_size = int(0.8 * len(dataset))

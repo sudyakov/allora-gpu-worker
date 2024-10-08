@@ -161,7 +161,7 @@ def train_and_save_model(
     optimizer: AdamW,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
-    criterion = nn.MSELoss()
+    criterion = nn.MSELoss(reduction='none')  # Изменяем reduction на 'none'
     best_val_loss = float("inf")
     epochs_no_improve = 0
     n_epochs_stop = 5
@@ -177,8 +177,8 @@ def train_and_save_model(
             unit="batch",
             leave=True,
         )
-        for inputs, targets in progress_bar:
-            inputs, targets = inputs.to(device), targets.to(device)
+        for inputs, targets, masks in progress_bar:
+            inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
 
             if torch.isnan(inputs).any() or torch.isinf(inputs).any():
                 logging.error("Input data contains NaN or infinite values. Stopping training.")
@@ -196,19 +196,26 @@ def train_and_save_model(
                     targets.shape,
                 )
                 continue
+
+            # Применяем маску к функции потерь
             loss = criterion(outputs, targets)
+            loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
 
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
 
-            preds = outputs.detach().cpu().numpy()
-            truths = targets.detach().cpu().numpy()
-            corr = np.mean([
-                np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
-                for i in range(len(preds))
-            ])
-            total_corr += corr
+            # Вычисляем корреляцию только для тех примеров, где маска == 1
+            if masks.sum() > 0:
+                preds = outputs[masks == 1].detach().cpu().numpy()
+                truths = targets[masks == 1].detach().cpu().numpy()
+                corr = np.mean([
+                    np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
+                    for i in range(len(preds))
+                ])
+                total_corr += corr
+            else:
+                corr = 0
 
             progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
 
@@ -222,19 +229,21 @@ def train_and_save_model(
         val_loss = 0.0
         val_corr = 0.0
         with torch.no_grad():
-            for inputs, targets in val_loader:
-                inputs, targets = inputs.to(device), targets.to(device)
+            for inputs, targets, masks in val_loader:
+                inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)
+                loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
                 val_loss += loss.item()
 
-                preds = outputs.cpu().numpy()
-                truths = targets.cpu().numpy()
-                corr = np.mean([
-                    np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
-                    for i in range(len(preds))
-                ])
-                val_corr += corr
+                if masks.sum() > 0:
+                    preds = outputs[masks == 1].cpu().numpy()
+                    truths = targets[masks == 1].cpu().numpy()
+                    corr = np.mean([
+                        np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
+                        for i in range(len(preds))
+                    ])
+                    val_corr += corr
 
         avg_val_loss = val_loss / len(val_loader)
         avg_val_corr = val_corr / len(val_loader)
