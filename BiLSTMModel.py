@@ -32,7 +32,7 @@ from get_binance_data import GetBinanceData
 
 from model_utils import (
     predict_future_price,
-    compare_predictions_with_actual
+    process_all_predictions_and_update_differences
 )
 
 logging.basicConfig(
@@ -335,7 +335,6 @@ def main():
             target_symbols=[TARGET_SYMBOL],
             target_intervals=[PREDICTION_MINUTES]
         )
-
     except Exception as e:
         logging.error(f"Error preparing dataset: {e}")
         return
@@ -368,34 +367,28 @@ def main():
             except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
                 existing_predictions = pd.DataFrame(columns=predicted_df.columns)
 
-            current_timestamp = predicted_df["timestamp"].iloc[0]
-            if current_timestamp in existing_predictions["timestamp"].values:
-                logging.info(f"Prediction for timestamp {current_timestamp} already exists. Skipping save.")
-            else:
-                combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
-                combined_predictions = combined_predictions[predicted_df.columns]
-                combined_predictions.to_csv(
-                    predictions_path,
-                    index=False
-                )
-                logging.info(f"Predicted prices saved to {predictions_path}.")
-                
-                # Загрузка реальных данных с таким же timestamp для сравнения
-                latest_real_data = shared_data_processor.get_latest_dataset_prices(
-                    symbol=TARGET_SYMBOL,
-                    interval=PREDICTION_MINUTES,
-                    count=1
-                )
+            # Сохранение новых предсказаний
+            combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
+            combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
+            combined_predictions.to_csv(
+                predictions_path,
+                index=False
+            )
+            logging.info(f"Predicted prices saved to {predictions_path}.")
 
-                if not latest_real_data.empty:
-                    differences_path = PATHS['differences']
-                    compare_predictions_with_actual(predicted_df, latest_real_data, differences_path)
-                else:
-                    logging.info("No real data available for comparison at the current timestamp.")
+            # Обработка всех предсказаний и обновление differences.csv
+            combined_dataset_path = PATHS['combined_dataset']
+            differences_path = PATHS['differences']
+            process_all_predictions_and_update_differences(
+                differences_path=differences_path,
+                predictions_path=predictions_path,
+                combined_dataset_path=combined_dataset_path
+            )
         else:
             logging.info("Predictions were not made due to previous errors.")
     else:
         logging.info("Latest dataset is empty. Skipping prediction.")
+
 if __name__ == "__main__":
     while True:
         main()

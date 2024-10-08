@@ -5,9 +5,6 @@ from typing import Dict, Optional, Tuple, Sequence
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch.optim import AdamW
-from torch.utils.data import DataLoader
-from tqdm import tqdm
 import numpy as np
 
 from get_binance_data import main as get_binance_data_main
@@ -68,6 +65,96 @@ def predict_future_price(
         predictions_df_denormalized = predictions_df_denormalized[final_columns]
 
     return predictions_df_denormalized
+
+def process_all_predictions_and_update_differences(
+    differences_path: str,
+    predictions_path: str,
+    combined_dataset_path: str
+) -> None:
+    # Load predictions
+    if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
+        predictions_df = pd.read_csv(predictions_path)
+    else:
+        logging.info("No predictions available to process.")
+        return
+
+    # Load actual data
+    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+        combined_df = pd.read_csv(combined_dataset_path)
+    else:
+        logging.error("Combined dataset not found.")
+        return
+
+    # Load existing differences
+    if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
+        existing_differences = pd.read_csv(differences_path)
+    else:
+        existing_differences = pd.DataFrame(columns=['timestamp', 'symbol', 'interval'] + [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()])
+
+    # Prepare data
+    required_columns = ['timestamp', 'symbol', 'interval'] + list(SCALABLE_FEATURES.keys())
+    missing_columns_pred = set(required_columns) - set(predictions_df.columns)
+    missing_columns_actual = set(required_columns) - set(combined_df.columns)
+
+    if missing_columns_pred:
+        logging.error(f"Missing columns in predictions DataFrame: {missing_columns_pred}")
+        return
+    if missing_columns_actual:
+        logging.error(f"Missing columns in actual DataFrame: {missing_columns_actual}")
+        return
+
+    # Filter actual data for matching timestamps and symbols in predictions
+    actual_df = combined_df[combined_df['timestamp'].isin(predictions_df['timestamp'].unique()) &
+                            combined_df['symbol'].isin(predictions_df['symbol'].unique()) &
+                            combined_df['interval'].isin(predictions_df['interval'].unique())]
+
+    if actual_df.empty:
+        logging.info("No matching actual data found for predictions.")
+        return
+
+    # Merge predictions and actuals excluding already processed entries
+    merged_df = pd.merge(
+        predictions_df,
+        actual_df,
+        on=['timestamp', 'symbol', 'interval'],
+        suffixes=('_pred', '_actual')
+    )
+
+    if merged_df.empty:
+        logging.info("No matching timestamps between predictions and actual data.")
+        return
+
+    # Exclude entries that already exist in differences
+    if not existing_differences.empty:
+        merged_df = pd.merge(
+            merged_df,
+            existing_differences[['timestamp', 'symbol', 'interval']],
+            on=['timestamp', 'symbol', 'interval'],
+            how='left',
+            indicator=True
+        )
+        merged_df = merged_df[merged_df['_merge'] == 'left_only'].drop(columns=['_merge'])
+        if merged_df.empty:
+            logging.info("All differences have already been processed.")
+            return
+
+    # Compute differences for SCALABLE_FEATURES
+    for feature in SCALABLE_FEATURES.keys():
+        pred_col = f"{feature}_pred"
+        actual_col = f"{feature}_actual"
+        diff_col = f"{feature}_diff"
+        merged_df[diff_col] = merged_df[actual_col] - merged_df[pred_col]
+
+    # Select columns to save
+    diff_columns = ['timestamp', 'symbol', 'interval'] + \
+                    [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()]
+    differences_df = merged_df[diff_columns]
+
+    # Append new differences to existing_differences and save
+    combined_differences = pd.concat([existing_differences, differences_df], ignore_index=True)
+    combined_differences.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
+    combined_differences.to_csv(differences_path, index=False)
+    logging.info(f"Differences updated and saved to {differences_path}")
 
 def compare_predictions_with_actual(
     predictions_df: pd.DataFrame,
