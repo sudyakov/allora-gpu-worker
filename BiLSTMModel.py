@@ -29,6 +29,9 @@ from config import (
 )
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
+from model_utils import (
+    predict_future_price
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -268,45 +271,6 @@ def train_and_save_model(
 
     return model, optimizer
 
-def predict_future_price(
-    model: EnhancedBiLSTMModel,
-    latest_df: pd.DataFrame,
-    device: torch.device,
-    prediction_minutes: int = PREDICTION_MINUTES,
-) -> pd.DataFrame:
-    model.eval()
-    with torch.no_grad():
-        if len(latest_df) < SEQ_LENGTH:
-            logging.info("Insufficient data for prediction.")
-            return pd.DataFrame()
-
-        latest_df_transformed = shared_data_processor.transform(latest_df)
-
-        inputs = torch.tensor(latest_df_transformed.values, dtype=torch.float32).unsqueeze(0).to(device)
-
-        predictions = model(inputs).cpu().numpy()
-        predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
-
-        predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
-
-        last_timestamp = latest_df["timestamp"].iloc[-1]
-        if pd.isna(last_timestamp):
-            logging.error("Invalid last timestamp value.")
-            return pd.DataFrame()
-
-        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[get_interval(prediction_minutes)]["milliseconds"]
-
-        predictions_df_denormalized["symbol"] = TARGET_SYMBOL
-        predictions_df_denormalized["interval"] = prediction_minutes
-        predictions_df_denormalized["timestamp"] = next_timestamp
-
-        predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
-
-        final_columns = list(MODEL_FEATURES.keys())
-        predictions_df_denormalized = predictions_df_denormalized[final_columns]
-
-    return predictions_df_denormalized
-
 def main():
     device = get_device()
     get_binance_data = GetBinanceData()
@@ -385,7 +349,8 @@ def main():
         return
 
     get_binance_data_main()
-    latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=None, count=SEQ_LENGTH)
+    
+    latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=PREDICTION_MINUTES, count=SEQ_LENGTH)
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
 
