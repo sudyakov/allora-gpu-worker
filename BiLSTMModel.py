@@ -275,9 +275,9 @@ def train_and_save_model(
 
 def main():
     device = get_device()
-    get_binance_data = GetBinanceData()
+    data_fetcher = GetBinanceData()
 
-    combined_data = get_binance_data.fetch_combined_data()
+    combined_data = data_fetcher.fetch_combined_data()
     if combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return
@@ -379,20 +379,19 @@ def main():
                     index=False
                 )
                 logging.info(f"Predicted prices saved to {predictions_path}.")
+                
+                # Загрузка реальных данных с таким же timestamp для сравнения
+                latest_real_data = shared_data_processor.get_latest_dataset_prices(
+                    symbol=TARGET_SYMBOL,
+                    interval=PREDICTION_MINUTES,
+                    count=1
+                )
 
-            # Загрузка реальных данных с таким же timestamp для сравнения
-            latest_real_data = shared_data_processor.get_latest_dataset_prices(
-                symbol=TARGET_SYMBOL,
-                interval=PREDICTION_MINUTES,
-                count=1
-            )
-            latest_real_data = latest_real_data[latest_real_data['timestamp'] == current_timestamp]
-
-            if not latest_real_data.empty:
-                differences_path = PATHS['differences']
-                compare_predictions_with_actual(predicted_df, latest_real_data, differences_path)
-            else:
-                logging.info("No real data available for comparison at the current timestamp.")
+                if not latest_real_data.empty:
+                    differences_path = PATHS['differences']
+                    compare_predictions_with_actual(predicted_df, latest_real_data, differences_path)
+                else:
+                    logging.info("No real data available for comparison at the current timestamp.")
         else:
             logging.info("Predictions were not made due to previous errors.")
     else:
