@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-from typing import Tuple, Optional, Dict, Any, Sequence
+from typing import Tuple, Optional, Dict, Any, Sequence, List
 import pickle
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.preprocessing import MinMaxScaler
@@ -51,6 +51,7 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
+
 class DataProcessor:
     _instance = None
 
@@ -68,25 +69,25 @@ class DataProcessor:
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
         self.scalable_columns: Sequence[str] = list(SCALABLE_FEATURES.keys())
         self.symbol_mapping = SYMBOL_MAPPING
-        
+
         # Убедитесь, что TARGET_SYMBOL присутствует в символах
         if TARGET_SYMBOL not in self.symbol_mapping:
             max_symbol_code = max(self.symbol_mapping.values(), default=-1)
             self.symbol_mapping[TARGET_SYMBOL] = max_symbol_code + 1
-        
+
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
-        
+
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
-        
+
         # Убедитесь, что PREDICTION_MINUTES присутствует в интервалах
         if PREDICTION_MINUTES not in self.interval_mapping:
             max_interval_code = max(self.interval_mapping.values(), default=-1)
             self.interval_mapping[PREDICTION_MINUTES] = max_interval_code + 1
-        
+
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
         self.scalers: Dict[str, MinMaxScaler] = {}
         self.initialized = True
-    
+
     def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
         for col, dtype in RAW_FEATURES.items():
@@ -186,7 +187,13 @@ class DataProcessor:
                 raise KeyError(f"Column {col} is missing in DataFrame.")
         return df_inv
 
-    def prepare_dataset(self, df: pd.DataFrame, seq_length: int = SEQ_LENGTH) -> TensorDataset:
+    def prepare_dataset(
+        self,
+        df: pd.DataFrame,
+        seq_length: int = SEQ_LENGTH,
+        target_symbols: Optional[List[str]] = None,
+        target_intervals: Optional[List[int]] = None
+    ) -> TensorDataset:
         if len(df) < seq_length:
             raise ValueError("Not enough data to create sequences.")
 
@@ -213,8 +220,16 @@ class DataProcessor:
         targets = []
         target_masks = []
 
-        target_symbol_code = self.label_encoders['symbol'].classes_[TARGET_SYMBOL]
-        target_interval_code = self.label_encoders['interval'].classes_[PREDICTION_MINUTES]
+        # Получаем коды символов и интервалов
+        if target_symbols:
+            target_symbol_codes = [self.label_encoders['symbol'].classes_[sym] for sym in target_symbols]
+        else:
+            target_symbol_codes = list(self.label_encoders['symbol'].classes_.values())
+
+        if target_intervals:
+            target_interval_codes = [self.label_encoders['interval'].classes_[interval] for interval in target_intervals]
+        else:
+            target_interval_codes = list(self.label_encoders['interval'].classes_.values())
 
         for i in range(len(data_tensor) - seq_length):
             sequence = data_tensor[i:i + seq_length]
@@ -224,9 +239,9 @@ class DataProcessor:
             target = next_step.index_select(0, target_indices)
             targets.append(target)
 
-            # Создаем маску: 1, если следующий шаг соответствует TARGET_SYMBOL и PREDICTION_MINUTES, иначе 0
-            if next_step[symbol_idx].item() == target_symbol_code and \
-            next_step[interval_idx].item() == target_interval_code:
+            # Создаем маску: 1, если следующий шаг соответствует целевым символам и интервалам, иначе 0
+            if (next_step[symbol_idx].item() in target_symbol_codes) and \
+               (next_step[interval_idx].item() in target_interval_codes):
                 target_masks.append(1)
             else:
                 target_masks.append(0)
@@ -237,8 +252,12 @@ class DataProcessor:
 
         return TensorDataset(sequences, targets, target_masks)
 
-
-    def create_dataloader(self, dataset: TensorDataset, batch_size: int, shuffle: bool = True) -> Tuple[DataLoader, DataLoader]:
+    def create_dataloader(
+        self,
+        dataset: TensorDataset,
+        batch_size: int,
+        shuffle: bool = True
+    ) -> Tuple[DataLoader, DataLoader]:
         train_size = int(0.8 * len(dataset))
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
@@ -282,6 +301,5 @@ class DataProcessor:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
-
 
 shared_data_processor = DataProcessor()

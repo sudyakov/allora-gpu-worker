@@ -363,7 +363,13 @@ def main():
         logging.info("Data contains infinite values.")
 
     try:
-        tensor_dataset = shared_data_processor.prepare_dataset(combined_data, SEQ_LENGTH)
+        tensor_dataset = shared_data_processor.prepare_dataset(
+            combined_data,
+            seq_length=SEQ_LENGTH,
+            target_symbols=[TARGET_SYMBOL],
+            target_intervals=[PREDICTION_MINUTES]
+        )
+
     except Exception as e:
         logging.error(f"Error preparing dataset: {e}")
         return
