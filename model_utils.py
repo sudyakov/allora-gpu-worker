@@ -74,18 +74,6 @@ def compare_predictions_with_actual(
     actual_df: pd.DataFrame,
     differences_path: str
 ) -> None:
-    # Убедиться, что столбцы имеют правильные типы данных
-    for col in ['timestamp', 'symbol', 'interval']:
-        if col in actual_df.columns and col in predictions_df.columns:
-            predictions_df[col] = predictions_df[col].astype(np.int64)
-            actual_df[col] = actual_df[col].astype(np.int64)
-        else:
-            logging.error(f"Missing column '{col}' in dataframes.")
-            return
-
-    # Применение inverse_transform только к actual_df
-    actual_df = shared_data_processor.inverse_transform(actual_df)
-
     # Проверка наличия необходимых столбцов
     required_columns = ['timestamp', 'symbol', 'interval'] + list(SCALABLE_FEATURES.keys())
     missing_columns_pred = set(required_columns) - set(predictions_df.columns)
