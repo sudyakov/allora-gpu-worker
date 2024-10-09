@@ -20,7 +20,7 @@ RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
 
 # Sequence length for the model
-SEQ_LENGTH: int = 100
+SEQ_LENGTH: int = 3
 
 # Definition of type for interval configuration
 class IntervalConfig(TypedDict):
@@ -117,6 +117,7 @@ MODEL_PARAMS: ModelParams = {
 class TrainingParams(TypedDict):
     batch_size: int
     initial_epochs: int
+    fine_tune_epochs: int
     initial_lr: float
     max_epochs: int
     min_lr: float
@@ -126,6 +127,7 @@ class TrainingParams(TypedDict):
 TRAINING_PARAMS: TrainingParams = {
     "batch_size": 512,
     "initial_epochs": 3,
+    "fine_tune_epochs": 3,
     "initial_lr": 0.0005,
     "max_epochs": 100,
     "min_lr": 0.00001,
