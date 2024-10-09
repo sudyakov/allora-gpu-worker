@@ -89,10 +89,12 @@ def process_all_predictions_and_update_differences(
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         existing_differences = pd.read_csv(differences_path)
     else:
-        existing_differences = pd.DataFrame(columns=['timestamp', 'symbol', 'interval'] + [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()])
+        existing_differences = pd.DataFrame(columns=['timestamp', 'symbol', 'interval'] +
+                                            [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()] +
+                                            [f"{feature}_diff" for feature in ADD_FEATURES.keys()])
 
     # Prepare data
-    required_columns = ['timestamp', 'symbol', 'interval'] + list(SCALABLE_FEATURES.keys())
+    required_columns = ['timestamp', 'symbol', 'interval'] + list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
     missing_columns_pred = set(required_columns) - set(predictions_df.columns)
     missing_columns_actual = set(required_columns) - set(combined_df.columns)
 
@@ -104,9 +106,11 @@ def process_all_predictions_and_update_differences(
         return
 
     # Filter actual data for matching timestamps and symbols in predictions
-    actual_df = combined_df[combined_df['timestamp'].isin(predictions_df['timestamp'].unique()) &
-                            combined_df['symbol'].isin(predictions_df['symbol'].unique()) &
-                            combined_df['interval'].isin(predictions_df['interval'].unique())]
+    actual_df = combined_df[
+        combined_df['timestamp'].isin(predictions_df['timestamp'].unique()) &
+        combined_df['symbol'].isin(predictions_df['symbol'].unique()) &
+        combined_df['interval'].isin(predictions_df['interval'].unique())
+    ]
 
     if actual_df.empty:
         logging.info("No matching actual data found for predictions.")
@@ -138,8 +142,8 @@ def process_all_predictions_and_update_differences(
             logging.info("All differences have already been processed.")
             return
 
-    # Compute differences for SCALABLE_FEATURES
-    for feature in SCALABLE_FEATURES.keys():
+    # Compute differences for SCALABLE_FEATURES and ADD_FEATURES
+    for feature in list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys()):
         pred_col = f"{feature}_pred"
         actual_col = f"{feature}_actual"
         diff_col = f"{feature}_diff"
@@ -147,7 +151,8 @@ def process_all_predictions_and_update_differences(
 
     # Select columns to save
     diff_columns = ['timestamp', 'symbol', 'interval'] + \
-                    [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()]
+                    [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()] + \
+                    [f"{feature}_diff" for feature in ADD_FEATURES.keys()]
     differences_df = merged_df[diff_columns]
 
     # Append new differences to existing_differences and save
@@ -161,8 +166,8 @@ def compare_predictions_with_actual(
     actual_df: pd.DataFrame,
     differences_path: str
 ) -> None:
-    # Проверка наличия необходимых столбцов
-    required_columns = ['timestamp', 'symbol', 'interval'] + list(SCALABLE_FEATURES.keys())
+    # Check for required columns
+    required_columns = ['timestamp', 'symbol', 'interval'] + list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
     missing_columns_pred = set(required_columns) - set(predictions_df.columns)
     missing_columns_actual = set(required_columns) - set(actual_df.columns)
 
@@ -185,8 +190,8 @@ def compare_predictions_with_actual(
         logging.info("No matching timestamps between predictions and actual data.")
         return
 
-    # Compute differences for SCALABLE_FEATURES
-    for feature in SCALABLE_FEATURES.keys():
+    # Compute differences for SCALABLE_FEATURES and ADD_FEATURES
+    for feature in list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys()):
         pred_col = f"{feature}_pred"
         actual_col = f"{feature}_actual"
         diff_col = f"{feature}_diff"
@@ -194,7 +199,8 @@ def compare_predictions_with_actual(
 
     # Select columns to save
     diff_columns = ['timestamp', 'symbol', 'interval'] + \
-                    [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()]
+                [f"{feature}_diff" for feature in SCALABLE_FEATURES.keys()] + \
+                [f"{feature}_diff" for feature in ADD_FEATURES.keys()]
     differences_df = merged_df[diff_columns]
 
     # Save differences to file
