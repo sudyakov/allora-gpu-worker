@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+from filelock import FileLock  # Добавляем импорт библиотеки для блокировки файлов
 
 from config import (
     ADD_FEATURES,
@@ -60,11 +61,14 @@ def update_differences(
     else:
         logging.info("No predictions available to process.")
         return
-    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-        combined_df = pd.read_csv(combined_dataset_path)
-    else:
-        logging.error("Combined dataset not found.")
-        return
+    # Используем блокировку при доступе к combined_dataset.csv
+    lock_path = f"{combined_dataset_path}.lock"
+    with FileLock(lock_path):
+        if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+            combined_df = pd.read_csv(combined_dataset_path)
+        else:
+            logging.error("Combined dataset not found.")
+            return
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         existing_differences = pd.read_csv(differences_path)
     else:
@@ -79,11 +83,11 @@ def update_differences(
         logging.error(f"Missing columns in actual DataFrame: {missing_columns_actual}")
         return
     actual_df = combined_df[
-        combined_df['symbol'].isin(predictions_df['symbol'].unique()) &
-        combined_df['interval'].isin(predictions_df['interval'].unique()) &
-        combined_df['hour'].isin(predictions_df['hour'].unique()) &
-        combined_df['dayofweek'].isin(predictions_df['dayofweek'].unique()) &
-        combined_df['timestamp'].isin(predictions_df['timestamp'].unique())
+        (combined_df['symbol'].isin(predictions_df['symbol'].unique())) &
+        (combined_df['interval'].isin(predictions_df['interval'].unique())) &
+        (combined_df['hour'].isin(predictions_df['hour'].unique())) &
+        (combined_df['dayofweek'].isin(predictions_df['dayofweek'].unique())) &
+        (combined_df['timestamp'].isin(predictions_df['timestamp'].unique()))
     ]
     if actual_df.empty:
         logging.info("No matching actual data found for predictions.")
@@ -126,5 +130,6 @@ def update_differences(
             differences_df[col] = differences_df[col].astype(predictions_df[col].dtype)
     combined_differences = pd.concat([existing_differences, differences_df], ignore_index=True)
     combined_differences = combined_differences[predictions_df.columns]
+    combined_differences.sort_values(by='timestamp', ascending=False, inplace=True)
     combined_differences.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")

@@ -20,7 +20,7 @@ RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
 
 # Sequence length for the model
-SEQ_LENGTH: int = 3
+SEQ_LENGTH: int = 10
 
 # Definition of type for interval configuration
 class IntervalConfig(TypedDict):
@@ -35,8 +35,8 @@ SYMBOL_MAPPING: OrderedDict[str, int] = {
     "ETHUSDT": 0,
     "BTCUSDT": 1,
     # "BNBUSDT": 2,
-    # # "SOLUSDT": 3,
-    # # "ARBUSDT": 4
+    # "SOLUSDT": 3,
+    # "ARBUSDT": 4
 }
 
 # Target symbol and prediction interval

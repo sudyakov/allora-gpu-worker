@@ -1,7 +1,7 @@
 import logging
 import os
-from typing import Dict, Optional, Tuple, Sequence
-
+from time import sleep
+from typing import Dict, Tuple, Sequence
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -9,8 +9,8 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
-
 from get_binance_data import main as get_binance_data_main
+from filelock import FileLock
 from config import (
     ADD_FEATURES,
     DATA_PROCESSOR_FILENAME,
@@ -29,7 +29,6 @@ from config import (
 )
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
-
 from model_utils import (
     predict_future_price,
     update_differences
@@ -85,7 +84,6 @@ class EnhancedBiLSTMModel(nn.Module):
         self.numerical_columns = numerical_columns
         self.categorical_columns = categorical_columns
         self.column_name_to_index = column_name_to_index
-
         self.symbol_embedding = nn.Embedding(
             num_embeddings=MODEL_PARAMS["num_symbols"],
             embedding_dim=MODEL_PARAMS["embedding_dim"],
@@ -103,14 +101,12 @@ class EnhancedBiLSTMModel(nn.Module):
             embedding_dim=MODEL_PARAMS["embedding_dim"],
         )
         self.timestamp_embedding = nn.Linear(1, MODEL_PARAMS["timestamp_embedding_dim"])
-
         numerical_input_size = len(numerical_columns)
         self.lstm_input_size = (
             numerical_input_size
             + 4 * MODEL_PARAMS["embedding_dim"]
             + MODEL_PARAMS["timestamp_embedding_dim"]
         )
-
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
             hidden_size=MODEL_PARAMS["hidden_layer_size"],
@@ -119,31 +115,26 @@ class EnhancedBiLSTMModel(nn.Module):
             batch_first=True,
             bidirectional=True,
         )
-
         self.attention = Attention(MODEL_PARAMS["hidden_layer_size"])
         self.linear = nn.Linear(
             MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
-
         self.apply(self._initialize_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x.float().to(next(self.parameters()).device)
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
         numerical_data = x[:, :, numerical_indices]
-
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval"]].long()
         hours = x[:, :, self.column_name_to_index['hour']].long()
         days = x[:, :, self.column_name_to_index['dayofweek']].long()
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
-
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
         hour_embeddings = self.hour_embedding(hours)
         day_embeddings = self.dayofweek_embedding(days)
         timestamp_embeddings = self.timestamp_embedding(timestamp)
-
         lstm_input = torch.cat(
             (
                 numerical_data,
@@ -155,14 +146,11 @@ class EnhancedBiLSTMModel(nn.Module):
             ),
             dim=2
         )
-
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
         predictions = self.linear(context_vector)
-
         predictions = torch.clamp(predictions, min=-10, max=10)
         predictions = torch.exp(predictions)
-
         return predictions
 
     def _initialize_weights(self, module: nn.Module) -> None:
@@ -191,7 +179,6 @@ def train_and_save_model(
     epochs_no_improve = 0
     n_epochs_stop = 5
     min_lr = TRAINING_PARAMS["min_lr"]
-
     for epoch in range(TRAINING_PARAMS["initial_epochs"]):
         model.train()
         total_loss = 0.0
@@ -204,14 +191,12 @@ def train_and_save_model(
         )
         for inputs, targets, masks in progress_bar:
             inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
-
             if torch.isnan(inputs).any() or torch.isinf(inputs).any():
                 logging.error("Input data contains NaN or infinite values. Stopping training.")
                 return model, optimizer
             if torch.isnan(targets).any() or torch.isinf(targets).any():
                 logging.error("Target data contains NaN or infinite values. Stopping training.")
                 return model, optimizer
-
             optimizer.zero_grad()
             outputs = model(inputs)
             if outputs.shape != targets.shape:
@@ -221,14 +206,11 @@ def train_and_save_model(
                     targets.shape,
                 )
                 continue
-
             loss = criterion(outputs, targets)
             loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
-
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-
             if masks.sum() > 0:
                 preds = outputs[masks == 1].detach().cpu().numpy()
                 truths = targets[masks == 1].detach().cpu().numpy()
@@ -239,15 +221,12 @@ def train_and_save_model(
                 total_corr += corr
             else:
                 corr = 0
-
             progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
-
         avg_loss = total_loss / len(train_loader)
         avg_corr = total_corr / len(train_loader)
         logging.info(
             f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Training Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
-
         model.eval()
         val_loss = 0.0
         val_corr = 0.0
@@ -258,7 +237,6 @@ def train_and_save_model(
                 loss = criterion(outputs, targets)
                 loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
                 val_loss += loss.item()
-
                 if masks.sum() > 0:
                     preds = outputs[masks == 1].cpu().numpy()
                     truths = targets[masks == 1].cpu().numpy()
@@ -267,11 +245,9 @@ def train_and_save_model(
                         for i in range(len(preds))
                     ])
                     val_corr += corr
-
         avg_val_loss = val_loss / len(val_loader)
         avg_val_corr = val_corr / len(val_loader)
         logging.info(f"Validation Loss: {avg_val_loss:.4f}, Validation Correlation: {avg_val_corr:.4f}")
-
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             epochs_no_improve = 0
@@ -288,22 +264,82 @@ def train_and_save_model(
             for param_group in optimizer.param_groups:
                 param_group["lr"] = max(param_group["lr"] * 0.5, min_lr)
                 logging.info(f"Reducing learning rate to: {param_group['lr']}")
+    return model, optimizer
 
+def fine_tune_model(
+    model: EnhancedBiLSTMModel,
+    optimizer: AdamW,
+    fine_tune_loader: DataLoader,
+    device: torch.device,
+) -> Tuple[EnhancedBiLSTMModel, AdamW]:
+    criterion = nn.MSELoss(reduction='none')
+    fine_tune_epochs = TRAINING_PARAMS.get("fine_tune_epochs", 3)
+    min_lr = TRAINING_PARAMS["min_lr"]
+    model.train()
+    for epoch in range(fine_tune_epochs):
+        total_loss = 0.0
+        total_corr = 0.0
+        progress_bar = tqdm(
+            fine_tune_loader,
+            desc=f"Fine-tuning Epoch {epoch + 1}/{fine_tune_epochs}",
+            unit="batch",
+            leave=True,
+        )
+        for inputs, targets, masks in progress_bar:
+            inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
+            if torch.isnan(inputs).any() or torch.isinf(inputs).any():
+                logging.error("Input data contains NaN or infinite values. Stopping fine-tuning.")
+                return model, optimizer
+            if torch.isnan(targets).any() or torch.isinf(targets).any():
+                logging.error("Target data contains NaN or infinite values. Stopping fine-tuning.")
+                return model, optimizer
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            if outputs.shape != targets.shape:
+                logging.error(
+                    "Output shape %s does not match target shape %s",
+                    outputs.shape,
+                    targets.shape,
+                )
+                continue
+            loss = criterion(outputs, targets)
+            loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+            if masks.sum() > 0:
+                preds = outputs[masks == 1].detach().cpu().numpy()
+                truths = targets[masks == 1].detach().cpu().numpy()
+                corr = np.mean([
+                    np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
+                    for i in range(len(preds))
+                ])
+                total_corr += corr
+            else:
+                corr = 0
+            progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
+        avg_loss = total_loss / len(fine_tune_loader)
+        avg_corr = total_corr / len(fine_tune_loader)
+        logging.info(
+            f"Fine-tuning Epoch {epoch + 1}/{fine_tune_epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
+        )
+        for param_group in optimizer.param_groups:
+            param_group["lr"] = max(param_group["lr"] * 0.9, min_lr)
+            logging.info(f"Reducing learning rate to: {param_group['lr']}")
+    save_model(model, optimizer, MODEL_FILENAME)
+    logging.info("Model fine-tuned and saved.")
     return model, optimizer
 
 def main():
     device = get_device()
     data_fetcher = GetBinanceData()
-
     combined_data = data_fetcher.fetch_combined_data()
     if combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return
-
     combined_data = shared_data_processor.preprocess_binance_data(combined_data)
     combined_data = shared_data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
-
     if os.path.exists(DATA_PROCESSOR_FILENAME):
         shared_data_processor.load(DATA_PROCESSOR_FILENAME)
         shared_data_processor.is_fitted = True
@@ -312,14 +348,11 @@ def main():
         logging.info("Data processor file not found. Fitting a new DataProcessor.")
         combined_data = shared_data_processor.fit_transform(combined_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
-
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
-
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
-
     if (combined_data['symbol'] < 0).any():
         raise ValueError("Negative indices found in 'symbol' column.")
     if (combined_data['interval'] < 0).any():
@@ -328,11 +361,8 @@ def main():
         raise ValueError("Symbol indices exceed the number of symbols in embedding.")
     if combined_data['interval'].max() >= MODEL_PARAMS["num_intervals"]:
         raise ValueError("Interval indices exceed the number of intervals in embedding.")
-
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
-
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
-
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
@@ -340,12 +370,10 @@ def main():
     ).to(device)
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     load_model(model, optimizer, MODEL_FILENAME, device)
-
     if combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
     if np.isinf(combined_data.values).any():
         logging.info("Data contains infinite values.")
-
     try:
         tensor_dataset = shared_data_processor.prepare_dataset(
             combined_data,
@@ -356,34 +384,29 @@ def main():
     except Exception as e:
         logging.error(f"Error preparing dataset: {e}")
         return
-
     train_loader, val_loader = shared_data_processor.create_dataloader(
         tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
     )
-
     try:
         model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return
     get_binance_data_main()
-
+    sleep(1)
     latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=PREDICTION_MINUTES, count=SEQ_LENGTH)
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
-
     if not latest_df.empty:
         predicted_df = predict_future_price(model, latest_df, device, PREDICTION_MINUTES)
         if not predicted_df.empty:
             predictions_path = PATHS["predictions"]
             shared_data_processor.ensure_file_exists(predictions_path)
-
             try:
                 existing_predictions = pd.read_csv(predictions_path)
                 existing_predictions = existing_predictions[predicted_df.columns]
             except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
                 existing_predictions = pd.DataFrame(columns=predicted_df.columns)
-
             combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
             combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
             combined_predictions.to_csv(
@@ -392,17 +415,39 @@ def main():
             )
             logging.info(f"Predicted prices saved to {predictions_path}.")
 
-            combined_dataset_path = PATHS['combined_dataset']
-            differences_path = PATHS['differences']
-            update_differences(
-                differences_path=differences_path,
-                predictions_path=predictions_path,
-                combined_dataset_path=combined_dataset_path
-            )
+    combined_dataset_path = PATHS['combined_dataset']
+    differences_path = PATHS['differences']
+    update_differences(
+        differences_path=differences_path,
+        predictions_path=predictions_path,
+        combined_dataset_path=combined_dataset_path
+    )
+    if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
+        differences_df = pd.read_csv(differences_path)
+        processed_differences = shared_data_processor.preprocess_binance_data(differences_df)
+        processed_differences = shared_data_processor.fill_missing_add_features(processed_differences)
+        processed_differences = processed_differences.sort_values(by="timestamp").reset_index(drop=True)
+        processed_differences = shared_data_processor.transform(processed_differences)
+        if processed_differences.isnull().values.any():
+            logging.error("Differences data contains missing values. Skipping fine-tuning.")
+        elif np.isinf(processed_differences.values).any():
+            logging.error("Differences data contains infinite values. Skipping fine-tuning.")
         else:
-            logging.info("Predictions were not made due to previous errors.")
+            try:
+                fine_tune_dataset = shared_data_processor.prepare_dataset(
+                    processed_differences,
+                    seq_length=SEQ_LENGTH,
+                    target_symbols=[TARGET_SYMBOL],
+                    target_intervals=[PREDICTION_MINUTES]
+                )
+                fine_tune_loader, _ = shared_data_processor.create_dataloader(
+                    fine_tune_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
+                )
+                model, optimizer = fine_tune_model(model, optimizer, fine_tune_loader, device)
+            except Exception as e:
+                logging.error(f"Error during fine-tuning: {e}")
     else:
-        logging.info("Latest dataset is empty. Skipping prediction.")
+        logging.info("No new differences found for fine-tuning.")
 
 if __name__ == "__main__":
     while True:

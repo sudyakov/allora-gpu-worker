@@ -360,7 +360,6 @@ if __name__ == "__main__":
         level=logging.INFO,
         format='%(levelname)s - %(message)s',
     )
-
     try:
         main()
     except Exception as e:

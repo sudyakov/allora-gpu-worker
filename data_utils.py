@@ -237,7 +237,7 @@ class DataProcessor:
             targets.append(target)
 
             if (next_step[symbol_idx].item() in target_symbol_codes) and \
-               (next_step[interval_idx].item() in target_interval_codes):
+                (next_step[interval_idx].item() in target_interval_codes):
                 target_masks.append(1)
             else:
                 target_masks.append(0)
