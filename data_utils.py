@@ -65,7 +65,7 @@ class DataProcessor:
             return
         self.is_fitted = False
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
-        self.categorical_columns: Sequence[str] = ['symbol', 'interval']
+        self.categorical_columns: Sequence[str] = ['symbol', 'interval', 'hour', 'dayofweek']
         self.numerical_columns: Sequence[str] = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
         self.scalable_columns: Sequence[str] = list(SCALABLE_FEATURES.keys())
         self.symbol_mapping = SYMBOL_MAPPING
@@ -76,6 +76,8 @@ class DataProcessor:
             self.symbol_mapping[TARGET_SYMBOL] = max_symbol_code + 1
 
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
+        self.label_encoders['hour'] = CustomLabelEncoder()
+        self.label_encoders['dayofweek'] = CustomLabelEncoder()
 
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 
@@ -130,8 +132,9 @@ class DataProcessor:
         for col in self.categorical_columns:
             encoder = self.label_encoders.get(col)
             if encoder is None:
-                raise ValueError(f"Encoder not found for column {col}.")
-            df[col] = encoder.transform(df[col])
+                encoder = CustomLabelEncoder()
+                self.label_encoders[col] = encoder
+            df[col] = encoder.fit_transform(df[col])
         for col in self.scalable_columns:
             if col in df.columns:
                 scaler = MinMaxScaler(feature_range=(0, 1))

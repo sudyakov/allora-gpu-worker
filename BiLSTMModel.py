@@ -32,7 +32,7 @@ from get_binance_data import GetBinanceData
 
 from model_utils import (
     predict_future_price,
-    process_all_predictions_and_update_differences
+    update_differences
 )
 
 logging.basicConfig(
@@ -94,14 +94,24 @@ class EnhancedBiLSTMModel(nn.Module):
             num_embeddings=MODEL_PARAMS["num_intervals"],
             embedding_dim=MODEL_PARAMS["embedding_dim"],
         )
+        self.hour_embedding = nn.Embedding(
+            num_embeddings=24,  # часы от 0 до 23
+            embedding_dim=MODEL_PARAMS["embedding_dim"],
+        )
+        self.dayofweek_embedding = nn.Embedding(
+            num_embeddings=7,  # дни недели от 0 до 6
+            embedding_dim=MODEL_PARAMS["embedding_dim"],
+        )
         self.timestamp_embedding = nn.Linear(1, MODEL_PARAMS["timestamp_embedding_dim"])
 
         numerical_input_size = len(numerical_columns)
+
         self.lstm_input_size = (
             numerical_input_size
-            + 2 * MODEL_PARAMS["embedding_dim"]
+            + 4 * MODEL_PARAMS["embedding_dim"]
             + MODEL_PARAMS["timestamp_embedding_dim"]
         )
+
 
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
@@ -126,15 +136,27 @@ class EnhancedBiLSTMModel(nn.Module):
 
         symbols = x[:, :, self.column_name_to_index["symbol"]].long()
         intervals = x[:, :, self.column_name_to_index["interval"]].long()
+        hours = x[:, :, self.column_name_to_index['hour']].long()
+        days = x[:, :, self.column_name_to_index['dayofweek']].long()
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
 
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
+        hour_embeddings = self.hour_embedding(hours)
+        day_embeddings = self.dayofweek_embedding(days)
         timestamp_embeddings = self.timestamp_embedding(timestamp)
 
         lstm_input = torch.cat(
-            (numerical_data, symbol_embeddings, interval_embeddings, timestamp_embeddings), dim=2
-        )
+            (
+                numerical_data,
+                symbol_embeddings,
+                interval_embeddings,
+                timestamp_embeddings,
+                hour_embeddings,
+                day_embeddings
+            ),
+            dim=2
+)
 
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out)
@@ -348,7 +370,6 @@ def main():
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return
-
     get_binance_data_main()
     
     latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=PREDICTION_MINUTES, count=SEQ_LENGTH)
@@ -376,10 +397,10 @@ def main():
             )
             logging.info(f"Predicted prices saved to {predictions_path}.")
 
-            # Обработка всех предсказаний и обновление differences.csv
+            # Обновление differences.csv с помощью обновлённой функции
             combined_dataset_path = PATHS['combined_dataset']
             differences_path = PATHS['differences']
-            process_all_predictions_and_update_differences(
+            update_differences(
                 differences_path=differences_path,
                 predictions_path=predictions_path,
                 combined_dataset_path=combined_dataset_path

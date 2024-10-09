@@ -20,7 +20,7 @@ RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
 
 # Sequence length for the model
-SEQ_LENGTH: int = 300
+SEQ_LENGTH: int = 30
 
 # Definition of type for interval configuration
 class IntervalConfig(TypedDict):
@@ -58,9 +58,9 @@ RAW_FEATURES = OrderedDict([
 
 # Temporal features
 TIME_FEATURES = OrderedDict([
-    ('timestamp', np.int64),
     ('hour', np.float32),
     ('dayofweek', np.float32),
+    ('timestamp', np.int64),
 ])
 
 # Scalable features
