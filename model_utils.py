@@ -29,6 +29,7 @@ from config import (
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
 
+
 def predict_future_price(
     model: nn.Module,
     latest_df: pd.DataFrame,
@@ -67,6 +68,7 @@ def predict_future_price(
         predictions_df_denormalized = predictions_df_denormalized[final_columns]
 
     return predictions_df_denormalized
+
 
 def update_differences(
     differences_path: str,
@@ -135,7 +137,7 @@ def update_differences(
         merged_df = pd.merge(
             merged_df,
             existing_differences[['symbol', 'interval', 'hour', 'dayofweek', 'timestamp']],
-            on=['timestamp', 'symbol', 'interval'],
+            on=['symbol', 'interval', 'hour', 'dayofweek', 'timestamp'],
             how='left',
             indicator=True
         )
@@ -144,15 +146,28 @@ def update_differences(
             logging.info("All differences have already been processed.")
             return
 
-    feature_cols = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
+    # Key columns for identification
+    key_columns = ['symbol', 'interval', 'hour', 'dayofweek', 'timestamp']
 
-    # Copy columns from predictions
-    differences_df = merged_df[predictions_df.columns].copy()
+    # Prediction columns with '_pred' suffix
+    pred_columns = [col for col in merged_df.columns if col.endswith('_pred')]
+
+    # Create differences_df with key columns and prediction columns
+    differences_df = merged_df[key_columns + pred_columns].copy()
+
+    # Remove '_pred' suffix from column names
+    differences_df.rename(columns=lambda x: x.replace('_pred', '') if x.endswith('_pred') else x, inplace=True)
+
+    # Compute differences for feature columns
+    feature_cols = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
 
     for feature in feature_cols:
         pred_col = f"{feature}_pred"
         actual_col = f"{feature}_actual"
-        differences_df[feature] = merged_df[actual_col] - merged_df[pred_col]
+        if pred_col in merged_df.columns and actual_col in merged_df.columns:
+            differences_df[feature] = merged_df[actual_col] - merged_df[pred_col]
+        else:
+            logging.warning(f"Columns {pred_col} or {actual_col} not found in merged_df.")
 
     # Ensure data types match predictions DataFrame
     for col in differences_df.columns:
@@ -161,7 +176,6 @@ def update_differences(
 
     # Combine with existing differences and save
     combined_differences = pd.concat([existing_differences, differences_df], ignore_index=True)
-    #combined_differences.drop_duplicates(subset=['symbol', 'interval', 'hour', 'dayofweek', 'timestamp'], inplace=True)
     combined_differences = combined_differences[predictions_df.columns]  # Ensure same column order
     combined_differences.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")

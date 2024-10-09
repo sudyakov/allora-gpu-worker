@@ -21,7 +21,6 @@ from config import (
     PREDICTION_MINUTES
 )
 
-
 class CustomLabelEncoder:
     def __init__(self, predefined_mapping: Optional[Dict[Any, int]] = None):
         if predefined_mapping:
@@ -51,7 +50,6 @@ class CustomLabelEncoder:
         self.fit(data)
         return self.transform(data)
 
-
 class DataProcessor:
     _instance = None
 
@@ -70,7 +68,6 @@ class DataProcessor:
         self.scalable_columns: Sequence[str] = list(SCALABLE_FEATURES.keys())
         self.symbol_mapping = SYMBOL_MAPPING
 
-        # Убедитесь, что TARGET_SYMBOL присутствует в символах
         if TARGET_SYMBOL not in self.symbol_mapping:
             max_symbol_code = max(self.symbol_mapping.values(), default=-1)
             self.symbol_mapping[TARGET_SYMBOL] = max_symbol_code + 1
@@ -81,7 +78,6 @@ class DataProcessor:
 
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 
-        # Убедитесь, что PREDICTION_MINUTES присутствует в интервалах
         if PREDICTION_MINUTES not in self.interval_mapping:
             max_interval_code = max(self.interval_mapping.values(), default=-1)
             self.interval_mapping[PREDICTION_MINUTES] = max_interval_code + 1
@@ -212,7 +208,6 @@ class DataProcessor:
         if 'timestamp' in df.columns:
             df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)
 
-        # Индексы для символов и интервалов
         symbol_idx = features.index('symbol')
         interval_idx = features.index('interval')
         target_indices = torch.tensor([features.index(col) for col in target_columns])
@@ -223,7 +218,6 @@ class DataProcessor:
         targets = []
         target_masks = []
 
-        # Получаем коды символов и интервалов
         if target_symbols:
             target_symbol_codes = [self.label_encoders['symbol'].classes_[sym] for sym in target_symbols]
         else:
@@ -242,7 +236,6 @@ class DataProcessor:
             target = next_step.index_select(0, target_indices)
             targets.append(target)
 
-            # Создаем маску: 1, если следующий шаг соответствует целевым символам и интервалам, иначе 0
             if (next_step[symbol_idx].item() in target_symbol_codes) and \
                (next_step[interval_idx].item() in target_interval_codes):
                 target_masks.append(1)
