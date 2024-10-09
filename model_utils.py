@@ -107,9 +107,11 @@ def update_differences(
 
     # Filter actual data to match predictions
     actual_df = combined_df[
-        combined_df['timestamp'].isin(predictions_df['timestamp'].unique()) &
         combined_df['symbol'].isin(predictions_df['symbol'].unique()) &
-        combined_df['interval'].isin(predictions_df['interval'].unique())
+        combined_df['interval'].isin(predictions_df['interval'].unique()) &
+        combined_df['hour'].isin(predictions_df['hour'].unique()) &
+        combined_df['dayofweek'].isin(predictions_df['dayofweek'].unique()) &
+        combined_df['timestamp'].isin(predictions_df['timestamp'].unique())
     ]
 
     if actual_df.empty:
@@ -120,7 +122,7 @@ def update_differences(
     merged_df = pd.merge(
         predictions_df,
         actual_df,
-        on=['timestamp', 'symbol', 'interval'],
+        on=['symbol', 'interval', 'hour', 'dayofweek', 'timestamp'],
         suffixes=('_pred', '_actual')
     )
 
@@ -132,7 +134,7 @@ def update_differences(
     if not existing_differences.empty:
         merged_df = pd.merge(
             merged_df,
-            existing_differences[['timestamp', 'symbol', 'interval']],
+            existing_differences[['symbol', 'interval', 'hour', 'dayofweek', 'timestamp']],
             on=['timestamp', 'symbol', 'interval'],
             how='left',
             indicator=True
@@ -159,7 +161,7 @@ def update_differences(
 
     # Combine with existing differences and save
     combined_differences = pd.concat([existing_differences, differences_df], ignore_index=True)
-    combined_differences.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
+    #combined_differences.drop_duplicates(subset=['symbol', 'interval', 'hour', 'dayofweek', 'timestamp'], inplace=True)
     combined_differences = combined_differences[predictions_df.columns]  # Ensure same column order
     combined_differences.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")
