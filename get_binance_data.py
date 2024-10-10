@@ -237,11 +237,12 @@ class GetBinanceData:
 
         logging.info(summary)
 
+
     def update_data(
         self,
         symbol: Optional[str] = None,
         interval_key: Optional[IntervalKey] = None
-    ) -> Tuple[pd.DataFrame, Optional[int], Optional[int]]:
+    ) -> pd.DataFrame:
         symbols = [symbol] if symbol else list(self.SYMBOL_MAPPING.keys())
         intervals = [interval_key] if interval_key else list(self.INTERVAL_MAPPING.keys())
         all_updated_data = []
@@ -265,40 +266,41 @@ class GetBinanceData:
                     df_existing = pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
                     last_timestamp = server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
 
-                time_difference = server_time - last_timestamp
+                start_time = last_timestamp + 1
+                end_time = server_time
 
-                if time_difference > interval_info['milliseconds']:
-                    start_time = last_timestamp + 1
-                    end_time = server_time
-                    df_new = self.get_binance_data(sym, interval, start_time, end_time)
+                # Проверяем, есть ли новые данные для загрузки
+                if start_time >= end_time:
+                    logging.info(f"No new data available for symbol {sym} and interval {interval_info['minutes']}m.")
+                    all_updated_data.append(df_existing)
+                    continue
 
-                    if df_new is not None and not df_new.empty:
-                        df_new = df_new.astype(dtype_dict)
+                df_new = self.get_binance_data(sym, interval, start_time, end_time)
 
-                        readable_start = timestamp_to_readable_time(start_time)
-                        readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
-                        logging.info(
-                            f"Updating data for {sym} from {start_time} to {df_new['timestamp'].max()} "
-                            f"({readable_start} to {readable_newest})"
-                        )
+                if df_new is not None and not df_new.empty:
+                    df_new = df_new.astype(dtype_dict)
 
-                        df_existing = df_existing.astype(dtype_dict)
+                    readable_start = timestamp_to_readable_time(start_time)
+                    readable_newest = timestamp_to_readable_time(df_new['timestamp'].max())
+                    logging.info(
+                        f"Updating data for {sym} from {readable_start} to {readable_newest}"
+                    )
 
-                        df_updated = pd.concat(
-                            [df_existing, df_new],
-                            ignore_index=True
-                        ).drop_duplicates(subset=['timestamp'], keep='first')
-                        df_updated = self.data_processor.sort_dataframe(df_updated)
-                        df_updated = self.data_processor.fill_missing_add_features(df_updated)
+                    df_existing = df_existing.astype(dtype_dict)
 
-                        df_updated = df_updated.astype(dtype_dict)
+                    df_updated = pd.concat(
+                        [df_existing, df_new],
+                        ignore_index=True
+                    ).drop_duplicates(subset=['timestamp'], keep='first')
+                    df_updated = self.data_processor.sort_dataframe(df_updated)
+                    df_updated = self.data_processor.fill_missing_add_features(df_updated)
 
-                        self.save_to_csv(df_updated, filename)
-                        all_updated_data.append(df_updated)
-                    else:
-                        logging.warning(f"Failed to retrieve new data for {sym}.")
+                    df_updated = df_updated.astype(dtype_dict)
+
+                    self.save_to_csv(df_updated, filename)
+                    all_updated_data.append(df_updated)
                 else:
-                    logging.info(f"Data for {sym} does not require updating. Using current data.")
+                    logging.warning(f"Failed to retrieve new data for {sym}.")
                     all_updated_data.append(df_existing)
 
         if all_updated_data:
@@ -306,6 +308,7 @@ class GetBinanceData:
             return combined_df
         else:
             return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+
 
 def main():
     logging.info("Script started")

@@ -335,16 +335,31 @@ def main():
         return
 
     # Получаем последний предсказанный timestamp
-    last_prediction_timestamp = get_last_prediction_timestamp(PATHS['predictions'])
+    last_prediction_timestamp = get_last_prediction_timestamp(predictions_path)
 
     # Загружаем обновленный комбинированный датасет
     combined_df = combined_data.copy()
 
-    # Отфильтровываем данные после последнего предсказанного timestamp
-    if last_prediction_timestamp is not None:
+    # Проверяем, содержит ли файл предсказаний данные с 'timestamp'
+    predictions_exist = False
+    if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
+        try:
+            predictions_df_existing = pd.read_csv(predictions_path)
+            if 'timestamp' in predictions_df_existing.columns and not predictions_df_existing.empty:
+                predictions_exist = True
+        except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
+            predictions_exist = False
+
+    # Если предсказания существуют, фильтруем данные после последнего предсказанного 'timestamp'
+    if predictions_exist and last_prediction_timestamp is not None:
         new_data_df = combined_df[combined_df['timestamp'] > last_prediction_timestamp]
     else:
-        new_data_df = combined_df
+        # Иначе используем только самую последнюю последовательность для одного предсказания
+        if len(combined_df) >= SEQ_LENGTH:
+            new_data_df = combined_df.iloc[-SEQ_LENGTH:].copy()
+        else:
+            logging.info("Not enough data available for predictions.")
+            return
 
     # Проверяем, есть ли новые данные
     if not new_data_df.empty and len(new_data_df) >= SEQ_LENGTH:
@@ -354,10 +369,19 @@ def main():
         # Генерируем последовательности для предсказаний
         sequences = []
         timestamps = []
-        for i in range(len(new_data_df) - SEQ_LENGTH + 1):
-            sequence = new_data_df.iloc[i:i + SEQ_LENGTH]
-            sequences.append(sequence.values)
-            next_timestamp = sequence['timestamp'].iloc[-1] + INTERVAL_MAPPING[get_interval(PREDICTION_MINUTES)]["milliseconds"]
+
+        if predictions_exist:
+            # Генерируем последовательности для новых данных
+            for i in range(len(new_data_df) - SEQ_LENGTH + 1):
+                sequence = new_data_df.iloc[i:i + SEQ_LENGTH]
+                sequences.append(sequence.values)
+                next_timestamp = sequence['timestamp'].iloc[-1] + INTERVAL_MAPPING[get_interval(PREDICTION_MINUTES)]["milliseconds"]
+                timestamps.append(next_timestamp)
+        else:
+            # Создаем только одну последовательность из последних SEQ_LENGTH записей
+            sequence = new_data_df.values
+            sequences.append(sequence)
+            next_timestamp = new_data_df['timestamp'].iloc[-1] + INTERVAL_MAPPING[get_interval(PREDICTION_MINUTES)]["milliseconds"]
             timestamps.append(next_timestamp)
 
         # Преобразуем в тензоры
@@ -384,17 +408,20 @@ def main():
         predictions_df = shared_data_processor.fill_missing_add_features(predictions_df)
         predictions_df = predictions_df[list(MODEL_FEATURES.keys())]
 
-        # Объединяем с предыдущими предсказаниями
-        predictions_path = PATHS["predictions"]
-        shared_data_processor.ensure_file_exists(predictions_path)
-        try:
-            existing_predictions = pd.read_csv(predictions_path)
-            existing_predictions = existing_predictions[predictions_df.columns]
-        except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
-            existing_predictions = pd.DataFrame(columns=predictions_df.columns)
-        combined_predictions = pd.concat([existing_predictions, predictions_df], ignore_index=True)
-        combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
-        combined_predictions.sort_values(by='timestamp', ascending=False, inplace=True)
+        # Объединяем с предыдущими предсказаниями при наличии
+        if predictions_exist:
+            try:
+                existing_predictions = pd.read_csv(predictions_path)
+                existing_predictions = existing_predictions[predictions_df.columns]
+            except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
+                existing_predictions = pd.DataFrame(columns=predictions_df.columns)
+            combined_predictions = pd.concat([existing_predictions, predictions_df], ignore_index=True)
+            combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
+            combined_predictions.sort_values(by='timestamp', ascending=False, inplace=True)
+        else:
+            combined_predictions = predictions_df
+
+        # Сохраняем предсказания
         combined_predictions.to_csv(predictions_path, index=False)
         logging.info(f"New predictions saved to {predictions_path}.")
         # Проверяем порядок данных в predictions.csv
@@ -402,7 +429,6 @@ def main():
         print(predictions_check[['timestamp', 'symbol', 'interval']].head())
     else:
         logging.info("No new data available for predictions.")
-
 
     update_differences(
         differences_path=differences_path,
@@ -440,4 +466,4 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        time.sleep(3)  # Добавляем паузу между циклами
+        time.sleep(30)  # Добавляем паузу между циклами
