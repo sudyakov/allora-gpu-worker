@@ -27,11 +27,16 @@ from config import (
     TRAINING_PARAMS,
     MODEL_PARAMS
 )
+
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
+
 from model_utils import (
     predict_future_price,
-    update_differences
+    update_differences,
+    get_device,
+    save_model,
+    load_model
 )
 
 logging.basicConfig(
@@ -39,27 +44,6 @@ logging.basicConfig(
     format='%(levelname)s - %(message)s',
 )
 
-def get_device() -> torch.device:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logging.info(f"Using device: {device}")
-    return device
-
-def save_model(model, optimizer, filename: str) -> None:
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-    }, filename, _use_new_zipfile_serialization=True)
-    logging.info(f"Model saved to {filename}")
-
-def load_model(model, optimizer, filename: str, device: torch.device) -> None:
-    if os.path.exists(filename):
-        logging.info(f"Loading model from {filename}")
-        checkpoint = torch.load(filename, map_location=device, weights_only=False)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        logging.info("Model and optimizer state loaded.")
-    else:
-        logging.info(f"No model file found at {filename}. Starting from scratch.")
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -167,25 +151,22 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
-def train_and_save_model(
+def _train_model(
     model: EnhancedBiLSTMModel,
-    train_loader: DataLoader,
-    val_loader: DataLoader,
+    loader: DataLoader,
     optimizer: AdamW,
     device: torch.device,
+    epochs: int,
+    desc: str
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     criterion = nn.MSELoss(reduction='none')
-    best_val_loss = float("inf")
-    epochs_no_improve = 0
-    n_epochs_stop = 5
-    min_lr = TRAINING_PARAMS["min_lr"]
-    for epoch in range(TRAINING_PARAMS["initial_epochs"]):
-        model.train()
+    model.train()
+    for epoch in range(epochs):
         total_loss = 0.0
         total_corr = 0.0
         progress_bar = tqdm(
-            train_loader,
-            desc=f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']}",
+            loader,
+            desc=f"{desc} Epoch {epoch + 1}/{epochs}",
             unit="batch",
             leave=True,
         )
@@ -222,49 +203,21 @@ def train_and_save_model(
             else:
                 corr = 0
             progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
-        avg_loss = total_loss / len(train_loader)
-        avg_corr = total_corr / len(train_loader)
+        avg_loss = total_loss / len(loader)
+        avg_corr = total_corr / len(loader)
         logging.info(
-            f"Epoch {epoch + 1}/{TRAINING_PARAMS['initial_epochs']} - Training Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
+            f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
-        model.eval()
-        val_loss = 0.0
-        val_corr = 0.0
-        with torch.no_grad():
-            for inputs, targets, masks in val_loader:
-                inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
-                outputs = model(inputs)
-                loss = criterion(outputs, targets)
-                loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
-                val_loss += loss.item()
-                if masks.sum() > 0:
-                    preds = outputs[masks == 1].cpu().numpy()
-                    truths = targets[masks == 1].cpu().numpy()
-                    corr = np.mean([
-                        np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
-                        for i in range(len(preds))
-                    ])
-                    val_corr += corr
-        avg_val_loss = val_loss / len(val_loader)
-        avg_val_corr = val_corr / len(val_loader)
-        logging.info(f"Validation Loss: {avg_val_loss:.4f}, Validation Correlation: {avg_val_corr:.4f}")
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            epochs_no_improve = 0
-            save_model(model, optimizer, MODEL_FILENAME)
-            logging.info(f"Validation loss improved to {best_val_loss:.4f}. Model saved.")
-        else:
-            epochs_no_improve += 1
-            logging.info(
-                f"No improvement in validation loss. ({epochs_no_improve}/{n_epochs_stop})"
-            )
-            if epochs_no_improve >= n_epochs_stop:
-                logging.info("Early stopping triggered.")
-                break
-            for param_group in optimizer.param_groups:
-                param_group["lr"] = max(param_group["lr"] * 0.5, min_lr)
-                logging.info(f"Reducing learning rate to: {param_group['lr']}")
     return model, optimizer
+
+def train_and_save_model(
+    model: EnhancedBiLSTMModel,
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    optimizer: AdamW,
+    device: torch.device,
+) -> Tuple[EnhancedBiLSTMModel, AdamW]:
+    return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
 
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
@@ -272,82 +225,29 @@ def fine_tune_model(
     fine_tune_loader: DataLoader,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
-    criterion = nn.MSELoss(reduction='none')
-    fine_tune_epochs = TRAINING_PARAMS.get("fine_tune_epochs", 3)
-    min_lr = TRAINING_PARAMS["min_lr"]
-    model.train()
-    for epoch in range(fine_tune_epochs):
-        total_loss = 0.0
-        total_corr = 0.0
-        progress_bar = tqdm(
-            fine_tune_loader,
-            desc=f"Fine-tuning Epoch {epoch + 1}/{fine_tune_epochs}",
-            unit="batch",
-            leave=True,
-        )
-        for inputs, targets, masks in progress_bar:
-            inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
-            if torch.isnan(inputs).any() or torch.isinf(inputs).any():
-                logging.error("Input data contains NaN or infinite values. Stopping fine-tuning.")
-                return model, optimizer
-            if torch.isnan(targets).any() or torch.isinf(targets).any():
-                logging.error("Target data contains NaN or infinite values. Stopping fine-tuning.")
-                return model, optimizer
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            if outputs.shape != targets.shape:
-                logging.error(
-                    "Output shape %s does not match target shape %s",
-                    outputs.shape,
-                    targets.shape,
-                )
-                continue
-            loss = criterion(outputs, targets)
-            loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
-            loss.backward()
-            optimizer.step()
-            total_loss += loss.item()
-            if masks.sum() > 0:
-                preds = outputs[masks == 1].detach().cpu().numpy()
-                truths = targets[masks == 1].detach().cpu().numpy()
-                corr = np.mean([
-                    np.corrcoef(preds[i], truths[i])[0, 1] if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1]) else 0
-                    for i in range(len(preds))
-                ])
-                total_corr += corr
-            else:
-                corr = 0
-            progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
-        avg_loss = total_loss / len(fine_tune_loader)
-        avg_corr = total_corr / len(fine_tune_loader)
-        logging.info(
-            f"Fine-tuning Epoch {epoch + 1}/{fine_tune_epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
-        )
-        for param_group in optimizer.param_groups:
-            param_group["lr"] = max(param_group["lr"] * 0.9, min_lr)
-            logging.info(f"Reducing learning rate to: {param_group['lr']}")
-    save_model(model, optimizer, MODEL_FILENAME)
-    logging.info("Model fine-tuned and saved.")
-    return model, optimizer
+    return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
+
 
 def main():
     device = get_device()
     data_fetcher = GetBinanceData()
     combined_data = data_fetcher.fetch_combined_data()
+    
     if combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return
+    
+    # Предобработка данных с использованием DataProcessor
     combined_data = shared_data_processor.preprocess_binance_data(combined_data)
     combined_data = shared_data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
-    if os.path.exists(DATA_PROCESSOR_FILENAME):
-        shared_data_processor.load(DATA_PROCESSOR_FILENAME)
-        shared_data_processor.is_fitted = True
-        combined_data = shared_data_processor.transform(combined_data)
-    else:
-        logging.info("Data processor file not found. Fitting a new DataProcessor.")
+    
+    # Работа с DataProcessor для трансформации данных
+    if not shared_data_processor.is_fitted:
         combined_data = shared_data_processor.fit_transform(combined_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
+    else:
+        combined_data = shared_data_processor.transform(combined_data)
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(

@@ -303,9 +303,9 @@ class GetBinanceData:
 
         if all_updated_data:
             combined_df = pd.concat(all_updated_data, ignore_index=True)
-            return combined_df, None, None
+            return combined_df
         else:
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys())), None, None
+            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
 
 def main():
     logging.info("Script started")
@@ -328,7 +328,7 @@ def main():
     for symbol in symbols:
         for interval_key in intervals:
             try:
-                updated_data, start_time, end_time = download_data.update_data(symbol, interval_key)
+                updated_data = download_data.update_data(symbol, interval_key)
                 if updated_data is not None and not updated_data.empty:
                     download_data.print_data_summary(updated_data, symbol, interval_key)
 

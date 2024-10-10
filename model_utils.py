@@ -133,3 +133,25 @@ def update_differences(
     combined_differences.sort_values(by='timestamp', ascending=False, inplace=True)
     combined_differences.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")
+
+def get_device() -> torch.device:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logging.info(f"Using device: {device}")
+    return device
+
+def save_model(model, optimizer, filename: str) -> None:
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, filename, _use_new_zipfile_serialization=True)
+    logging.info(f"Model saved to {filename}")
+
+def load_model(model, optimizer, filename: str, device: torch.device) -> None:
+    if os.path.exists(filename):
+        logging.info(f"Loading model from {filename}")
+        checkpoint = torch.load(filename, map_location=device, weights_only=False)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        logging.info("Model and optimizer state loaded.")
+    else:
+        logging.info(f"No model file found at {filename}. Starting from scratch.")
