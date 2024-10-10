@@ -41,7 +41,7 @@ SYMBOL_MAPPING: OrderedDict[str, int] = {
 
 # Target symbol and prediction interval
 TARGET_SYMBOL: str = "ETHUSDT"
-PREDICTION_MINUTES: int = 5
+PREDICTION_MINUTES: int = 1
 
 # Mapping of intervals for different time spans
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = {

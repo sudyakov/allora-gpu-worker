@@ -78,7 +78,7 @@ class DataProcessor:
 
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 
-        if PREDICTION_MINUTES not in self.interval_mapping:
+        if PREDICTION_MINUTES not in INTERVAL_MAPPING.keys():
             max_interval_code = max(self.interval_mapping.values(), default=-1)
             self.interval_mapping[PREDICTION_MINUTES] = max_interval_code + 1
 
