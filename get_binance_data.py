@@ -68,6 +68,8 @@ class GetBinanceData:
         except RequestException as e:
             logging.warning(f"Request error: {e}")
             return None
+        finally:
+            time.sleep(1)
 
     def get_binance_data(
         self,
@@ -325,8 +327,8 @@ def main():
         logging.error(f"Failed to access Binance API: {e}")
         return
 
-    symbols = [None]  # Setting to None to process all symbols
-    intervals = [None]  # Setting to None to process all intervals
+    symbols = [None]
+    intervals = [None]
 
     for symbol in symbols:
         for interval_key in intervals:

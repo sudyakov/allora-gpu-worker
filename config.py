@@ -41,7 +41,7 @@ SYMBOL_MAPPING: OrderedDict[str, int] = {
 
 # Target symbol and prediction interval
 TARGET_SYMBOL: str = "ETHUSDT"
-PREDICTION_MINUTES: int = 1
+PREDICTION_MINUTES: int = 5
 
 # Mapping of intervals for different time spans
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = {
@@ -105,12 +105,12 @@ class ModelParams(TypedDict):
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES),
     "hidden_layer_size": 256,
-    "num_layers": 4,
+    "num_layers": 16,
     "dropout": 0.2,
-    "embedding_dim": 128,
+    "embedding_dim": 256,
     "num_symbols": 2,
     "num_intervals": 3,
-    "timestamp_embedding_dim": 128,
+    "timestamp_embedding_dim": 256,
 }
 
 # Definition of training parameters
@@ -126,8 +126,8 @@ class TrainingParams(TypedDict):
 
 TRAINING_PARAMS: TrainingParams = {
     "batch_size": 512,
-    "initial_epochs": 3,
-    "fine_tune_epochs": 3,
+    "initial_epochs": 10,
+    "fine_tune_epochs": 5,
     "initial_lr": 0.0005,
     "max_epochs": 100,
     "min_lr": 0.00001,

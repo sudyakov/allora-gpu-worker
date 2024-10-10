@@ -466,4 +466,4 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        time.sleep(30)  # Добавляем паузу между циклами
+        time.sleep(60)  # Добавляем паузу между циклами
