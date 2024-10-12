@@ -5,7 +5,7 @@ from typing import Dict, Tuple, Sequence
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch.optim import AdamW
+from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np

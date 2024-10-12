@@ -31,24 +31,24 @@ class IntervalConfig(TypedDict):
 IntervalKey = int
 
 # Mapping of cryptocurrency symbols
-SYMBOL_MAPPING: OrderedDict[str, int] = {
-    "ETHUSDT": 0,
-    "BTCUSDT": 1,
-    # "BNBUSDT": 2,
-    # "SOLUSDT": 3,
-    # "ARBUSDT": 4
-}
+SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
+    ("ETHUSDT", 0),
+    ("BTCUSDT", 1),
+    # ("BNBUSDT", 2),
+    # ("SOLUSDT", 3),
+    # ("ARBUSDT", 4)
+])
 
 # Target symbol and prediction interval
 TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 1
 
 # Mapping of intervals for different time spans
-INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = {
-    1: {"days": 15, "minutes": 1, "milliseconds": 60000},
-    5: {"days": 30, "minutes": 5, "milliseconds": 300000},
-    15: {"days": 60, "minutes": 15, "milliseconds": 900000},
-}
+INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
+    (1, {"days": 15, "minutes": 1, "milliseconds": 60000}),
+    (5, {"days": 30, "minutes": 5, "milliseconds": 300000}),
+    (15, {"days": 60, "minutes": 15, "milliseconds": 900000}),
+])
 
 # Categorical features
 RAW_FEATURES = OrderedDict([

@@ -245,6 +245,8 @@ class GetBinanceData:
         symbols = [symbol] if symbol else list(self.SYMBOL_MAPPING.keys())
         intervals = [interval_key] if interval_key else list(self.INTERVAL_MAPPING.keys())
         all_updated_data = []
+        start_time = None
+        end_time = None
 
         for sym in symbols:
             for interval in intervals:
@@ -303,9 +305,9 @@ class GetBinanceData:
 
         if all_updated_data:
             combined_df = pd.concat(all_updated_data, ignore_index=True)
-            return combined_df
+            return combined_df, start_time, end_time
         else:
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys())), None, None
 
 def main():
     logging.info("Script started")
@@ -328,7 +330,7 @@ def main():
     for symbol in symbols:
         for interval_key in intervals:
             try:
-                updated_data = download_data.update_data(symbol, interval_key)
+                updated_data, start_time, end_time = download_data.update_data(symbol, interval_key)
                 if updated_data is not None and not updated_data.empty:
                     download_data.print_data_summary(updated_data, symbol, interval_key)
 
@@ -354,7 +356,6 @@ def main():
                 logging.error(f"Error updating data for symbol {symbol} with interval {interval_key}: {e}")
 
     logging.info("All files have been updated with the latest prices.")
-
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,

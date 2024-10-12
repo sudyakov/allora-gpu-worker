@@ -42,7 +42,11 @@ def predict_future_price(
         if pd.isna(last_timestamp):
             logging.error("Invalid last timestamp value.")
             return pd.DataFrame()
-        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[get_interval(prediction_minutes)]["milliseconds"]
+        interval = get_interval(prediction_minutes)
+        if interval is None:
+            logging.error("Invalid prediction_minutes value.")
+            return pd.DataFrame()
+        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[interval]["milliseconds"]
         predictions_df_denormalized["symbol"] = TARGET_SYMBOL
         predictions_df_denormalized["interval"] = prediction_minutes
         predictions_df_denormalized["timestamp"] = next_timestamp
