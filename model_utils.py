@@ -27,33 +27,66 @@ def predict_future_price(
     latest_df: pd.DataFrame,
     device: torch.device,
     prediction_minutes: int = PREDICTION_MINUTES,
+    last_prediction_timestamp: int | None = None
 ) -> pd.DataFrame:
     model.eval()
+    predictions_list = []
     with torch.no_grad():
         if len(latest_df) < SEQ_LENGTH:
             logging.info("Insufficient data for prediction.")
             return pd.DataFrame()
-        latest_df_transformed = shared_data_processor.transform(latest_df)
-        inputs = torch.tensor(latest_df_transformed.values, dtype=torch.float32).unsqueeze(0).to(device)
-        predictions = model(inputs).cpu().numpy()
-        predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
-        predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
-        last_timestamp = latest_df["timestamp"].iloc[-1]
-        if pd.isna(last_timestamp):
-            logging.error("Invalid last timestamp value.")
+        # Получаем последнюю метку времени из данных Binance
+        last_binance_timestamp = latest_df["timestamp"].iloc[-1]
+        if pd.isna(last_binance_timestamp):
+            logging.error("Invalid last Binance timestamp value.")
             return pd.DataFrame()
+        # Если нет предыдущих предсказаний, начинаем с последней метки времени модели
         interval = get_interval(prediction_minutes)
         if interval is None:
-            logging.error("Invalid prediction_minutes value.")
+            logging.error("Invalid prediction interval.")
             return pd.DataFrame()
-        next_timestamp = np.int64(last_timestamp) + INTERVAL_MAPPING[interval]["milliseconds"]
-        predictions_df_denormalized["symbol"] = TARGET_SYMBOL
-        predictions_df_denormalized["interval"] = prediction_minutes
-        predictions_df_denormalized["timestamp"] = next_timestamp
-        predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
-        final_columns = list(MODEL_FEATURES.keys())
-        predictions_df_denormalized = predictions_df_denormalized[final_columns]
-    return predictions_df_denormalized
+        interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
+        if last_prediction_timestamp is None:
+            last_prediction_timestamp = last_binance_timestamp - interval_ms
+            if last_prediction_timestamp is None:
+                logging.error("last_prediction_timestamp is None after computation.")
+                return pd.DataFrame()
+
+        # Дополнительная проверка перед использованием int()
+        if last_prediction_timestamp is None or last_binance_timestamp is None:
+            logging.error("Timestamp values cannot be None.")
+            return pd.DataFrame()
+
+        timestamps_to_predict = np.arange(
+            int(last_prediction_timestamp) + interval_ms,
+            int(last_binance_timestamp) + interval_ms,
+            interval_ms
+        )
+        for next_timestamp in timestamps_to_predict:
+            # Подготовка данных для текущей временной метки
+            # Фильтруем данные для текущей последовательности
+            current_df = latest_df[latest_df["timestamp"] <= next_timestamp].tail(SEQ_LENGTH)
+            if len(current_df) < SEQ_LENGTH:
+                logging.info(f"Insufficient data for timestamp {next_timestamp}.")
+                continue
+            current_df_transformed = shared_data_processor.transform(current_df)
+            inputs = torch.tensor(current_df_transformed.values, dtype=torch.float32).unsqueeze(0).to(device)
+            predictions = model(inputs).cpu().numpy()
+            predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
+            predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
+            predictions_df_denormalized["symbol"] = TARGET_SYMBOL
+            predictions_df_denormalized["interval"] = prediction_minutes
+            predictions_df_denormalized["timestamp"] = int(next_timestamp)
+            predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
+            final_columns = list(MODEL_FEATURES.keys())
+            predictions_df_denormalized = predictions_df_denormalized[final_columns]
+            predictions_list.append(predictions_df_denormalized)
+    if predictions_list:
+        all_predictions = pd.concat(predictions_list, ignore_index=True)
+        return all_predictions
+    else:
+        return pd.DataFrame()
+
 
 def update_differences(
     differences_path: str,
