@@ -36,7 +36,8 @@ from model_utils import (
     update_differences,
     get_device,
     save_model,
-    load_model
+    load_model,
+    update_predictions
 )
 
 logging.basicConfig(
@@ -292,29 +293,50 @@ def main():
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return
+    
+    # Обновляем данные с Binance
     get_binance_data_main()
     sleep(1)
-    latest_df = shared_data_processor.get_latest_dataset_prices(symbol=None, interval=PREDICTION_MINUTES, count=SEQ_LENGTH)
-    latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
-    logging.info(f"Latest dataset loaded with {len(latest_df)} records.")
-    if not latest_df.empty:
-        predicted_df = predict_future_price(model, latest_df, device, PREDICTION_MINUTES)
-        if not predicted_df.empty:
-            predictions_path = PATHS["predictions"]
-            shared_data_processor.ensure_file_exists(predictions_path)
-            try:
-                existing_predictions = pd.read_csv(predictions_path)
-                existing_predictions = existing_predictions[predicted_df.columns]
-            except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
-                existing_predictions = pd.DataFrame(columns=predicted_df.columns)
-            combined_predictions = pd.concat([predicted_df, existing_predictions], ignore_index=True)
-            combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
-            combined_predictions.to_csv(
-                predictions_path,
-                index=False
-            )
-            logging.info(f"Predicted prices saved to {predictions_path}.")
-
+    
+    predictions_path = PATHS["predictions"]
+    predictions_exist = os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0
+    predictions_df = pd.DataFrame()
+    if predictions_exist:
+        try:
+            predictions_df = pd.read_csv(predictions_path)
+        except Exception as e:
+            logging.error(f"Error reading predictions file: {e}")
+            predictions_exist = False
+    if not predictions_exist or predictions_df.empty:
+        # Нет предсказаний, создаем новые
+        latest_df = shared_data_processor.get_latest_dataset_prices(
+            symbol=TARGET_SYMBOL,
+            interval=PREDICTION_MINUTES,
+            count=SEQ_LENGTH
+        )
+        latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
+        logging.info(f"Latest dataset loaded with {len(latest_df)} records for prediction.")
+        if not latest_df.empty:
+            # Указываем количество будущих шагов для предсказания
+            future_steps = 1  # или любое другое количество шагов
+            predicted_df = predict_future_price(model, latest_df, device, PREDICTION_MINUTES, future_steps=future_steps)
+            if not predicted_df.empty:
+                shared_data_processor.ensure_file_exists(predictions_path)
+                predicted_df.to_csv(predictions_path, index=False)
+                logging.info(f"Predicted prices saved to {predictions_path}.")
+    else:
+        # Предсказания уже есть, обновляем пропущенные
+        update_predictions(
+            model=model,
+            combined_dataset_path=PATHS['combined_dataset'],
+            predictions_path=PATHS['predictions'],
+            device=device,
+            seq_length=SEQ_LENGTH,
+            prediction_minutes=PREDICTION_MINUTES,
+            target_symbol=TARGET_SYMBOL
+        )
+    
+    # Обновляем differences и проводим fine-tuning при наличии новых данных
     combined_dataset_path = PATHS['combined_dataset']
     differences_path = PATHS['differences']
     update_differences(
@@ -352,3 +374,5 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
+        # Добавьте задержку, если необходимо
+        sleep(10)  
