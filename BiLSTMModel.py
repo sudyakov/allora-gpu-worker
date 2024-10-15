@@ -300,7 +300,7 @@ def main():
     
     # Обновляем данные с Binance
     get_binance_data_main()
-    sleep(1)
+    sleep(5)
     
     predictions_path = PATHS["predictions"]
     predictions_exist = os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0
@@ -320,7 +320,7 @@ def main():
         latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
         logging.info(f"Latest dataset loaded with {len(latest_df)} records for prediction.")
         if not latest_df.empty:
-            future_steps = 1  # или любое другое количество шагов
+            future_steps = 1
             predicted_df = predict_future_price(model, latest_df, device, PREDICTION_MINUTES, future_steps=future_steps)
             if not predicted_df.empty:
                 shared_data_processor.ensure_file_exists(predictions_path)
@@ -376,5 +376,3 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        # Добавьте задержку, если необходимо
-        sleep(10)  

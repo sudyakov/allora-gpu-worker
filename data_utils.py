@@ -6,7 +6,6 @@ from typing import Tuple, Optional, Dict, Any, Sequence, List
 import pickle
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.preprocessing import MinMaxScaler
-
 from config import (
     SEQ_LENGTH,
     INTERVAL_MAPPING,

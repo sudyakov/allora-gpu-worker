@@ -6,10 +6,9 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-from filelock import FileLock  # Добавляем импорт библиотеки для блокировки файлов
+from filelock import FileLock
 from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset, random_split
-
 
 from config import (
     ADD_FEATURES,
@@ -26,7 +25,6 @@ from config import (
 )
 from data_utils import shared_data_processor, CustomLabelEncoder
 from sklearn.preprocessing import MinMaxScaler
-
 
 def fit_transform(df: pd.DataFrame) -> pd.DataFrame:
     shared_data_processor.is_fitted = True
@@ -91,7 +89,6 @@ def inverse_transform(df: pd.DataFrame) -> pd.DataFrame:
             raise KeyError(f"Column {col} is missing in DataFrame.")
     return df_inv
 
-
 def create_dataloader(
     dataset: TensorDataset,
     batch_size: int,
@@ -114,13 +111,12 @@ def create_dataloader(
     )
     return train_loader, val_loader
 
-
 def predict_future_price(
     model: nn.Module,
     latest_df: pd.DataFrame,
     device: torch.device,
     prediction_minutes: int = PREDICTION_MINUTES,
-    future_steps: int = 1  # Количество шагов в будущее
+    future_steps: int = 1
 ) -> pd.DataFrame:
     model.eval()
     predictions_list = []
@@ -128,7 +124,6 @@ def predict_future_price(
         if len(latest_df) < SEQ_LENGTH:
             logging.info("Insufficient data for prediction.")
             return pd.DataFrame()
-        # Получаем последнюю метку времени из данных Binance
         last_binance_timestamp = latest_df["timestamp"].iloc[-1]
         if pd.isna(last_binance_timestamp):
             logging.error("Invalid last Binance timestamp value.")
@@ -138,12 +133,10 @@ def predict_future_price(
             logging.error("Invalid prediction interval.")
             return pd.DataFrame()
         interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
-        # Генерируем метки времени для будущих предсказаний
         timestamps_to_predict = [
             last_binance_timestamp + interval_ms * i for i in range(1, future_steps + 1)
         ]
         for next_timestamp in timestamps_to_predict:
-            # Подготовка данных для текущей последовательности
             current_df = latest_df.tail(SEQ_LENGTH)
             if len(current_df) < SEQ_LENGTH:
                 logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
@@ -160,7 +153,6 @@ def predict_future_price(
             final_columns = list(MODEL_FEATURES.keys())
             predictions_df_denormalized = predictions_df_denormalized[final_columns]
             predictions_list.append(predictions_df_denormalized)
-            # Обновляем `latest_df` для следующей итерации, добавляя предсказание
             latest_df = pd.concat([latest_df, predictions_df_denormalized], ignore_index=True)
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
@@ -178,7 +170,6 @@ def update_differences(
     else:
         logging.info("No predictions available to process.")
         return
-    # Используем блокировку при доступе к combined_dataset.csv
     lock_path = f"{combined_dataset_path}.lock"
     with FileLock(lock_path):
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
@@ -260,133 +251,86 @@ def update_predictions(
     prediction_minutes: int = PREDICTION_MINUTES,
     target_symbol: str = TARGET_SYMBOL
 ) -> None:
-    # Загружаем объединенный датасет
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         combined_df = pd.read_csv(combined_dataset_path)
     else:
         logging.error(f"Combined dataset not found at {combined_dataset_path}.")
         return
-
-    # Предобработка данных
     combined_df = shared_data_processor.preprocess_binance_data(combined_df)
     combined_df = shared_data_processor.fill_missing_add_features(combined_df)
     combined_df = combined_df.sort_values(by='timestamp', ascending=False).reset_index(drop=True)
-
-    # Фильтрация данных по целевому символу и интервалу
     symbol_df = combined_df[
         (combined_df['symbol'] == target_symbol) &
         (combined_df['interval'] == prediction_minutes)
     ].copy()
-
     if symbol_df.empty:
         logging.error("No data available for the target symbol and interval.")
         return
-
-    # Определяем последние предсказанные временные метки
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
         predictions_df = pd.read_csv(predictions_path)
         last_prediction_timestamp = predictions_df['timestamp'].max()
     else:
         predictions_df = pd.DataFrame(columns=combined_df.columns)
         last_prediction_timestamp = None
-
-    # Формируем список временных меток для предсказания
     if last_prediction_timestamp is not None:
         data_to_predict = symbol_df[symbol_df['timestamp'] > last_prediction_timestamp]
     else:
         data_to_predict = symbol_df.copy()
-
     if data_to_predict.empty:
         logging.info("No new timestamps to predict.")
         return
-
     missing_predictions = []
-
-    # Используем реальные данные для предсказаний
     interval = get_interval(prediction_minutes)
     if interval is None:
         logging.error(f"Invalid prediction_minutes: {prediction_minutes}")
         return
     interval_ms = INTERVAL_MAPPING[interval]['milliseconds']
-
     for idx in tqdm(range(len(data_to_predict)), desc="Predicting missing timestamps"):
         current_timestamp = data_to_predict.iloc[idx]['timestamp']
         prediction_timestamp = current_timestamp + interval_ms
-
         logging.info(f"Starting prediction for timestamp {prediction_timestamp}")
-
-        # Извлекаем последовательность данных до текущей метки времени
         sequence_df = symbol_df[
             (symbol_df['timestamp'] < current_timestamp)
         ].tail(seq_length)
-
         if len(sequence_df) < seq_length:
             logging.warning(f"Not enough data to predict for timestamp {prediction_timestamp}.")
             continue
-
-        # Преобразуем данные (масштабирование и кодирование)
         try:
             sequence_df_transformed = transform(sequence_df)
             logging.debug(f"Transformed sequence for {prediction_timestamp}:\n{sequence_df_transformed}")
         except Exception as e:
             logging.error(f"Error transforming data for timestamp {prediction_timestamp}: {e}")
             continue
-
         inputs = torch.tensor(sequence_df_transformed.values, dtype=torch.float32).unsqueeze(0).to(device)
-
-        # Делаем предсказание
         model.eval()
         with torch.no_grad():
             predictions = model(inputs).cpu().numpy()
-
-        # Преобразуем предсказания обратно (обратное масштабирование)
         try:
             predictions_df_single = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
             predictions_df_denormalized = inverse_transform(predictions_df_single)
-            logging.debug(f"Denormalized prediction for {prediction_timestamp}:\n{predictions_df_denormalized}")
+            logging.debug(f"Denormalized prediction for timestamp {prediction_timestamp}:\n{predictions_df_denormalized}")
         except Exception as e:
             logging.error(f"Error in inverse transform for timestamp {prediction_timestamp}: {e}")
             continue
-
-        # Добавляем дополнительные данные
         predictions_df_denormalized['symbol'] = target_symbol
         predictions_df_denormalized['interval'] = prediction_minutes
         predictions_df_denormalized['timestamp'] = prediction_timestamp
         predictions_df_denormalized['hour'] = ((prediction_timestamp // (1000 * 60 * 60)) % 24).astype(np.int64)
         predictions_df_denormalized['dayofweek'] = ((prediction_timestamp // (1000 * 60 * 60 * 24)) % 7).astype(np.int64)
-
-        # Дополняем недостающие признаки
         predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
-
-        # Убедитесь, что все необходимые признаки обновлены
-        logging.debug(f"Features after fill_missing_add_features for {prediction_timestamp}:\n{predictions_df_denormalized}")
-
-        # Выберите только конечные признаки
         final_columns = list(MODEL_FEATURES.keys())
         predictions_df_denormalized = predictions_df_denormalized[final_columns]
-
-        # Логирование предсказания
         logging.debug(f"Prediction DataFrame for timestamp {prediction_timestamp}:\n{predictions_df_denormalized}")
-
         missing_predictions.append(predictions_df_denormalized)
-
     if missing_predictions:
-        # Объединяем новые предсказания с существующими
         new_predictions_df = pd.concat(missing_predictions, ignore_index=True)
         updated_predictions_df = pd.concat([predictions_df, new_predictions_df], ignore_index=True)
         updated_predictions_df = updated_predictions_df.drop_duplicates(subset=['timestamp', 'symbol', 'interval'])
-        # Сортируем предсказания по возрастанию timestamp
         updated_predictions_df = updated_predictions_df.sort_values(by='timestamp', ascending=False).reset_index(drop=True)
-
-        # Проверка на наличие дубликатов временных меток
         if updated_predictions_df['timestamp'].duplicated().any():
             logging.error("Duplicate timestamps found in updated_predictions_df.")
-            # Можно удалить дубликаты или предпринять другие действия
             updated_predictions_df = updated_predictions_df.drop_duplicates(subset=['timestamp', 'symbol', 'interval'])
-
         logging.debug(f"Final updated_predictions_df:\n{updated_predictions_df.tail()}")
-
-        # Сохраняем обновленный файл с предсказаниями
         updated_predictions_df.to_csv(predictions_path, index=False)
         logging.info(f"Updated predictions saved to {predictions_path}.")
     else:
@@ -413,4 +357,3 @@ def load_model(model, optimizer, filename: str, device: torch.device) -> None:
         logging.info("Model and optimizer state loaded.")
     else:
         logging.info(f"No model file found at {filename}. Starting from scratch.")
-

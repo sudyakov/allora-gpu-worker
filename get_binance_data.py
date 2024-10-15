@@ -44,7 +44,6 @@ class GetBinanceData:
         self.PREDICTION_MINUTES = PREDICTION_MINUTES
         self.MODEL_FEATURES = MODEL_FEATURES
         self.PATHS = PATHS
-
         self.data_processor = shared_data_processor
 
     def get_interval_info(self, interval_key: IntervalKey) -> IntervalConfig:
@@ -187,7 +186,6 @@ class GetBinanceData:
 
         combined_data = combined_data.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='first')
         combined_data = combined_data.sort_values(['symbol', 'interval', 'timestamp'])
-
         combined_data = self.data_processor.fill_missing_add_features(combined_data)
         prepared_df = self.prepare_dataframe_for_save(combined_data)
         prepared_df.to_csv(filename, index=False)
@@ -292,7 +290,6 @@ class GetBinanceData:
                         ).drop_duplicates(subset=['timestamp'], keep='first')
                         df_updated = self.data_processor.sort_dataframe(df_updated)
                         df_updated = self.data_processor.fill_missing_add_features(df_updated)
-
                         df_updated = df_updated.astype(dtype_dict)
 
                         self.save_to_csv(df_updated, filename)
@@ -311,7 +308,6 @@ class GetBinanceData:
 
 def main():
     logging.info("Script started")
-
     download_data = GetBinanceData()
 
     try:
@@ -324,8 +320,8 @@ def main():
         logging.error(f"Failed to access Binance API: {e}")
         return
 
-    symbols = [None]  # Setting to None to process all symbols
-    intervals = [None]  # Setting to None to process all intervals
+    symbols = [None]
+    intervals = [None]
 
     for symbol in symbols:
         for interval_key in intervals:
@@ -356,6 +352,7 @@ def main():
                 logging.error(f"Error updating data for symbol {symbol} with interval {interval_key}: {e}")
 
     logging.info("All files have been updated with the latest prices.")
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
