@@ -370,13 +370,6 @@ def update_predictions(
 
         missing_predictions.append(predictions_df_denormalized)
 
-        # **Удаляем код объединения предсказаний с реальными данными**
-        # new_row = predictions_df_denormalized.copy()
-        # new_row['timestamp'] = prediction_timestamp
-        # new_row['prediction_timestamp'] = prediction_timestamp + interval_ms
-        # symbol_df = pd.concat([symbol_df, new_row], ignore_index=True)
-        # logging.debug(f"Updated symbol_df after adding new prediction:\n{symbol_df.tail()}")
-
     if missing_predictions:
         # Объединяем новые предсказания с существующими
         new_predictions_df = pd.concat(missing_predictions, ignore_index=True)
