@@ -116,37 +116,54 @@ def predict_future_price(
     latest_df: pd.DataFrame,
     device: torch.device,
     prediction_minutes: int = PREDICTION_MINUTES,
-    future_steps: int = 1
+    future_steps: int = 1,
+    seq_length: int = SEQ_LENGTH,
+    target_symbol: str = TARGET_SYMBOL
 ) -> pd.DataFrame:
+    if latest_df.empty:
+        logging.error("Latest DataFrame is empty.")
+        return pd.DataFrame()
+
+    latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
+    if len(latest_df) < seq_length:
+        logging.info("Insufficient data for prediction.")
+        return pd.DataFrame()
+
+    last_binance_timestamp = latest_df["timestamp"].iloc[-1]
+    if pd.isna(last_binance_timestamp):
+        logging.error("Invalid last Binance timestamp value.")
+        return pd.DataFrame()
+
+    interval = get_interval(prediction_minutes)
+    if interval is None:
+        logging.error("Invalid prediction interval.")
+        return pd.DataFrame()
+
     model.eval()
     predictions_list = []
     with torch.no_grad():
-        if len(latest_df) < SEQ_LENGTH:
-            logging.info("Insufficient data for prediction.")
-            return pd.DataFrame()
-        last_binance_timestamp = latest_df["timestamp"].iloc[-1]
-        if pd.isna(last_binance_timestamp):
-            logging.error("Invalid last Binance timestamp value.")
-            return pd.DataFrame()
-        interval = get_interval(prediction_minutes)
-        if interval is None:
-            logging.error("Invalid prediction interval.")
-            return pd.DataFrame()
         interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
         timestamps_to_predict = [
             last_binance_timestamp + interval_ms * i for i in range(1, future_steps + 1)
         ]
         for next_timestamp in timestamps_to_predict:
-            current_df = latest_df.tail(SEQ_LENGTH)
-            if len(current_df) < SEQ_LENGTH:
+            current_df = latest_df.tail(seq_length)
+            if len(current_df) < seq_length:
                 logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
                 continue
-            current_df_transformed = transform(current_df)
-            inputs = torch.tensor(current_df_transformed.values, dtype=torch.float32).unsqueeze(0).to(device)
-            predictions = model(inputs).cpu().numpy()
+            try:
+                current_df_transformed = transform(current_df)
+                inputs = torch.tensor(
+                    current_df_transformed.values, dtype=torch.float32
+                ).unsqueeze(0).to(device)
+                predictions = model(inputs).cpu().numpy()
+            except Exception as e:
+                logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
+                continue
+
             predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
             predictions_df_denormalized = inverse_transform(predictions_df)
-            predictions_df_denormalized["symbol"] = TARGET_SYMBOL
+            predictions_df_denormalized["symbol"] = target_symbol
             predictions_df_denormalized["interval"] = prediction_minutes
             predictions_df_denormalized["timestamp"] = int(next_timestamp)
             predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
@@ -154,6 +171,7 @@ def predict_future_price(
             predictions_df_denormalized = predictions_df_denormalized[final_columns]
             predictions_list.append(predictions_df_denormalized)
             latest_df = pd.concat([latest_df, predictions_df_denormalized], ignore_index=True)
+
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
         return all_predictions

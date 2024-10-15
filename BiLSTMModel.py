@@ -287,50 +287,42 @@ def main():
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return
+
     get_binance_data_main()
     sleep(5)
+
     predictions_path = PATHS["predictions"]
-    predictions_exist = os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0
-    predictions_df = pd.DataFrame()
-    if predictions_exist:
-        try:
-            predictions_df = pd.read_csv(predictions_path)
-        except Exception as e:
-            logging.error(f"Error reading predictions file: {e}")
-            predictions_exist = False
-    if not predictions_exist or predictions_df.empty:
-        latest_df = shared_data_processor.get_latest_dataset_prices(
-            symbol=TARGET_SYMBOL,
-            interval=PREDICTION_MINUTES,
-            count=SEQ_LENGTH,
-            latest_timestamp=None
-        )
-        latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
-        logging.info(f"Latest dataset loaded with {len(latest_df)} records for prediction.")
-        if not latest_df.empty:
-            future_steps = 1
-            predicted_df = predict_future_price(model, latest_df, device, PREDICTION_MINUTES, future_steps=future_steps)
-            if not predicted_df.empty:
-                shared_data_processor.ensure_file_exists(predictions_path)
-                predicted_df.to_csv(predictions_path, index=False)
-                logging.info(f"Predicted prices saved to {predictions_path}.")
+    latest_df = shared_data_processor.get_latest_dataset_prices(
+        symbol=TARGET_SYMBOL,
+        interval=PREDICTION_MINUTES,
+        count=SEQ_LENGTH,
+        latest_timestamp=None
+    )
+    predicted_df = predict_future_price(
+        model=model,
+        latest_df=latest_df,
+        device=device,
+        prediction_minutes=PREDICTION_MINUTES,
+        future_steps=1,
+        seq_length=SEQ_LENGTH,
+        target_symbol=TARGET_SYMBOL
+    )
+    if not predicted_df.empty:
+        shared_data_processor.ensure_file_exists(predictions_path)
+        predicted_df.to_csv(predictions_path, index=False)
+        logging.info(f"Predicted prices saved to {predictions_path}.")
     else:
-        update_predictions(
-            model=model,
-            combined_dataset_path=PATHS['combined_dataset'],
-            predictions_path=PATHS['predictions'],
-            device=device,
-            seq_length=SEQ_LENGTH,
-            prediction_minutes=PREDICTION_MINUTES,
-            target_symbol=TARGET_SYMBOL
-        )
+        logging.info("No predictions were made due to insufficient data.")
+
     combined_dataset_path = PATHS['combined_dataset']
     differences_path = PATHS['differences']
+    
     update_differences(
         differences_path=differences_path,
         predictions_path=predictions_path,
         combined_dataset_path=combined_dataset_path
     )
+    
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_df = pd.read_csv(differences_path)
         processed_differences = shared_data_processor.preprocess_binance_data(differences_df)
