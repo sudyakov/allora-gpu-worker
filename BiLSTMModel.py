@@ -44,19 +44,16 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s - %(message)s',
 )
-
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super().__init__()
         self.attention_weights = nn.Parameter(torch.Tensor(hidden_size * 2, 1))
         nn.init.xavier_uniform_(self.attention_weights)
-
     def forward(self, lstm_out: torch.Tensor) -> torch.Tensor:
         attention_scores = torch.matmul(lstm_out, self.attention_weights).squeeze(-1)
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
         self,
@@ -104,7 +101,6 @@ class EnhancedBiLSTMModel(nn.Module):
             MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
         self.apply(self._initialize_weights)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x.float().to(next(self.parameters()).device)
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
@@ -136,7 +132,6 @@ class EnhancedBiLSTMModel(nn.Module):
         predictions = torch.clamp(predictions, min=-10, max=10)
         predictions = torch.exp(predictions)
         return predictions
-
     def _initialize_weights(self, module: nn.Module) -> None:
         if isinstance(module, nn.Linear):
             nn.init.xavier_uniform_(module.weight)
@@ -150,7 +145,6 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.orthogonal_(param.data)
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
-
 def _train_model(
     model: EnhancedBiLSTMModel,
     loader: DataLoader,
@@ -209,7 +203,6 @@ def _train_model(
             f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
     return model, optimizer
-
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
@@ -218,7 +211,6 @@ def train_and_save_model(
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
-
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
     optimizer: AdamW,
@@ -226,7 +218,6 @@ def fine_tune_model(
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
-
 def main():
     device = get_device()
     data_fetcher = GetBinanceData()
@@ -247,7 +238,6 @@ def main():
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
-    
     if (combined_data['symbol'] < 0).any():
         raise ValueError("Negative indices found in 'symbol' column.")
     if (combined_data['interval'] < 0).any():
@@ -258,7 +248,6 @@ def main():
         raise ValueError("Interval indices exceed the number of intervals in embedding.")
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
-    
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
@@ -288,15 +277,10 @@ def main():
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return
-
-    # Получаем последние данные с биржи
     get_binance_data_main()
     sleep(5)
-    
     predictions_path = PATHS["predictions"]
     combined_dataset_path = PATHS["combined_dataset"]
-
-    # Загружаем существующие предсказания, чтобы получить последний временной штамп
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
         existing_predictions = pd.read_csv(predictions_path)
         if not existing_predictions.empty:
@@ -306,22 +290,17 @@ def main():
     else:
         existing_predictions = pd.DataFrame()
         last_prediction_timestamp = None
-
-    # Загружаем комбинированный датасет, чтобы получить последний доступный временной штамп данных
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         combined_df = pd.read_csv(combined_dataset_path)
         latest_data_timestamp = combined_df['timestamp'].max()
     else:
         logging.error("Combined dataset not found.")
         return
-
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
         logging.error("Invalid PREDICTION_MINUTES value.")
         return
     interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
-
-    # Если у нас есть предыдущие предсказания, определяем, какие временные метки пропущены
     if last_prediction_timestamp is not None:
         timestamps_to_predict = list(range(
             int(last_prediction_timestamp + interval_ms),
@@ -329,13 +308,9 @@ def main():
             int(interval_ms)
         ))
     else:
-        # Если предсказаний нет, начинаем с последнего доступного временного штампа
         timestamps_to_predict = [int(latest_data_timestamp)]
-
     predictions_list = []
-
     for next_timestamp in timestamps_to_predict:
-        # Подготавливаем latest_df для текущей временной метки
         latest_df = shared_data_processor.get_latest_dataset_prices(
             symbol=TARGET_SYMBOL,
             interval=PREDICTION_MINUTES,
@@ -355,28 +330,22 @@ def main():
             predictions_list.append(predicted_df)
         else:
             logging.info(f"No prediction made for timestamp {next_timestamp} due to insufficient data.")
-
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
         combined_predictions = pd.concat([existing_predictions, all_predictions], ignore_index=True)
         combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
         combined_predictions.sort_values(by='timestamp', ascending=False, inplace=True)
-        
         shared_data_processor.ensure_file_exists(predictions_path)
         combined_predictions.to_csv(predictions_path, index=False)
         logging.info(f"Predicted prices saved to {predictions_path}.")
     else:
         logging.info("No predictions were made due to insufficient data.")
-
-    # Обновление differences и последующее обучение
     differences_path = PATHS['differences']
-    
     update_differences(
         differences_path=differences_path,
         predictions_path=predictions_path,
         combined_dataset_path=combined_dataset_path
     )
-    
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_df = pd.read_csv(differences_path)
         processed_differences = shared_data_processor.preprocess_binance_data(differences_df)

@@ -123,22 +123,18 @@ def predict_future_price(
     if latest_df.empty:
         logging.error("Latest DataFrame is empty.")
         return pd.DataFrame()
-
     latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
     if len(latest_df) < seq_length:
         logging.info("Insufficient data for prediction.")
         return pd.DataFrame()
-
     last_binance_timestamp = latest_df["timestamp"].iloc[-1]
     if pd.isna(last_binance_timestamp):
         logging.error("Invalid last Binance timestamp value.")
         return pd.DataFrame()
-
     interval = get_interval(prediction_minutes)
     if interval is None:
         logging.error("Invalid prediction interval.")
         return pd.DataFrame()
-
     model.eval()
     predictions_list = []
     with torch.no_grad():
@@ -160,7 +156,6 @@ def predict_future_price(
             except Exception as e:
                 logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
                 continue
-
             predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
             predictions_df_denormalized = inverse_transform(predictions_df)
             predictions_df_denormalized["symbol"] = target_symbol
@@ -171,7 +166,6 @@ def predict_future_price(
             predictions_df_denormalized = predictions_df_denormalized[final_columns]
             predictions_list.append(predictions_df_denormalized)
             latest_df = pd.concat([latest_df, predictions_df_denormalized], ignore_index=True)
-
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
         return all_predictions
