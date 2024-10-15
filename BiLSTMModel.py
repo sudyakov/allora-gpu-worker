@@ -302,7 +302,8 @@ def main():
         latest_df = shared_data_processor.get_latest_dataset_prices(
             symbol=TARGET_SYMBOL,
             interval=PREDICTION_MINUTES,
-            count=SEQ_LENGTH
+            count=SEQ_LENGTH,
+            latest_timestamp=None
         )
         latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
         logging.info(f"Latest dataset loaded with {len(latest_df)} records for prediction.")
