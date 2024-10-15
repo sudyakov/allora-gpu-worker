@@ -191,14 +191,6 @@ def update_predictions(
         logging.error("No data available for the target symbol and interval.")
         return
 
-    # Смещаем временные метки на prediction_minutes вперед для предсказаний
-    interval = get_interval(prediction_minutes)
-    if interval is None:
-        logging.error(f"Invalid prediction_minutes: {prediction_minutes}")
-        return
-    interval_ms = INTERVAL_MAPPING[interval]['milliseconds']
-    symbol_df['prediction_timestamp'] = symbol_df['timestamp'] + interval_ms
-
     # Определяем последние предсказанные временные метки
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
         predictions_df = pd.read_csv(predictions_path)
@@ -209,7 +201,7 @@ def update_predictions(
 
     # Формируем список временных меток для предсказания
     if last_prediction_timestamp is not None:
-        data_to_predict = symbol_df[symbol_df['prediction_timestamp'] > last_prediction_timestamp]
+        data_to_predict = symbol_df[symbol_df['timestamp'] > last_prediction_timestamp]
     else:
         data_to_predict = symbol_df.copy()
 
@@ -219,15 +211,22 @@ def update_predictions(
 
     missing_predictions = []
 
+    # Используем реальные данные для предсказаний
+    interval = get_interval(prediction_minutes)
+    if interval is None:
+        logging.error(f"Invalid prediction_minutes: {prediction_minutes}")
+        return
+    interval_ms = INTERVAL_MAPPING[interval]['milliseconds']
+
     for idx in tqdm(range(len(data_to_predict)), desc="Predicting missing timestamps"):
         current_timestamp = data_to_predict.iloc[idx]['timestamp']
-        prediction_timestamp = data_to_predict.iloc[idx]['prediction_timestamp']
+        prediction_timestamp = current_timestamp + interval_ms
 
         logging.info(f"Starting prediction for timestamp {prediction_timestamp}")
 
-        # Извлекаем последовательность данных вплоть до текущей метки времени
+        # Извлекаем последовательность данных до текущей метки времени
         sequence_df = symbol_df[
-            (symbol_df['timestamp'] <= current_timestamp)
+            (symbol_df['timestamp'] < current_timestamp)
         ].tail(seq_length)
 
         if len(sequence_df) < seq_length:
@@ -265,23 +264,11 @@ def update_predictions(
         predictions_df_denormalized['hour'] = ((prediction_timestamp // (1000 * 60 * 60)) % 24).astype(np.int64)
         predictions_df_denormalized['dayofweek'] = ((prediction_timestamp // (1000 * 60 * 60 * 24)) % 7).astype(np.int64)
 
-        # Убедитесь, что все необходимые признаки обновлены
-        logging.debug(f"Features before fill_missing_add_features for {prediction_timestamp}:\n{predictions_df_denormalized}")
-
+        # Дополняем недостающие признаки
         predictions_df_denormalized = shared_data_processor.fill_missing_add_features(predictions_df_denormalized)
-        logging.debug(f"Features after fill_missing_add_features for {prediction_timestamp}:\n{predictions_df_denormalized}")
 
-        # Убедитесь, что признаки 'open', 'high', 'low' корректно обновлены
-        # Предполагаем, что 'close' предсказан, а 'open' = предыдущему 'close'
-        try:
-            previous_close = symbol_df[symbol_df['timestamp'] == current_timestamp]['close'].values[0]
-            predictions_df_denormalized['open'] = previous_close
-            predictions_df_denormalized['high'] = predictions_df_denormalized['close']
-            predictions_df_denormalized['low'] = predictions_df_denormalized['close']
-            logging.debug(f"Updated open, high, low for {prediction_timestamp}:\n{predictions_df_denormalized[['open', 'high', 'low']].head()}")
-        except IndexError:
-            logging.error(f"Previous close not found for timestamp {current_timestamp}.")
-            continue
+        # Убедитесь, что все необходимые признаки обновлены
+        logging.debug(f"Features after fill_missing_add_features for {prediction_timestamp}:\n{predictions_df_denormalized}")
 
         # Выберите только конечные признаки
         final_columns = list(MODEL_FEATURES.keys())
@@ -292,14 +279,13 @@ def update_predictions(
 
         missing_predictions.append(predictions_df_denormalized)
 
-        # Обновляем `symbol_df`, добавляя новое предсказание для последующих шагов
-        new_row = predictions_df_denormalized.copy()
-        new_row['timestamp'] = prediction_timestamp
-        new_row['prediction_timestamp'] = prediction_timestamp + interval_ms
-        symbol_df = pd.concat([symbol_df, new_row], ignore_index=True)
+        # **Удаляем код объединения предсказаний с реальными данными**
+        # new_row = predictions_df_denormalized.copy()
+        # new_row['timestamp'] = prediction_timestamp
+        # new_row['prediction_timestamp'] = prediction_timestamp + interval_ms
+        # symbol_df = pd.concat([symbol_df, new_row], ignore_index=True)
+        # logging.debug(f"Updated symbol_df after adding new prediction:\n{symbol_df.tail()}")
 
-        logging.debug(f"Updated symbol_df after adding new prediction:\n{symbol_df.tail()}")
-    
     if missing_predictions:
         # Объединяем новые предсказания с существующими
         new_predictions_df = pd.concat(missing_predictions, ignore_index=True)
