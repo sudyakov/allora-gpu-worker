@@ -35,7 +35,6 @@ from model_utils import (
     get_device,
     save_model,
     load_model,
-    update_predictions,
     fit_transform,
     transform,
     inverse_transform,
@@ -248,6 +247,7 @@ def main():
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
+    
     if (combined_data['symbol'] < 0).any():
         raise ValueError("Negative indices found in 'symbol' column.")
     if (combined_data['interval'] < 0).any():
@@ -258,6 +258,7 @@ def main():
         raise ValueError("Interval indices exceed the number of intervals in embedding.")
     logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
     column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
+    
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
@@ -308,12 +309,21 @@ def main():
         target_symbol=TARGET_SYMBOL
     )
     if not predicted_df.empty:
+        if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
+            existing_predictions = pd.read_csv(predictions_path)
+            combined_predictions = pd.concat([existing_predictions, predicted_df], ignore_index=True)
+            combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
+            combined_predictions.sort_values(by='timestamp', ascending=False, inplace=True)
+        else:
+            combined_predictions = predicted_df
+
         shared_data_processor.ensure_file_exists(predictions_path)
-        predicted_df.to_csv(predictions_path, index=False)
+        combined_predictions.to_csv(predictions_path, index=False)
         logging.info(f"Predicted prices saved to {predictions_path}.")
     else:
         logging.info("No predictions were made due to insufficient data.")
-
+    
+    
     combined_dataset_path = PATHS['combined_dataset']
     differences_path = PATHS['differences']
     
