@@ -27,10 +27,8 @@ from config import (
     TRAINING_PARAMS,
     MODEL_PARAMS
 )
-
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
-
 from model_utils import (
     predict_future_price,
     update_differences,
@@ -43,12 +41,10 @@ from model_utils import (
     inverse_transform,
     create_dataloader
 )
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s - %(message)s',
 )
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -232,22 +228,16 @@ def fine_tune_model(
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
-
 def main():
     device = get_device()
     data_fetcher = GetBinanceData()
     combined_data = data_fetcher.fetch_combined_data()
-    
     if combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return
-    
-    # Предобработка данных с использованием DataProcessor
     combined_data = shared_data_processor.preprocess_binance_data(combined_data)
     combined_data = shared_data_processor.fill_missing_add_features(combined_data)
     combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
-    
-    # Работа с DataProcessor для трансформации данных
     if not shared_data_processor.is_fitted:
         combined_data = fit_transform(combined_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
@@ -297,11 +287,8 @@ def main():
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return
-    
-    # Обновляем данные с Binance
     get_binance_data_main()
     sleep(5)
-    
     predictions_path = PATHS["predictions"]
     predictions_exist = os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0
     predictions_df = pd.DataFrame()
@@ -336,16 +323,13 @@ def main():
             prediction_minutes=PREDICTION_MINUTES,
             target_symbol=TARGET_SYMBOL
         )
-    
     combined_dataset_path = PATHS['combined_dataset']
     differences_path = PATHS['differences']
-
     update_differences(
         differences_path=differences_path,
         predictions_path=predictions_path,
         combined_dataset_path=combined_dataset_path
     )
-
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_df = pd.read_csv(differences_path)
         processed_differences = shared_data_processor.preprocess_binance_data(differences_df)

@@ -82,8 +82,8 @@ class ModelParams(TypedDict):
 
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES),
-    "hidden_layer_size": 256,
-    "num_layers": 4,
+    "hidden_layer_size": 128,
+    "num_layers": 16,
     "dropout": 0.2,
     "embedding_dim": 128,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
