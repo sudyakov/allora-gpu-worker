@@ -329,7 +329,7 @@ def main():
             int(interval_ms)
         ))
     else:
-        # Если предсказаний нет, начинаем с самого раннего возможного временного штампа
+        # Если предсказаний нет, начинаем с последнего доступного временного штампа
         timestamps_to_predict = [int(latest_data_timestamp)]
 
     predictions_list = []
