@@ -123,69 +123,6 @@ class DataProcessor:
         sorted_df = df.sort_values('timestamp', ascending=False)
         return sorted_df
 
-    def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        self.is_fitted = True
-        for col in self.categorical_columns:
-            encoder = self.label_encoders.get(col)
-            if encoder is None:
-                encoder = CustomLabelEncoder()
-                self.label_encoders[col] = encoder
-            df[col] = encoder.fit_transform(df[col])
-        for col in self.scalable_columns:
-            if col in df.columns:
-                scaler = MinMaxScaler(feature_range=(0, 1))
-                df[col] = scaler.fit_transform(df[[col]])
-                self.scalers[col] = scaler
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-        for col in self.numerical_columns:
-            if col in df.columns:
-                dtype = MODEL_FEATURES.get(col, np.float32)
-                df[col] = df[col].astype(dtype)
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-        if 'timestamp' in df.columns:
-            df['timestamp'] = df['timestamp'].astype(np.int64)
-        df = df[list(MODEL_FEATURES.keys())]
-        return df
-
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        for col in self.categorical_columns:
-            encoder = self.label_encoders.get(col)
-            if encoder is None:
-                raise ValueError(f"LabelEncoder not found for column {col}.")
-            df[col] = encoder.transform(df[col])
-        for col in self.scalable_columns:
-            if col in df.columns:
-                scaler = self.scalers.get(col)
-                if scaler is None:
-                    raise ValueError(f"Scaler not found for column {col}.")
-                df[col] = scaler.transform(df[[col]])
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-        for col in self.numerical_columns:
-            if col in df.columns:
-                dtype = MODEL_FEATURES.get(col, np.float32)
-                df[col] = df[col].astype(dtype)
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-        if 'timestamp' in df.columns:
-            df['timestamp'] = df['timestamp'].astype(np.int64)
-        df = df[list(MODEL_FEATURES.keys())]
-        return df
-
-    def inverse_transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df_inv = df.copy()
-        for col in self.scalable_columns:
-            if col in df_inv.columns:
-                scaler = self.scalers.get(col)
-                if scaler is None:
-                    raise ValueError(f"Scaler not found for column {col}.")
-                df_inv[col] = scaler.inverse_transform(df_inv[[col]])
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-        return df_inv
-
     def prepare_dataset(
         self,
         df: pd.DataFrame,
@@ -247,29 +184,6 @@ class DataProcessor:
         target_masks = torch.tensor(target_masks, dtype=torch.float32)
 
         return TensorDataset(sequences, targets, target_masks)
-
-    def create_dataloader(
-        self,
-        dataset: TensorDataset,
-        batch_size: int,
-        shuffle: bool = True
-    ) -> Tuple[DataLoader, DataLoader]:
-        train_size = int(0.8 * len(dataset))
-        val_size = len(dataset) - train_size
-        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            num_workers=TRAINING_PARAMS["num_workers"],
-        )
-        val_loader = DataLoader(
-            val_dataset,
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=TRAINING_PARAMS["num_workers"],
-        )
-        return train_loader, val_loader
 
     def ensure_file_exists(self, filepath: str) -> None:
         directory = os.path.dirname(filepath)

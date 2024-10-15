@@ -20,7 +20,7 @@ RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
 
 # Sequence length for the model
-SEQ_LENGTH: int = 50
+SEQ_LENGTH: int = 100
 
 # Definition of type for interval configuration
 class IntervalConfig(TypedDict):

@@ -37,7 +37,11 @@ from model_utils import (
     get_device,
     save_model,
     load_model,
-    update_predictions
+    update_predictions,
+    fit_transform,
+    transform,
+    inverse_transform,
+    create_dataloader
 )
 
 logging.basicConfig(
@@ -245,10 +249,10 @@ def main():
     
     # Работа с DataProcessor для трансформации данных
     if not shared_data_processor.is_fitted:
-        combined_data = shared_data_processor.fit_transform(combined_data)
+        combined_data = fit_transform(combined_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
     else:
-        combined_data = shared_data_processor.transform(combined_data)
+        combined_data = transform(combined_data)
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(
@@ -285,7 +289,7 @@ def main():
     except Exception as e:
         logging.error(f"Error preparing dataset: {e}")
         return
-    train_loader, val_loader = shared_data_processor.create_dataloader(
+    train_loader, val_loader = create_dataloader(
         tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
     )
     try:
@@ -347,7 +351,7 @@ def main():
         processed_differences = shared_data_processor.preprocess_binance_data(differences_df)
         processed_differences = shared_data_processor.fill_missing_add_features(processed_differences)
         processed_differences = processed_differences.sort_values(by="timestamp").reset_index(drop=True)
-        processed_differences = shared_data_processor.transform(processed_differences)
+        processed_differences = transform(processed_differences)
         if processed_differences.isnull().values.any():
             logging.error("Differences data contains missing values. Skipping fine-tuning.")
         elif np.isinf(processed_differences.values).any():
@@ -360,7 +364,7 @@ def main():
                     target_symbols=[TARGET_SYMBOL],
                     target_intervals=[PREDICTION_MINUTES]
                 )
-                fine_tune_loader, _ = shared_data_processor.create_dataloader(
+                fine_tune_loader, _ = create_dataloader(
                     fine_tune_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
                 )
                 model, optimizer = fine_tune_model(model, optimizer, fine_tune_loader, device)

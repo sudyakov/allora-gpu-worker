@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict
+from typing import Dict, Tuple
 
 import pandas as pd
 import numpy as np
@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 from filelock import FileLock  # Добавляем импорт библиотеки для блокировки файлов
 from tqdm import tqdm
+from torch.utils.data import DataLoader, TensorDataset, random_split
 
 
 from config import (
@@ -20,9 +21,99 @@ from config import (
     TARGET_SYMBOL,
     PATHS,
     PREDICTION_MINUTES,
+    TRAINING_PARAMS,
     get_interval,
 )
-from data_utils import shared_data_processor
+from data_utils import shared_data_processor, CustomLabelEncoder
+from sklearn.preprocessing import MinMaxScaler
+
+
+def fit_transform(df: pd.DataFrame) -> pd.DataFrame:
+    shared_data_processor.is_fitted = True
+    for col in shared_data_processor.categorical_columns:
+        encoder = shared_data_processor.label_encoders.get(col)
+        if encoder is None:
+            encoder = CustomLabelEncoder()
+            shared_data_processor.label_encoders[col] = encoder
+        df[col] = encoder.fit_transform(df[col])
+    for col in shared_data_processor.scalable_columns:
+        if col in df.columns:
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            df[col] = scaler.fit_transform(df[[col]])
+            shared_data_processor.scalers[col] = scaler
+        else:
+            raise KeyError(f"Column {col} is missing in DataFrame.")
+    for col in shared_data_processor.numerical_columns:
+        if col in df.columns:
+            dtype = MODEL_FEATURES.get(col, np.float32)
+            df[col] = df[col].astype(dtype)
+        else:
+            raise KeyError(f"Column {col} is missing in DataFrame.")
+    if 'timestamp' in df.columns:
+        df['timestamp'] = df['timestamp'].astype(np.int64)
+    df = df[list(MODEL_FEATURES.keys())]
+    return df
+
+def transform(df: pd.DataFrame) -> pd.DataFrame:
+    for col in shared_data_processor.categorical_columns:
+        encoder = shared_data_processor.label_encoders.get(col)
+        if encoder is None:
+            raise ValueError(f"LabelEncoder not found for column {col}.")
+        df[col] = encoder.transform(df[col])
+    for col in shared_data_processor.scalable_columns:
+        if col in df.columns:
+            scaler = shared_data_processor.scalers.get(col)
+            if scaler is None:
+                raise ValueError(f"Scaler not found for column {col}.")
+            df[col] = scaler.transform(df[[col]])
+        else:
+            raise KeyError(f"Column {col} is missing in DataFrame.")
+    for col in shared_data_processor.numerical_columns:
+        if col in df.columns:
+            dtype = MODEL_FEATURES.get(col, np.float32)
+            df[col] = df[col].astype(dtype)
+        else:
+            raise KeyError(f"Column {col} is missing in DataFrame.")
+    if 'timestamp' in df.columns:
+        df['timestamp'] = df['timestamp'].astype(np.int64)
+    df = df[list(MODEL_FEATURES.keys())]
+    return df
+
+def inverse_transform(df: pd.DataFrame) -> pd.DataFrame:
+    df_inv = df.copy()
+    for col in shared_data_processor.scalable_columns:
+        if col in df_inv.columns:
+            scaler = shared_data_processor.scalers.get(col)
+            if scaler is None:
+                raise ValueError(f"Scaler not found for column {col}.")
+            df_inv[col] = scaler.inverse_transform(df_inv[[col]])
+        else:
+            raise KeyError(f"Column {col} is missing in DataFrame.")
+    return df_inv
+
+
+def create_dataloader(
+    dataset: TensorDataset,
+    batch_size: int,
+    shuffle: bool = True
+) -> Tuple[DataLoader, DataLoader]:
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=TRAINING_PARAMS["num_workers"],
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=TRAINING_PARAMS["num_workers"],
+    )
+    return train_loader, val_loader
+
 
 def predict_future_price(
     model: nn.Module,
@@ -57,11 +148,11 @@ def predict_future_price(
             if len(current_df) < SEQ_LENGTH:
                 logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
                 continue
-            current_df_transformed = shared_data_processor.transform(current_df)
+            current_df_transformed = transform(current_df)
             inputs = torch.tensor(current_df_transformed.values, dtype=torch.float32).unsqueeze(0).to(device)
             predictions = model(inputs).cpu().numpy()
             predictions_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
-            predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df)
+            predictions_df_denormalized = inverse_transform(predictions_df)
             predictions_df_denormalized["symbol"] = TARGET_SYMBOL
             predictions_df_denormalized["interval"] = prediction_minutes
             predictions_df_denormalized["timestamp"] = int(next_timestamp)
@@ -235,7 +326,7 @@ def update_predictions(
 
         # Преобразуем данные (масштабирование и кодирование)
         try:
-            sequence_df_transformed = shared_data_processor.transform(sequence_df)
+            sequence_df_transformed = transform(sequence_df)
             logging.debug(f"Transformed sequence for {prediction_timestamp}:\n{sequence_df_transformed}")
         except Exception as e:
             logging.error(f"Error transforming data for timestamp {prediction_timestamp}: {e}")
@@ -251,7 +342,7 @@ def update_predictions(
         # Преобразуем предсказания обратно (обратное масштабирование)
         try:
             predictions_df_single = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
-            predictions_df_denormalized = shared_data_processor.inverse_transform(predictions_df_single)
+            predictions_df_denormalized = inverse_transform(predictions_df_single)
             logging.debug(f"Denormalized prediction for {prediction_timestamp}:\n{predictions_df_denormalized}")
         except Exception as e:
             logging.error(f"Error in inverse transform for timestamp {prediction_timestamp}: {e}")
@@ -329,3 +420,4 @@ def load_model(model, optimizer, filename: str, device: torch.device) -> None:
         logging.info("Model and optimizer state loaded.")
     else:
         logging.info(f"No model file found at {filename}. Starting from scratch.")
+
