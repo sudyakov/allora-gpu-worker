@@ -217,7 +217,7 @@ class DataProcessor:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
         
-        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))    
 
 
 shared_data_processor = DataProcessor()

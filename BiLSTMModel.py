@@ -289,42 +289,86 @@ def main():
         logging.error(f"Error during training: {e}")
         return
 
+    # Получаем последние данные с биржи
     get_binance_data_main()
     sleep(5)
-
+    
     predictions_path = PATHS["predictions"]
-    latest_df = shared_data_processor.get_latest_dataset_prices(
-        symbol=TARGET_SYMBOL,
-        interval=PREDICTION_MINUTES,
-        count=SEQ_LENGTH,
-        latest_timestamp=None
-    )
-    predicted_df = predict_future_price(
-        model=model,
-        latest_df=latest_df,
-        device=device,
-        prediction_minutes=PREDICTION_MINUTES,
-        future_steps=1,
-        seq_length=SEQ_LENGTH,
-        target_symbol=TARGET_SYMBOL
-    )
-    if not predicted_df.empty:
-        if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
-            existing_predictions = pd.read_csv(predictions_path)
-            combined_predictions = pd.concat([existing_predictions, predicted_df], ignore_index=True)
-            combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
-            combined_predictions.sort_values(by='timestamp', ascending=False, inplace=True)
-        else:
-            combined_predictions = predicted_df
+    combined_dataset_path = PATHS["combined_dataset"]
 
+    # Загружаем существующие предсказания, чтобы получить последний временной штамп
+    if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
+        existing_predictions = pd.read_csv(predictions_path)
+        if not existing_predictions.empty:
+            last_prediction_timestamp = existing_predictions['timestamp'].max()
+        else:
+            last_prediction_timestamp = None
+    else:
+        existing_predictions = pd.DataFrame()
+        last_prediction_timestamp = None
+
+    # Загружаем комбинированный датасет, чтобы получить последний доступный временной штамп данных
+    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+        combined_df = pd.read_csv(combined_dataset_path)
+        latest_data_timestamp = combined_df['timestamp'].max()
+    else:
+        logging.error("Combined dataset not found.")
+        return
+
+    interval = get_interval(PREDICTION_MINUTES)
+    if interval is None:
+        logging.error("Invalid PREDICTION_MINUTES value.")
+        return
+    interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
+
+    # Если у нас есть предыдущие предсказания, определяем, какие временные метки пропущены
+    if last_prediction_timestamp is not None:
+        timestamps_to_predict = list(range(
+            int(last_prediction_timestamp + interval_ms),
+            int(latest_data_timestamp + interval_ms),
+            int(interval_ms)
+        ))
+    else:
+        # Если предсказаний нет, начинаем с самого раннего возможного временного штампа
+        timestamps_to_predict = [int(latest_data_timestamp)]
+
+    predictions_list = []
+
+    for next_timestamp in timestamps_to_predict:
+        # Подготавливаем latest_df для текущей временной метки
+        latest_df = shared_data_processor.get_latest_dataset_prices(
+            symbol=TARGET_SYMBOL,
+            interval=PREDICTION_MINUTES,
+            count=SEQ_LENGTH,
+            latest_timestamp=next_timestamp - interval_ms
+        )
+        predicted_df = predict_future_price(
+            model=model,
+            latest_df=latest_df,
+            device=device,
+            prediction_minutes=PREDICTION_MINUTES,
+            future_steps=1,
+            seq_length=SEQ_LENGTH,
+            target_symbol=TARGET_SYMBOL
+        )
+        if not predicted_df.empty:
+            predictions_list.append(predicted_df)
+        else:
+            logging.info(f"No prediction made for timestamp {next_timestamp} due to insufficient data.")
+
+    if predictions_list:
+        all_predictions = pd.concat(predictions_list, ignore_index=True)
+        combined_predictions = pd.concat([existing_predictions, all_predictions], ignore_index=True)
+        combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
+        combined_predictions.sort_values(by='timestamp', ascending=False, inplace=True)
+        
         shared_data_processor.ensure_file_exists(predictions_path)
         combined_predictions.to_csv(predictions_path, index=False)
         logging.info(f"Predicted prices saved to {predictions_path}.")
     else:
         logging.info("No predictions were made due to insufficient data.")
-    
-    
-    combined_dataset_path = PATHS['combined_dataset']
+
+    # Обновление differences и последующее обучение
     differences_path = PATHS['differences']
     
     update_differences(
@@ -359,7 +403,6 @@ def main():
                 logging.error(f"Error during fine-tuning: {e}")
     else:
         logging.info("No new differences found for fine-tuning.")
-
 if __name__ == "__main__":
     while True:
         main()
