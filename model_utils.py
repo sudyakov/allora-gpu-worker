@@ -179,7 +179,7 @@ def update_predictions(
     # Предобработка данных
     combined_df = shared_data_processor.preprocess_binance_data(combined_df)
     combined_df = shared_data_processor.fill_missing_add_features(combined_df)
-    combined_df = combined_df.sort_values(by='timestamp', ascending=True).reset_index(drop=True)
+    combined_df = combined_df.sort_values(by='timestamp', ascending=False).reset_index(drop=True)
 
     # Фильтрация данных по целевому символу и интервалу
     symbol_df = combined_df[
@@ -306,7 +306,7 @@ def update_predictions(
         updated_predictions_df = pd.concat([predictions_df, new_predictions_df], ignore_index=True)
         updated_predictions_df = updated_predictions_df.drop_duplicates(subset=['timestamp', 'symbol', 'interval'])
         # Сортируем предсказания по возрастанию timestamp
-        updated_predictions_df = updated_predictions_df.sort_values(by='timestamp', ascending=True).reset_index(drop=True)
+        updated_predictions_df = updated_predictions_df.sort_values(by='timestamp', ascending=False).reset_index(drop=True)
 
         # Проверка на наличие дубликатов временных меток
         if updated_predictions_df['timestamp'].duplicated().any():

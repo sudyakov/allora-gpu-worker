@@ -20,7 +20,7 @@ RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
 
 # Sequence length for the model
-SEQ_LENGTH: int = 10
+SEQ_LENGTH: int = 50
 
 # Definition of type for interval configuration
 class IntervalConfig(TypedDict):
@@ -108,8 +108,8 @@ MODEL_PARAMS: ModelParams = {
     "num_layers": 4,
     "dropout": 0.2,
     "embedding_dim": 128,
-    "num_symbols": 2,
-    "num_intervals": 3,
+    "num_symbols": len(SYMBOL_MAPPING.keys()),
+    "num_intervals": len(INTERVAL_MAPPING.keys()),
     "timestamp_embedding_dim": 128,
 }
 
@@ -125,7 +125,7 @@ class TrainingParams(TypedDict):
     num_workers: int
 
 TRAINING_PARAMS: TrainingParams = {
-    "batch_size": 512,
+    "batch_size": 1024,
     "initial_epochs": 3,
     "fine_tune_epochs": 3,
     "initial_lr": 0.0005,
