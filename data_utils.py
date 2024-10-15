@@ -196,19 +196,28 @@ class DataProcessor:
         self,
         symbol: Optional[str] = None,
         interval: Optional[int] = None,
-        count: int = SEQ_LENGTH
+        count: int = SEQ_LENGTH,
+        latest_timestamp: Optional[int] = None
     ) -> pd.DataFrame:
         combined_dataset_path = PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
             df_combined = pd.read_csv(combined_dataset_path)
             df_filtered = df_combined.copy()
+            
             if symbol is not None:
                 df_filtered = df_filtered[df_filtered['symbol'] == symbol]
+            
             if interval is not None:
                 df_filtered = df_filtered[df_filtered['interval'] == interval]
+            
+            if latest_timestamp is not None:
+                df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp]
+            
             if not df_filtered.empty:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
                 return df_filtered
+        
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+
 
 shared_data_processor = DataProcessor()
