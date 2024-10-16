@@ -293,8 +293,8 @@ def main():
 
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-        combined_df = pd.read_csv(combined_dataset_path)
-        latest_data_timestamp = combined_df['timestamp'].max()
+        combined_data = pd.read_csv(combined_dataset_path)
+        latest_data_timestamp = combined_data['timestamp'].max()
     else:
         logging.error("Combined dataset not found.")
         return
@@ -338,7 +338,7 @@ def main():
         logging.info(f"Latest data for timestamp {next_timestamp}")
         logging.info(f"First row:\n{latest_df.head(1)}")
         logging.info(f"Last row:\n{latest_df.tail(1)}")
-        logging.info(f"________________________")
+        logging.info(f"-----------------")
 
         predicted_df = predict_future_price(
             model=model,
@@ -356,7 +356,7 @@ def main():
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
         combined_predictions = pd.concat([existing_predictions, all_predictions], ignore_index=True)
-        combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
+        combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='last', inplace=True)
         combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
         shared_data_processor.ensure_file_exists(predictions_path)
         combined_predictions.to_csv(predictions_path, index=False)
@@ -371,7 +371,7 @@ def main():
         predictions_path=predictions_path,
         combined_dataset_path=combined_dataset_path
     )
-    
+
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_df = pd.read_csv(differences_path)
         processed_differences = shared_data_processor.preprocess_binance_data(differences_df)
