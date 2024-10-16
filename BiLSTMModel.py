@@ -330,7 +330,11 @@ def main():
             count=SEQ_LENGTH,
             latest_timestamp=next_timestamp
         )
-        logging.info(f"Latest data for timestamp {next_timestamp}:\n{latest_df}")
+        logging.info(f"Latest data for timestamp {next_timestamp}")
+        logging.info(f"First row:\n{latest_df.head(1)}")
+        logging.info(f"Last row:\n{latest_df.tail(1)}")
+        logging.info(f"________________________")
+
         # Проверяем, что latest_df не пустой
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
@@ -359,6 +363,7 @@ def main():
         logging.info(f"Predicted prices saved to {predictions_path}.")
     else:
         logging.info("No predictions were made due to insufficient data.")
+    
     differences_path = PATHS['differences']
     update_differences(
         differences_path=differences_path,
