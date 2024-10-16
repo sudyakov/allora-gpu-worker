@@ -26,7 +26,7 @@ SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
 ])
 
 TARGET_SYMBOL: str = "ETHUSDT"
-PREDICTION_MINUTES: int = 1
+PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
     (1, {"days": 15, "minutes": 1, "milliseconds": 60000}),

@@ -321,8 +321,9 @@ def main():
             symbol=TARGET_SYMBOL,
             interval=PREDICTION_MINUTES,
             count=SEQ_LENGTH,
-            latest_timestamp=next_timestamp
+            latest_timestamp = next_timestamp - interval_ms
         )
+        print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
             continue
