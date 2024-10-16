@@ -334,13 +334,14 @@ def main():
 
         predicted_df = predict_future_price(
             model=model,
-            latest_df=latest_df,
+            latest_real_data_df=latest_df,  # Новый аргумент
             device=device,
             prediction_minutes=PREDICTION_MINUTES,
             future_steps=1,
             seq_length=SEQ_LENGTH,
             target_symbol=TARGET_SYMBOL
         )
+
         if not predicted_df.empty:
             predictions_list.append(predicted_df)
         else:
