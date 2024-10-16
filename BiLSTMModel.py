@@ -326,36 +326,36 @@ def main():
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
             continue
+        else:
+            logging.info(f"Latest data for timestamp {next_timestamp}")
+            logging.info(f"First row:\n{latest_df.head(1)}")
+            logging.info(f"Last row:\n{latest_df.tail(1)}")
+            logging.info(f"-----------------")
 
-        logging.info(f"Latest data for timestamp {next_timestamp}")
-        logging.info(f"First row:\n{latest_df.head(1)}")
-        logging.info(f"Last row:\n{latest_df.tail(1)}")
-        logging.info(f"-----------------")
-
-        predicted_df = predict_future_price(
-            model=model,
-            latest_real_data_df=latest_df,
-            device=device,
-            prediction_minutes=PREDICTION_MINUTES,
-            future_steps=1,
-            seq_length=SEQ_LENGTH,
-            target_symbol=TARGET_SYMBOL
-        )
+            predicted_df = predict_future_price(
+                model=model,
+                latest_real_data_df=latest_df,
+                device=device,
+                prediction_minutes=PREDICTION_MINUTES,
+                future_steps=1,
+                seq_length=SEQ_LENGTH,
+                target_symbol=TARGET_SYMBOL
+            )
 
         if not predicted_df.empty:
             predictions_list.append(predicted_df)
+            if predictions_list:
+                all_predictions = pd.concat(predictions_list, ignore_index=True)
+                combined_predictions = pd.concat([existing_predictions_df, all_predictions], ignore_index=True)
+                combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='last', inplace=True)
+                combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
+                shared_data_processor.ensure_file_exists(predictions_path)
+                combined_predictions.to_csv(predictions_path, index=False)
+                logging.info(f"Predicted prices saved to {predictions_path}.")
+            else:
+                logging.info("No predictions were made due to insufficient data.")
         else:
             logging.info(f"No prediction made for timestamp {next_timestamp} due to insufficient data.")
-    if predictions_list:
-        all_predictions = pd.concat(predictions_list, ignore_index=True)
-        combined_predictions = pd.concat([existing_predictions_df, all_predictions], ignore_index=True)
-        combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='last', inplace=True)
-        combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
-        shared_data_processor.ensure_file_exists(predictions_path)
-        combined_predictions.to_csv(predictions_path, index=False)
-        logging.info(f"Predicted prices saved to {predictions_path}.")
-    else:
-        logging.info("No predictions were made due to insufficient data.")
     
     differences_path = PATHS['differences']
 
