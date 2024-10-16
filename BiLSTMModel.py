@@ -330,16 +330,16 @@ def main():
             count=SEQ_LENGTH,
             latest_timestamp=next_timestamp
         )
+        # Проверяем, что latest_df не пустой
+        if latest_df.empty:
+            logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
+            continue
+        
         logging.info(f"Latest data for timestamp {next_timestamp}")
         logging.info(f"First row:\n{latest_df.head(1)}")
         logging.info(f"Last row:\n{latest_df.tail(1)}")
         logging.info(f"________________________")
 
-        # Проверяем, что latest_df не пустой
-        if latest_df.empty:
-            logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
-            continue
-    
         predicted_df = predict_future_price(
             model=model,
             latest_df=latest_df,
@@ -365,11 +365,13 @@ def main():
         logging.info("No predictions were made due to insufficient data.")
     
     differences_path = PATHS['differences']
+    
     update_differences(
         differences_path=differences_path,
         predictions_path=predictions_path,
         combined_dataset_path=combined_dataset_path
     )
+    
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_df = pd.read_csv(differences_path)
         processed_differences = shared_data_processor.preprocess_binance_data(differences_df)
