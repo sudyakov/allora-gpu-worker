@@ -179,7 +179,7 @@ def predict_future_price(
             final_columns = list(MODEL_FEATURES.keys())
             predictions_df_denormalized = predictions_df_denormalized[final_columns]
             predictions_list.append(predictions_df_denormalized)
-            latest_df = pd.concat([latest_df, predictions_df_denormalized], ignore_index=True)
+            # latest_df = pd.concat([latest_df, predictions_df_denormalized], ignore_index=True)
 
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
