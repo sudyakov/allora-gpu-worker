@@ -334,7 +334,7 @@ def main():
 
         predicted_df = predict_future_price(
             model=model,
-            latest_real_data_df=latest_df,  # Новый аргумент
+            latest_real_data_df=latest_df,
             device=device,
             prediction_minutes=PREDICTION_MINUTES,
             future_steps=1,
