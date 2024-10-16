@@ -85,15 +85,15 @@ class DataProcessor:
         self.scalers: Dict[str, MinMaxScaler] = {}
         self.initialized = True
 
-    def preprocess_binance_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df.replace([float("inf"), float("-inf")], pd.NA).dropna()
+    def preprocess_binance_data(self, real_data_df: pd.DataFrame) -> pd.DataFrame:
+        real_data_df = real_data_df.replace([float("inf"), float("-inf")], pd.NA).dropna()
         for col, dtype in RAW_FEATURES.items():
-            if col in df.columns:
-                df[col] = df[col].astype(dtype)
+            if col in real_data_df.columns:
+                real_data_df[col] = real_data_df[col].astype(dtype)
         for col, dtype in SCALABLE_FEATURES.items():
-            if col in df.columns:
-                df[col] = df[col].astype(dtype)
-        return df
+            if col in real_data_df.columns:
+                real_data_df[col] = real_data_df[col].astype(dtype)
+        return real_data_df
 
     def save(self, filepath: str) -> None:
         self.ensure_file_exists(filepath)
@@ -106,49 +106,49 @@ class DataProcessor:
         self.__dict__.update(processor.__dict__)
         return self
 
-    def fill_missing_add_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        if 'timestamp' in df.columns:
-            df['hour'] = ((df['timestamp'] // (1000 * 60 * 60)) % 24).astype(np.int64)
-            df['dayofweek'] = ((df['timestamp'] // (1000 * 60 * 60 * 24)) % 7).astype(np.int64)
-            df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24).astype(np.float32)
-            df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24).astype(np.float32)
-            df['sin_day'] = np.sin(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
-            df['cos_day'] = np.cos(2 * np.pi * df['dayofweek'] / 7).astype(np.float32)
-        df = df.ffill().bfill()
-        df = df[list(MODEL_FEATURES.keys())]
-        return df
+    def fill_missing_add_features(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        if 'timestamp' in data_df.columns:
+            data_df['hour'] = ((data_df['timestamp'] // (1000 * 60 * 60)) % 24).astype(np.int64)
+            data_df['dayofweek'] = ((data_df['timestamp'] // (1000 * 60 * 60 * 24)) % 7).astype(np.int64)
+            data_df['sin_hour'] = np.sin(2 * np.pi * data_df['hour'] / 24).astype(np.float32)
+            data_df['cos_hour'] = np.cos(2 * np.pi * data_df['hour'] / 24).astype(np.float32)
+            data_df['sin_day'] = np.sin(2 * np.pi * data_df['dayofweek'] / 7).astype(np.float32)
+            data_df['cos_day'] = np.cos(2 * np.pi * data_df['dayofweek'] / 7).astype(np.float32)
+        data_df = data_df.ffill().bfill()
+        data_df = data_df[list(MODEL_FEATURES.keys())]
+        return data_df
 
-    def sort_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        sorted_df = df.sort_values('timestamp', ascending=True)
+    def sort_dataframe(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        sorted_df = data_df.sort_values('timestamp', ascending=True)
         return sorted_df
 
     def prepare_dataset(
         self,
-        df: pd.DataFrame,
+        data_df: pd.DataFrame,
         seq_length: int = SEQ_LENGTH,
         target_symbols: Optional[List[str]] = None,
         target_intervals: Optional[List[int]] = None
     ) -> TensorDataset:
-        if len(df) < seq_length:
+        if len(data_df) < seq_length:
             raise ValueError("Not enough data to create sequences.")
 
         features = list(MODEL_FEATURES.keys())
         target_columns = [col for col in SCALABLE_FEATURES.keys()]
-        missing_columns = [col for col in target_columns if col not in df.columns]
+        missing_columns = [col for col in target_columns if col not in data_df.columns]
 
         if missing_columns:
             raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
 
-        df = df[features]
+        data_df = data_df[features]
 
-        if 'timestamp' in df.columns:
-            df.loc[:, 'timestamp'] = df['timestamp'].astype(np.float32)
+        if 'timestamp' in data_df.columns:
+            data_df.loc[:, 'timestamp'] = data_df['timestamp'].astype(np.float32)
 
         symbol_idx = features.index('symbol')
         interval_idx = features.index('interval')
         target_indices = torch.tensor([features.index(col) for col in target_columns])
 
-        data_tensor = torch.tensor(df[features].values, dtype=torch.float32)
+        data_tensor = torch.tensor(data_df[features].values, dtype=torch.float32)
 
         sequences = []
         targets = []
@@ -201,8 +201,8 @@ class DataProcessor:
     ) -> pd.DataFrame:
         combined_dataset_path = PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-            df_combined = pd.read_csv(combined_dataset_path)
-            df_filtered = df_combined.copy()
+            combined_real_data_df = pd.read_csv(combined_dataset_path)
+            df_filtered = combined_real_data_df.copy()
             
             if symbol is not None:
                 df_filtered = df_filtered[df_filtered['symbol'] == symbol]
@@ -216,8 +216,7 @@ class DataProcessor:
             if not df_filtered.empty:
                 df_filtered = df_filtered.sort_values('timestamp', ascending=True).tail(count)
                 return df_filtered
-        
-        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))  
-    
+            
+        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
 
 shared_data_processor = DataProcessor()

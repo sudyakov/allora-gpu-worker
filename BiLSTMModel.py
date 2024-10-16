@@ -218,37 +218,30 @@ def fine_tune_model(
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
+
 def main():
     device = get_device()
     data_fetcher = GetBinanceData()
-    combined_data = data_fetcher.fetch_combined_data()
-    if combined_data.empty:
+    real_combined_data = data_fetcher.fetch_combined_data()
+    if real_combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return
-    combined_data = shared_data_processor.preprocess_binance_data(combined_data)
-    combined_data = shared_data_processor.fill_missing_add_features(combined_data)
-    combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
+    real_combined_data = shared_data_processor.preprocess_binance_data(real_combined_data)
+    real_combined_data = shared_data_processor.fill_missing_add_features(real_combined_data)
+    real_combined_data = real_combined_data.sort_values(by="timestamp").reset_index(drop=True)
     if not shared_data_processor.is_fitted:
-        combined_data = fit_transform(combined_data)
+        real_combined_data = fit_transform(real_combined_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
     else:
-        combined_data = transform(combined_data)
+        real_combined_data = transform(real_combined_data)
 
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
-    if (combined_data['symbol'] < 0).any():
-        raise ValueError("Negative indices found in 'symbol' column.")
-    if (combined_data['interval'] < 0).any():
-        raise ValueError("Negative indices found in 'interval' column.")
-    if combined_data['symbol'].max() >= MODEL_PARAMS["num_symbols"]:
-        raise ValueError("Symbol indices exceed the number of symbols in embedding.")
-    if combined_data['interval'].max() >= MODEL_PARAMS["num_intervals"]:
-        raise ValueError("Interval indices exceed the number of intervals in embedding.")
-    logging.info(f"Columns after processing: {combined_data.columns.tolist()}")
-    column_name_to_index = {col: idx for idx, col in enumerate(combined_data.columns)}
+    logging.info(f"Columns after processing: {real_combined_data.columns.tolist()}")
+    column_name_to_index = {col: idx for idx, col in enumerate(real_combined_data.columns)}
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
@@ -256,13 +249,13 @@ def main():
     ).to(device)
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
     load_model(model, optimizer, MODEL_FILENAME, device)
-    if combined_data.isnull().values.any():
+    if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
-    if np.isinf(combined_data.values).any():
+    if np.isinf(real_combined_data.values).any():
         logging.info("Data contains infinite values.")
     try:
-        tensor_dataset = shared_data_processor.prepare_dataset(
-            combined_data,
+        training_dataset = shared_data_processor.prepare_dataset(
+            real_combined_data,
             seq_length=SEQ_LENGTH,
             target_symbols=[TARGET_SYMBOL],
             target_intervals=[PREDICTION_MINUTES]
@@ -271,7 +264,7 @@ def main():
         logging.error(f"Error preparing dataset: {e}")
         return
     train_loader, val_loader = create_dataloader(
-        tensor_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
+        training_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
     )
     try:
         model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
@@ -282,32 +275,32 @@ def main():
     get_binance_data_main()
     sleep(5)
 
-    combined_data = data_fetcher.fetch_combined_data()
-    if combined_data.empty:
+    real_combined_data = data_fetcher.fetch_combined_data()
+    if real_combined_data.empty:
         logging.error("Combined data is empty after data fetch. Exiting.")
         return
-    combined_data = shared_data_processor.preprocess_binance_data(combined_data)
-    combined_data = shared_data_processor.fill_missing_add_features(combined_data)
-    combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
-    combined_data = transform(combined_data)
+    real_combined_data = shared_data_processor.preprocess_binance_data(real_combined_data)
+    real_combined_data = shared_data_processor.fill_missing_add_features(real_combined_data)
+    real_combined_data = real_combined_data.sort_values(by="timestamp").reset_index(drop=True)
+    real_combined_data = transform(real_combined_data)
 
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-        combined_data = pd.read_csv(combined_dataset_path)
-        latest_data_timestamp = combined_data['timestamp'].max()
+        real_combined_data = pd.read_csv(combined_dataset_path)
+        latest_data_timestamp = real_combined_data['timestamp'].max()
     else:
         logging.error("Combined dataset not found.")
         return
 
     predictions_path = PATHS["predictions"]
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
-        existing_predictions = pd.read_csv(predictions_path)
-        if not existing_predictions.empty:
-            last_prediction_timestamp = existing_predictions['timestamp'].max()
+        existing_predictions_df = pd.read_csv(predictions_path)
+        if not existing_predictions_df.empty:
+            last_prediction_timestamp = existing_predictions_df['timestamp'].max()
         else:
             last_prediction_timestamp = None
     else:
-        existing_predictions = pd.DataFrame()
+        existing_predictions_df = pd.DataFrame()
         last_prediction_timestamp = None
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
@@ -330,11 +323,10 @@ def main():
             count=SEQ_LENGTH,
             latest_timestamp=next_timestamp
         )
-        # Проверяем, что latest_df не пустой
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
             continue
-        
+
         logging.info(f"Latest data for timestamp {next_timestamp}")
         logging.info(f"First row:\n{latest_df.head(1)}")
         logging.info(f"Last row:\n{latest_df.tail(1)}")
@@ -355,7 +347,7 @@ def main():
             logging.info(f"No prediction made for timestamp {next_timestamp} due to insufficient data.")
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
-        combined_predictions = pd.concat([existing_predictions, all_predictions], ignore_index=True)
+        combined_predictions = pd.concat([existing_predictions_df, all_predictions], ignore_index=True)
         combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='last', inplace=True)
         combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
         shared_data_processor.ensure_file_exists(predictions_path)
@@ -365,7 +357,7 @@ def main():
         logging.info("No predictions were made due to insufficient data.")
     
     differences_path = PATHS['differences']
-    
+
     update_differences(
         differences_path=differences_path,
         predictions_path=predictions_path,
@@ -373,31 +365,32 @@ def main():
     )
 
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
-        differences_df = pd.read_csv(differences_path)
-        processed_differences = shared_data_processor.preprocess_binance_data(differences_df)
-        processed_differences = shared_data_processor.fill_missing_add_features(processed_differences)
-        processed_differences = processed_differences.sort_values(by="timestamp").reset_index(drop=True)
-        processed_differences = transform(processed_differences)
-        if processed_differences.isnull().values.any():
+        differences_data = pd.read_csv(differences_path)
+        differences_processed_data = shared_data_processor.preprocess_binance_data(differences_data)
+        differences_processed_data = shared_data_processor.fill_missing_add_features(differences_processed_data)
+        differences_processed_data = differences_processed_data.sort_values(by="timestamp").reset_index(drop=True)
+        differences_processed_data = transform(differences_processed_data)
+        if differences_processed_data.isnull().values.any():
             logging.error("Differences data contains missing values. Skipping fine-tuning.")
-        elif np.isinf(processed_differences.values).any():
+        elif np.isinf(differences_processed_data.values).any():
             logging.error("Differences data contains infinite values. Skipping fine-tuning.")
         else:
             try:
-                fine_tune_dataset = shared_data_processor.prepare_dataset(
-                    processed_differences,
+                fine_tuning_dataset = shared_data_processor.prepare_dataset(
+                    differences_processed_data,
                     seq_length=SEQ_LENGTH,
                     target_symbols=[TARGET_SYMBOL],
                     target_intervals=[PREDICTION_MINUTES]
                 )
                 fine_tune_loader, _ = create_dataloader(
-                    fine_tune_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
+                    fine_tuning_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
                 )
                 model, optimizer = fine_tune_model(model, optimizer, fine_tune_loader, device)
             except Exception as e:
                 logging.error(f"Error during fine-tuning: {e}")
     else:
         logging.info("No new differences found for fine-tuning.")
+
 if __name__ == "__main__":
     while True:
         main()
