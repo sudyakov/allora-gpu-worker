@@ -99,7 +99,7 @@ class GetBinanceData:
                     df['symbol'] = sym
                     df['interval'] = interval_info['minutes']
                     df['interval_str'] = interval_str
-                    logging.debug(f"Raw DataFrame: {df.head()}")
+                    logging.debug(f"Raw DataFrame: {df.tail()}")
 
                     df = self.data_processor.preprocess_binance_data(df)
                     df = self.data_processor.fill_missing_add_features(df)
@@ -138,7 +138,7 @@ class GetBinanceData:
                 df['symbol'] = sym
                 df['interval'] = interval_info['minutes']
                 df['interval_str'] = interval_str
-                logging.debug(f"Raw DataFrame: {df.head()}")
+                logging.debug(f"Raw DataFrame: {df.tail()}")
 
                 df = self.data_processor.preprocess_binance_data(df)
                 df = self.data_processor.fill_missing_add_features(df)

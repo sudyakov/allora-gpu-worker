@@ -119,7 +119,7 @@ class DataProcessor:
         return df
 
     def sort_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        sorted_df = df.sort_values('timestamp', ascending=False)
+        sorted_df = df.sort_values('timestamp', ascending=True)
         return sorted_df
 
     def prepare_dataset(
@@ -214,10 +214,10 @@ class DataProcessor:
                 df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp]
             
             if not df_filtered.empty:
-                df_filtered = df_filtered.sort_values('timestamp', ascending=False).head(count)
+                df_filtered = df_filtered.sort_values('timestamp', ascending=True).tail(count)
                 return df_filtered
         
-        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))    
-
+        return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))  
+    
 
 shared_data_processor = DataProcessor()

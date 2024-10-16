@@ -233,6 +233,7 @@ def main():
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
     else:
         combined_data = transform(combined_data)
+
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(
@@ -277,10 +278,28 @@ def main():
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return
+
     get_binance_data_main()
     sleep(5)
-    predictions_path = PATHS["predictions"]
+
+    combined_data = data_fetcher.fetch_combined_data()
+    if combined_data.empty:
+        logging.error("Combined data is empty after data fetch. Exiting.")
+        return
+    combined_data = shared_data_processor.preprocess_binance_data(combined_data)
+    combined_data = shared_data_processor.fill_missing_add_features(combined_data)
+    combined_data = combined_data.sort_values(by="timestamp").reset_index(drop=True)
+    combined_data = transform(combined_data)
+
     combined_dataset_path = PATHS["combined_dataset"]
+    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+        combined_df = pd.read_csv(combined_dataset_path)
+        latest_data_timestamp = combined_df['timestamp'].max()
+    else:
+        logging.error("Combined dataset not found.")
+        return
+
+    predictions_path = PATHS["predictions"]
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
         existing_predictions = pd.read_csv(predictions_path)
         if not existing_predictions.empty:
@@ -290,12 +309,6 @@ def main():
     else:
         existing_predictions = pd.DataFrame()
         last_prediction_timestamp = None
-    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-        combined_df = pd.read_csv(combined_dataset_path)
-        latest_data_timestamp = combined_df['timestamp'].max()
-    else:
-        logging.error("Combined dataset not found.")
-        return
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
         logging.error("Invalid PREDICTION_MINUTES value.")
@@ -315,8 +328,14 @@ def main():
             symbol=TARGET_SYMBOL,
             interval=PREDICTION_MINUTES,
             count=SEQ_LENGTH,
-            latest_timestamp=next_timestamp - interval_ms
+            latest_timestamp=next_timestamp
         )
+        logging.info(f"Latest data for timestamp {next_timestamp}:\n{latest_df}")
+        # Проверяем, что latest_df не пустой
+        if latest_df.empty:
+            logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
+            continue
+    
         predicted_df = predict_future_price(
             model=model,
             latest_df=latest_df,
@@ -334,7 +353,7 @@ def main():
         all_predictions = pd.concat(predictions_list, ignore_index=True)
         combined_predictions = pd.concat([existing_predictions, all_predictions], ignore_index=True)
         combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], inplace=True)
-        combined_predictions.sort_values(by='timestamp', ascending=False, inplace=True)
+        combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
         shared_data_processor.ensure_file_exists(predictions_path)
         combined_predictions.to_csv(predictions_path, index=False)
         logging.info(f"Predicted prices saved to {predictions_path}.")

@@ -250,7 +250,7 @@ def update_differences(
             differences_df[col] = differences_df[col].astype(predictions_df[col].dtype)
     combined_differences = pd.concat([existing_differences, differences_df], ignore_index=True)
     combined_differences = combined_differences[predictions_df.columns]
-    combined_differences.sort_values(by='timestamp', ascending=False, inplace=True)
+    combined_differences.sort_values(by='timestamp', ascending=True, inplace=True)
     combined_differences.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")
 
