@@ -283,19 +283,18 @@ def get_device() -> torch.device:
     logging.info(f"Using device: {device}")
     return device
 
-def save_model(model, optimizer, filename: str) -> None:
+def save_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str):
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
-    }, filename, _use_new_zipfile_serialization=True)
-    logging.info(f"Model saved to {filename}")
+    }, filepath)
+    logging.info(f"Model saved to {filepath}")
 
-def load_model(model, optimizer, filename: str, device: torch.device) -> None:
-    if os.path.exists(filename):
-        logging.info(f"Loading model from {filename}")
-        checkpoint = torch.load(filename, map_location=device, weights_only=False)
+def load_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str, device: torch.device):
+    if os.path.exists(filepath):
+        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        logging.info("Model and optimizer state loaded.")
+        logging.info(f"Model loaded from {filepath}")
     else:
-        logging.info(f"No model file found at {filename}. Starting from scratch.")
+        logging.info(f"No saved model found at {filepath}. Starting from scratch.")

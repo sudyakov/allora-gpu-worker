@@ -202,6 +202,7 @@ def _train_model(
         logging.info(
             f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
+        save_model(model, optimizer, MODEL_FILENAME)
     return model, optimizer
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -210,6 +211,8 @@ def train_and_save_model(
     optimizer: AdamW,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
+    # Загрузка последней сохраненной модели
+    load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
@@ -217,6 +220,8 @@ def fine_tune_model(
     fine_tune_loader: DataLoader,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
+    # Загрузка последней сохраненной модели
+    load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
 def main():
@@ -235,11 +240,9 @@ def main():
     else:
         real_combined_data = transform(real_combined_data)
 
-    # Добавляем вывод первых 5 строк датасета после трансформации
     logging.info("Dataset after transformation:")
     logging.info(f"\n{real_combined_data.head()}")
 
-    # Проверяем данные на наличие пропусков и бесконечных значений
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
     if np.isinf(real_combined_data.values).any():
@@ -258,7 +261,7 @@ def main():
         column_name_to_index=column_name_to_index,
     ).to(device)
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
-    load_model(model, optimizer, MODEL_FILENAME, device)
+
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
     if np.isinf(real_combined_data.values).any():
@@ -333,6 +336,8 @@ def main():
             count=SEQ_LENGTH,
             latest_timestamp = next_timestamp - interval_ms
         )
+        latest_df = shared_data_processor.preprocess_binance_data(latest_df)
+
         print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
