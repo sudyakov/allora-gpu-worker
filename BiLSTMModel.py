@@ -1,20 +1,19 @@
 import logging
 import os
-from random import Random
-from time import sleep
 from typing import Dict, Tuple, Sequence, Optional, List
+from time import sleep
+
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from filelock import FileLock
 from torch.optim.adamw import AdamW
+from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import numpy as np
-from get_binance_data import main as get_binance_data_main
-from filelock import FileLock
+
 from config import (
-    ADD_FEATURES,
-    DATA_PROCESSOR_FILENAME,
     INTERVAL_MAPPING,
     MODEL_FILENAME,
     MODEL_FEATURES,
@@ -23,13 +22,12 @@ from config import (
     TARGET_SYMBOL,
     PATHS,
     PREDICTION_MINUTES,
-    IntervalKey,
     get_interval,
     TRAINING_PARAMS,
     MODEL_PARAMS
 )
 from data_utils import shared_data_processor
-from get_binance_data import GetBinanceData
+from get_binance_data import GetBinanceData, main as get_binance_data_main
 from model_utils import (
     predict_future_price,
     update_differences,
@@ -42,21 +40,26 @@ from model_utils import (
     create_dataloader,
     load_and_prepare_data
 )
+
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s - %(message)s',
 )
+
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super().__init__()
         self.attention_weights = nn.Parameter(torch.Tensor(hidden_size * 2, 1))
         nn.init.xavier_uniform_(self.attention_weights)
+
     def forward(self, lstm_out: torch.Tensor) -> torch.Tensor:
         attention_scores = torch.matmul(lstm_out, self.attention_weights).squeeze(-1)
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
+
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -69,6 +72,7 @@ class EnhancedBiLSTMModel(nn.Module):
         self.numerical_columns = numerical_columns
         self.categorical_columns = categorical_columns
         self.column_name_to_index = column_name_to_index
+
         self.symbol_embedding = nn.Embedding(
             num_embeddings=MODEL_PARAMS["num_symbols"],
             embedding_dim=MODEL_PARAMS["embedding_dim"],
@@ -86,6 +90,7 @@ class EnhancedBiLSTMModel(nn.Module):
             embedding_dim=MODEL_PARAMS["embedding_dim"],
         )
         self.timestamp_embedding = nn.Linear(1, MODEL_PARAMS["timestamp_embedding_dim"])
+
         numerical_input_size = len(numerical_columns)
         self.lstm_input_size = (
             numerical_input_size
@@ -105,6 +110,7 @@ class EnhancedBiLSTMModel(nn.Module):
             MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES)
         )
         self.apply(self._initialize_weights)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x.float().to(next(self.parameters()).device)
         numerical_indices = [self.column_name_to_index[col] for col in self.numerical_columns]
@@ -114,11 +120,13 @@ class EnhancedBiLSTMModel(nn.Module):
         hours = x[:, :, self.column_name_to_index['hour']].long()
         days = x[:, :, self.column_name_to_index['dayofweek']].long()
         timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
+
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
         hour_embeddings = self.hour_embedding(hours)
         day_embeddings = self.dayofweek_embedding(days)
         timestamp_embeddings = self.timestamp_embedding(timestamp)
+
         lstm_input = torch.cat(
             (
                 numerical_data,
@@ -136,6 +144,7 @@ class EnhancedBiLSTMModel(nn.Module):
         predictions = torch.clamp(predictions, min=-10, max=10)
         predictions = torch.exp(predictions)
         return predictions
+
     def _initialize_weights(self, module: nn.Module) -> None:
         if isinstance(module, nn.Linear):
             nn.init.xavier_uniform_(module.weight)
@@ -149,6 +158,7 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.orthogonal_(param.data)
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
+
 
 def _train_model(
     model: EnhancedBiLSTMModel,
@@ -210,6 +220,7 @@ def _train_model(
         save_model(model, optimizer, MODEL_FILENAME)
     return model, optimizer
 
+
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
@@ -217,9 +228,9 @@ def train_and_save_model(
     optimizer: AdamW,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
-    # Загрузка последней сохраненной модели
     load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
+
 
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
@@ -227,7 +238,6 @@ def fine_tune_model(
     fine_tune_loader: DataLoader,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
-    # Загрузка последней сохраненной модели
     load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
@@ -255,7 +265,6 @@ def main():
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
-    logging.info(f"Columns after processing: {real_combined_data.columns.tolist()}")
     column_name_to_index = {col: idx for idx, col in enumerate(real_combined_data.columns)}
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
@@ -400,6 +409,8 @@ def main():
                 logging.error(f"Error during fine-tuning: {e}")
     else:
         logging.info("No new differences found for fine-tuning.")
+
+
 if __name__ == "__main__":
     while True:
         main()

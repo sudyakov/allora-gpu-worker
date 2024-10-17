@@ -2,17 +2,17 @@ import logging
 import os
 from typing import Dict, Tuple, Sequence, Optional, List
 
+from filelock import FileLock
 import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-from filelock import FileLock
 from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from torch.optim.optimizer import Optimizer
+from sklearn.preprocessing import MinMaxScaler
 
 from get_binance_data import GetBinanceData
-
 from config import (
     ADD_FEATURES,
     DATA_PROCESSOR_FILENAME,
@@ -27,7 +27,7 @@ from config import (
     get_interval,
 )
 from data_utils import shared_data_processor, CustomLabelEncoder
-from sklearn.preprocessing import MinMaxScaler
+
 
 def create_dataloader(
     dataset: TensorDataset,
@@ -51,16 +51,15 @@ def create_dataloader(
     )
     return train_loader, val_loader
 
+
 def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     shared_data_processor.is_fitted = True
-    # Обучаем и применяем LabelEncoders для категориальных колонок
     for col in shared_data_processor.categorical_columns:
         encoder = shared_data_processor.label_encoders.get(col)
         if encoder is None:
             encoder = CustomLabelEncoder()
             shared_data_processor.label_encoders[col] = encoder
         real_data_df[col] = encoder.fit_transform(real_data_df[col])
-    # Обучаем и применяем MinMaxScalers для численных колонок
     for col in shared_data_processor.scalable_columns:
         if col in real_data_df.columns:
             scaler = MinMaxScaler(feature_range=(0, 1))
@@ -68,28 +67,24 @@ def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
             shared_data_processor.scalers[col] = scaler
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
-    # Приводим остальные числовые колонки к нужному типу
     for col in shared_data_processor.numerical_columns:
         if col in real_data_df.columns:
             dtype = MODEL_FEATURES.get(col, np.float32)
             real_data_df[col] = real_data_df[col].astype(dtype)
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
-    # Приводим timestamp к типу int64
     if 'timestamp' in real_data_df.columns:
         real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
-    # Оставляем только необходимые колонки
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
 
+
 def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
-    # Применяем ранее обученные LabelEncoders для категориальных колонок
     for col in shared_data_processor.categorical_columns:
         encoder = shared_data_processor.label_encoders.get(col)
         if encoder is None:
             raise ValueError(f"LabelEncoder not found for column {col}.")
         real_data_df[col] = encoder.transform(real_data_df[col])
-    # Применяем ранее обученные MinMaxScalers для численных колонок
     for col in shared_data_processor.scalable_columns:
         if col in real_data_df.columns:
             scaler = shared_data_processor.scalers.get(col)
@@ -98,19 +93,17 @@ def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
             real_data_df[col] = scaler.transform(real_data_df[[col]])
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
-    # Приводим остальные числовые колонки к нужному типу
     for col in shared_data_processor.numerical_columns:
         if col in real_data_df.columns:
             dtype = MODEL_FEATURES.get(col, np.float32)
             real_data_df[col] = real_data_df[col].astype(dtype)
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
-    # Приводим timestamp к типу int64
     if 'timestamp' in real_data_df.columns:
         real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
-    # Оставляем только необходимые колонки
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
+
 
 def inverse_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     df_inv = real_data_df.copy()
@@ -123,6 +116,7 @@ def inverse_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
     return df_inv
+
 
 def predict_future_price(
     model: nn.Module,
@@ -176,7 +170,6 @@ def predict_future_price(
             predicted_data_df_denormalized["symbol"] = target_symbol
             predicted_data_df_denormalized["interval"] = prediction_minutes
             predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
-            # Вычисляем временные признаки
             predicted_data_df_denormalized['hour'] = pd.to_datetime(
                 predicted_data_df_denormalized['timestamp'], unit='ms').dt.hour
             predicted_data_df_denormalized['dayofweek'] = pd.to_datetime(
@@ -192,11 +185,11 @@ def predict_future_price(
             final_columns = list(MODEL_FEATURES.keys())
             predicted_data_df_denormalized = predicted_data_df_denormalized[final_columns]
             all_predicted_data.append(predicted_data_df_denormalized)
-        if all_predicted_data:
-            all_predictions = pd.concat(all_predicted_data, ignore_index=True)
-            return all_predictions
-        else:
-            return pd.DataFrame()
+    if all_predicted_data:
+        all_predictions = pd.concat(all_predicted_data, ignore_index=True)
+        return all_predictions
+    return pd.DataFrame()
+
 
 def update_differences(
     differences_path: str,
@@ -236,7 +229,7 @@ def update_differences(
         (real_combined_data_df['timestamp'].isin(predictions_df['timestamp'].unique()))
     ]
     if actual_data_df.empty:
-        logging.info("No matching actual data found for predictions.")
+        logging.info("No matching actual data found for predictions to make differences.")
         return
     merged_predictions_actual_df = pd.merge(
         predictions_df,
@@ -255,7 +248,9 @@ def update_differences(
             how='left',
             indicator=True
         )
-        merged_predictions_actual_df = merged_predictions_actual_df[merged_predictions_actual_df['_merge'] == 'left_only'].drop(columns=['_merge'])
+        merged_predictions_actual_df = merged_predictions_actual_df[
+            merged_predictions_actual_df['_merge'] == 'left_only'
+        ].drop(columns=['_merge'])
         if merged_predictions_actual_df.empty:
             logging.info("All differences have already been processed.")
             return
@@ -280,10 +275,12 @@ def update_differences(
     combined_differences_df.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")
 
+
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
+
 
 def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
     torch.save({
@@ -291,6 +288,7 @@ def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
         'optimizer_state_dict': optimizer.state_dict(),
     }, filepath)
     logging.info(f"Model saved to {filepath}")
+
 
 def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
@@ -300,6 +298,7 @@ def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: to
         logging.info(f"Model loaded from {filepath}")
     else:
         logging.info(f"No saved model found at {filepath}. Starting from scratch.")
+
 
 def load_and_prepare_data(
     data_fetcher: GetBinanceData,
