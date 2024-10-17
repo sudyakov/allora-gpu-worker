@@ -337,6 +337,8 @@ def main():
             latest_timestamp = next_timestamp - interval_ms
         )
         latest_df = shared_data_processor.preprocess_binance_data(latest_df)
+        latest_df = shared_data_processor.fill_missing_add_features(latest_df)
+        latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
 
         print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")
         if latest_df.empty:
