@@ -235,6 +235,16 @@ def main():
     else:
         real_combined_data = transform(real_combined_data)
 
+    # Добавляем вывод первых 5 строк датасета после трансформации
+    logging.info("Dataset after transformation:")
+    logging.info(f"\n{real_combined_data.head()}")
+
+    # Проверяем данные на наличие пропусков и бесконечных значений
+    if real_combined_data.isnull().values.any():
+        logging.info("Data contains missing values.")
+    if np.isinf(real_combined_data.values).any():
+        logging.info("Data contains infinite values.")
+
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(

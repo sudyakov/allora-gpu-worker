@@ -50,12 +50,14 @@ def create_dataloader(
 
 def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     shared_data_processor.is_fitted = True
+    # Обучаем и применяем LabelEncoders для категориальных колонок
     for col in shared_data_processor.categorical_columns:
         encoder = shared_data_processor.label_encoders.get(col)
         if encoder is None:
             encoder = CustomLabelEncoder()
             shared_data_processor.label_encoders[col] = encoder
         real_data_df[col] = encoder.fit_transform(real_data_df[col])
+    # Обучаем и применяем MinMaxScalers для численных колонок
     for col in shared_data_processor.scalable_columns:
         if col in real_data_df.columns:
             scaler = MinMaxScaler(feature_range=(0, 1))
@@ -63,23 +65,28 @@ def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
             shared_data_processor.scalers[col] = scaler
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+    # Приводим остальные числовые колонки к нужному типу
     for col in shared_data_processor.numerical_columns:
         if col in real_data_df.columns:
             dtype = MODEL_FEATURES.get(col, np.float32)
             real_data_df[col] = real_data_df[col].astype(dtype)
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+    # Приводим timestamp к типу int64
     if 'timestamp' in real_data_df.columns:
         real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
+    # Оставляем только необходимые колонки
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
 
 def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
+    # Применяем ранее обученные LabelEncoders для категориальных колонок
     for col in shared_data_processor.categorical_columns:
         encoder = shared_data_processor.label_encoders.get(col)
         if encoder is None:
             raise ValueError(f"LabelEncoder not found for column {col}.")
         real_data_df[col] = encoder.transform(real_data_df[col])
+    # Применяем ранее обученные MinMaxScalers для численных колонок
     for col in shared_data_processor.scalable_columns:
         if col in real_data_df.columns:
             scaler = shared_data_processor.scalers.get(col)
@@ -88,14 +95,17 @@ def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
             real_data_df[col] = scaler.transform(real_data_df[[col]])
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+    # Приводим остальные числовые колонки к нужному типу
     for col in shared_data_processor.numerical_columns:
         if col in real_data_df.columns:
             dtype = MODEL_FEATURES.get(col, np.float32)
             real_data_df[col] = real_data_df[col].astype(dtype)
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+    # Приводим timestamp к типу int64
     if 'timestamp' in real_data_df.columns:
         real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
+    # Оставляем только необходимые колонки
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
 
