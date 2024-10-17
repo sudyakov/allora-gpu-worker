@@ -1,7 +1,7 @@
 import logging
 import os
 from time import sleep
-from typing import Dict, Tuple, Sequence
+from typing import Dict, Tuple, Sequence, Optional, List
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -38,12 +38,14 @@ from model_utils import (
     fit_transform,
     transform,
     inverse_transform,
-    create_dataloader
+    create_dataloader,
+    load_and_prepare_data
 )
 logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s - %(message)s',
 )
+
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super().__init__()
@@ -54,6 +56,7 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
+
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
         self,
@@ -145,6 +148,7 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.orthogonal_(param.data)
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
+
 def _train_model(
     model: EnhancedBiLSTMModel,
     loader: DataLoader,
@@ -204,6 +208,7 @@ def _train_model(
         )
         save_model(model, optimizer, MODEL_FILENAME)
     return model, optimizer
+
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
@@ -214,6 +219,7 @@ def train_and_save_model(
     # Загрузка последней сохраненной модели
     load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
+
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
     optimizer: AdamW,
@@ -224,21 +230,16 @@ def fine_tune_model(
     load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
+
 def main():
     device = get_device()
     data_fetcher = GetBinanceData()
-    real_combined_data = data_fetcher.fetch_combined_data()
+
+    # Подготовка данных для обучения
+    real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return
-    real_combined_data = shared_data_processor.preprocess_binance_data(real_combined_data)
-    real_combined_data = shared_data_processor.fill_missing_add_features(real_combined_data)
-    real_combined_data = real_combined_data.sort_values(by="timestamp").reset_index(drop=True)
-    if not shared_data_processor.is_fitted:
-        real_combined_data = fit_transform(real_combined_data)
-        shared_data_processor.save(DATA_PROCESSOR_FILENAME)
-    else:
-        real_combined_data = transform(real_combined_data)
 
     logging.info("Dataset after transformation:")
     logging.info(f"\n{real_combined_data.head()}")
@@ -288,15 +289,6 @@ def main():
     get_binance_data_main()
     sleep(5)
 
-    real_combined_data = data_fetcher.fetch_combined_data()
-    if real_combined_data.empty:
-        logging.error("Combined data is empty after data fetch. Exiting.")
-        return
-    real_combined_data = shared_data_processor.preprocess_binance_data(real_combined_data)
-    real_combined_data = shared_data_processor.fill_missing_add_features(real_combined_data)
-    real_combined_data = real_combined_data.sort_values(by="timestamp").reset_index(drop=True)
-    real_combined_data = transform(real_combined_data)
-
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         real_combined_data = pd.read_csv(combined_dataset_path)
@@ -329,16 +321,14 @@ def main():
     else:
         timestamps_to_predict = [int(latest_data_timestamp)]
     predictions_list = []
+
     for next_timestamp in timestamps_to_predict:
-        latest_df = shared_data_processor.get_latest_dataset_prices(
-            symbol=TARGET_SYMBOL,
-            interval=PREDICTION_MINUTES,
-            count=SEQ_LENGTH,
-            latest_timestamp = next_timestamp - interval_ms
+        latest_df = load_and_prepare_data(
+            data_fetcher,
+            is_training=False,
+            latest_timestamp=next_timestamp - interval_ms,
+            count=SEQ_LENGTH
         )
-        latest_df = shared_data_processor.preprocess_binance_data(latest_df)
-        latest_df = shared_data_processor.fill_missing_add_features(latest_df)
-        latest_df = latest_df.sort_values(by="timestamp").reset_index(drop=True)
 
         print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")
         if latest_df.empty:
@@ -374,7 +364,7 @@ def main():
                 logging.info("No predictions were made due to insufficient data.")
         else:
             logging.info(f"No prediction made for timestamp {next_timestamp} due to insufficient data.")
-    
+
     differences_path = PATHS['differences']
 
     update_differences(
@@ -385,11 +375,13 @@ def main():
 
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_data = pd.read_csv(differences_path)
-        differences_processed_data = shared_data_processor.preprocess_binance_data(differences_data)
-        differences_processed_data = shared_data_processor.fill_missing_add_features(differences_processed_data)
-        differences_processed_data = differences_processed_data.sort_values(by="timestamp").reset_index(drop=True)
-        differences_processed_data = transform(differences_processed_data)
-        if differences_processed_data.isnull().values.any():
+        differences_processed_data = load_and_prepare_data(
+            data_fetcher,
+            is_training=False
+        )
+        if differences_processed_data.empty:
+            logging.error("Differences data is empty. Skipping fine-tuning.")
+        elif differences_processed_data.isnull().values.any():
             logging.error("Differences data contains missing values. Skipping fine-tuning.")
         elif np.isinf(differences_processed_data.values).any():
             logging.error("Differences data contains infinite values. Skipping fine-tuning.")

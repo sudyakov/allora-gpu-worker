@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Sequence, Optional, List
 
 import pandas as pd
 import numpy as np
@@ -9,6 +9,7 @@ import torch.nn as nn
 from filelock import FileLock
 from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset, random_split
+from get_binance_data import GetBinanceData
 
 from config import (
     ADD_FEATURES,
@@ -158,9 +159,8 @@ def predict_future_price(
                 logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
                 continue
             try:
-                current_df_transformed = transform(current_df)
                 inputs = torch.tensor(
-                    current_df_transformed.values, dtype=torch.float32
+                    current_df.values, dtype=torch.float32
                 ).unsqueeze(0).to(device)
                 predictions = model(inputs).cpu().detach().numpy()
             except Exception as e:
@@ -171,8 +171,7 @@ def predict_future_price(
             predicted_data_df_denormalized["symbol"] = target_symbol
             predicted_data_df_denormalized["interval"] = prediction_minutes
             predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
-
-            # Явно вычисляем временные признаки
+            # Вычисляем временные признаки
             predicted_data_df_denormalized['hour'] = pd.to_datetime(
                 predicted_data_df_denormalized['timestamp'], unit='ms').dt.hour
             predicted_data_df_denormalized['dayofweek'] = pd.to_datetime(
@@ -185,16 +184,14 @@ def predict_future_price(
                 2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
             predicted_data_df_denormalized['cos_day'] = np.cos(
                 2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
-
             final_columns = list(MODEL_FEATURES.keys())
             predicted_data_df_denormalized = predicted_data_df_denormalized[final_columns]
             all_predicted_data.append(predicted_data_df_denormalized)
-
-    if all_predicted_data:
-        all_predictions = pd.concat(all_predicted_data, ignore_index=True)
-        return all_predictions
-    else:
-        return pd.DataFrame()
+        if all_predicted_data:
+            all_predictions = pd.concat(all_predicted_data, ignore_index=True)
+            return all_predictions
+        else:
+            return pd.DataFrame()
 
 def update_differences(
     differences_path: str,
@@ -298,3 +295,34 @@ def load_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str
         logging.info(f"Model loaded from {filepath}")
     else:
         logging.info(f"No saved model found at {filepath}. Starting from scratch.")
+
+def load_and_prepare_data(
+    data_fetcher: GetBinanceData,
+    is_training: bool = False,
+    latest_timestamp: Optional[int] = None,
+    seq_length: int = SEQ_LENGTH,
+    target_symbols: Optional[List[str]] = None,
+    target_intervals: Optional[List[int]] = None,
+    count: int = SEQ_LENGTH
+) -> pd.DataFrame:
+    if is_training:
+        real_data = data_fetcher.fetch_combined_data()
+    else:
+        real_data = shared_data_processor.get_latest_dataset_prices(
+            symbol=TARGET_SYMBOL,
+            interval=PREDICTION_MINUTES,
+            count=count,
+            latest_timestamp=latest_timestamp
+        )
+    if real_data.empty:
+        logging.error("Data is empty.")
+        return pd.DataFrame()
+    real_data = shared_data_processor.preprocess_binance_data(real_data)
+    real_data = shared_data_processor.fill_missing_add_features(real_data)
+    real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
+    if is_training and not shared_data_processor.is_fitted:
+        real_data = fit_transform(real_data)
+        shared_data_processor.save(DATA_PROCESSOR_FILENAME)
+    else:
+        real_data = transform(real_data)
+    return real_data
