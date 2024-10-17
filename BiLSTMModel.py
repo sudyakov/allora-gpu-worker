@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Dict, Tuple, Sequence, Optional, List
 from time import sleep
-
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import torch
@@ -330,7 +330,7 @@ def main():
 
     predictions_list = []
 
-    for next_timestamp in timestamps_to_predict:
+    for next_timestamp in tqdm(timestamps_to_predict, desc="Generating Predictions"):
         latest_df = load_and_prepare_data(
             data_fetcher,
             is_training=False,
@@ -339,6 +339,7 @@ def main():
         )
 
         print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")
+
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
             continue
@@ -360,19 +361,20 @@ def main():
 
         if not predicted_df.empty:
             predictions_list.append(predicted_df)
-            if predictions_list:
-                all_predictions = pd.concat(predictions_list, ignore_index=True)
-                combined_predictions = pd.concat([existing_predictions_df, all_predictions], ignore_index=True)
-                combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='last', inplace=True)
-                combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
-                os.makedirs(os.path.dirname(predictions_path), exist_ok=True)
-                combined_predictions.to_csv(predictions_path, index=False)
-                logging.info(f"Predicted prices saved to {predictions_path}.")
-            else:
-                logging.info("No predictions were made due to insufficient data.")
         else:
             logging.info(f"No prediction made for timestamp {next_timestamp} due to insufficient data.")
 
+    # После завершения цикла
+    if predictions_list:
+        all_predictions = pd.concat(predictions_list, ignore_index=True)
+        combined_predictions = pd.concat([existing_predictions_df, all_predictions], ignore_index=True)
+        combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='last', inplace=True)
+        combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
+        os.makedirs(os.path.dirname(predictions_path), exist_ok=True)
+        combined_predictions.to_csv(predictions_path, index=False)
+        logging.info(f"All predicted prices saved to {predictions_path}.")
+    else:
+        logging.info("No predictions were made during this run due to insufficient data.")
     differences_path = PATHS['differences']
 
     update_differences(
@@ -409,7 +411,6 @@ def main():
                 logging.error(f"Error during fine-tuning: {e}")
     else:
         logging.info("No new differences found for fine-tuning.")
-
 
 if __name__ == "__main__":
     while True:
