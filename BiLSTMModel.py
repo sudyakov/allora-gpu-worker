@@ -356,7 +356,7 @@ def main():
                 combined_predictions = pd.concat([existing_predictions_df, all_predictions], ignore_index=True)
                 combined_predictions.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='last', inplace=True)
                 combined_predictions.sort_values(by='timestamp', ascending=True, inplace=True)
-                shared_data_processor.ensure_file_exists(predictions_path)
+                os.makedirs(os.path.dirname(predictions_path), exist_ok=True)
                 combined_predictions.to_csv(predictions_path, index=False)
                 logging.info(f"Predicted prices saved to {predictions_path}.")
             else:
@@ -400,7 +400,6 @@ def main():
                 logging.error(f"Error during fine-tuning: {e}")
     else:
         logging.info("No new differences found for fine-tuning.")
-
 if __name__ == "__main__":
     while True:
         main()
