@@ -170,7 +170,7 @@ def predict_future_price(
             except Exception as e:
                 logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
                 continue
-    # Остальной код
+
             predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
             predicted_data_df_denormalized = inverse_transform(predicted_data_df)
             predicted_data_df_denormalized["symbol"] = target_symbol

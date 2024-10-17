@@ -1,31 +1,32 @@
-import os
 import logging
+import os
 import time
-from typing import Dict, Optional, Tuple, List, Union
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import requests
 from requests.exceptions import RequestException
 
 from config import (
+    ADD_FEATURES,
     API_BASE_URL,
     BINANCE_LIMIT_STRING,
     INTERVAL_MAPPING,
-    SYMBOL_MAPPING,
-    TARGET_SYMBOL,
-    PREDICTION_MINUTES,
     MODEL_FEATURES,
     PATHS,
+    PREDICTION_MINUTES,
+    RAW_FEATURES,
+    SCALABLE_FEATURES,
+    SEQ_LENGTH,
+    SYMBOL_MAPPING,
+    TARGET_SYMBOL,
+    TRAINING_PARAMS,
     IntervalConfig,
     IntervalKey,
-    timestamp_to_readable_time,
     get_current_time,
+    timestamp_to_readable_time,
 )
-from data_utils import (
-    shared_data_processor
-)
-
-LOG_FILE = 'get_binance_data.log'
+from data_utils import shared_data_processor
 
 BINANCE_API_COLUMNS = [
     'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
@@ -35,20 +36,20 @@ BINANCE_API_COLUMNS = [
 
 class GetBinanceData:
     def __init__(self):
-        self.API_BASE_URL = API_BASE_URL
-        self.BINANCE_LIMIT_STRING = BINANCE_LIMIT_STRING
-        self.BINANCE_API_COLUMNS = BINANCE_API_COLUMNS
-        self.INTERVAL_MAPPING = INTERVAL_MAPPING
-        self.SYMBOL_MAPPING = SYMBOL_MAPPING
-        self.TARGET_SYMBOL = TARGET_SYMBOL
-        self.PREDICTION_MINUTES = PREDICTION_MINUTES
-        self.MODEL_FEATURES = MODEL_FEATURES
-        self.PATHS = PATHS
+        self.api_base_url = API_BASE_URL
+        self.binance_limit_string = BINANCE_LIMIT_STRING
+        self.binance_api_columns = BINANCE_API_COLUMNS
+        self.interval_mapping = INTERVAL_MAPPING
+        self.symbol_mapping = SYMBOL_MAPPING
+        self.target_symbol = TARGET_SYMBOL
+        self.prediction_minutes = PREDICTION_MINUTES
+        self.model_features = MODEL_FEATURES
+        self.paths = PATHS
         self.data_processor = shared_data_processor
 
     def get_interval_info(self, interval_key: IntervalKey) -> IntervalConfig:
-        if interval_key in self.INTERVAL_MAPPING:
-            return self.INTERVAL_MAPPING[interval_key]
+        if interval_key in self.interval_mapping:
+            return self.interval_mapping[interval_key]
         else:
             raise KeyError(f"Invalid interval key: {interval_key}")
 
@@ -60,7 +61,7 @@ class GetBinanceData:
             if not data:
                 return None
             raw_data_df = pd.DataFrame(data)
-            raw_data_df.columns = self.BINANCE_API_COLUMNS
+            raw_data_df.columns = self.binance_api_columns
             raw_data_df = raw_data_df.drop(columns=['close_time', 'ignore'])
             raw_data_df = self.data_processor.preprocess_binance_data(raw_data_df)
             return raw_data_df
@@ -75,8 +76,8 @@ class GetBinanceData:
         start_time: Optional[int] = None,
         end_time: Optional[int] = None
     ) -> pd.DataFrame:
-        symbols = [symbol] if symbol else list(self.SYMBOL_MAPPING.keys())
-        intervals = [interval_key] if interval_key else list(self.INTERVAL_MAPPING.keys())
+        symbols = [symbol] if symbol else list(self.symbol_mapping.keys())
+        intervals = [interval_key] if interval_key else list(self.interval_mapping.keys())
         all_fetched_data = []
 
         for sym in symbols:
@@ -86,7 +87,7 @@ class GetBinanceData:
 
                 while current_start_time is None or (end_time is not None and current_start_time < end_time):
                     interval_str = f"{interval_info['minutes']}m"
-                    url = f"{self.API_BASE_URL}/klines?symbol={sym}&interval={interval_str}&limit={self.BINANCE_LIMIT_STRING}"
+                    url = f"{self.api_base_url}/klines?symbol={sym}&interval={interval_str}&limit={self.binance_limit_string}"
                     if current_start_time:
                         url += f"&startTime={current_start_time}"
                     if end_time:
@@ -98,10 +99,8 @@ class GetBinanceData:
 
                     fetched_data_df['symbol'] = sym
                     fetched_data_df['interval'] = interval_info['minutes']
-                    fetched_data_df['interval_str'] = interval_str
-                    logging.debug(f"Raw DataFrame: {fetched_data_df.tail()}")
+                    logging.debug(f"Fetched DataFrame: {fetched_data_df.tail()}")
 
-                    fetched_data_df = self.data_processor.preprocess_binance_data(fetched_data_df)
                     fetched_data_df = self.data_processor.fill_missing_add_features(fetched_data_df)
                     all_fetched_data.append(fetched_data_df)
                     current_start_time = int(fetched_data_df['timestamp'].iloc[-1]) + 1
@@ -110,26 +109,26 @@ class GetBinanceData:
                         break
 
         if not all_fetched_data:
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.model_features.keys()))
 
         combined_real_data_df = pd.concat(all_fetched_data, ignore_index=True)
         combined_real_data_df = self.data_processor.fill_missing_add_features(combined_real_data_df)
-        return combined_real_data_df[list(self.MODEL_FEATURES.keys())]
+        return combined_real_data_df[list(self.model_features.keys())]
 
     def get_current_price(
         self,
         symbol: Optional[str] = None,
         interval_key: Optional[IntervalKey] = None
     ) -> pd.DataFrame:
-        symbols = [symbol] if symbol else list(self.SYMBOL_MAPPING.keys())
-        intervals = [interval_key] if interval_key else list(self.INTERVAL_MAPPING.keys())
+        symbols = [symbol] if symbol else list(self.symbol_mapping.keys())
+        intervals = [interval_key] if interval_key else list(self.interval_mapping.keys())
         all_current_prices = []
 
         for sym in symbols:
             for interval in intervals:
                 interval_info = self.get_interval_info(interval)
                 interval_str = f"{interval_info['minutes']}m"
-                url = f"{self.API_BASE_URL}/klines?symbol={sym}&interval={interval_str}&limit=1"
+                url = f"{self.api_base_url}/klines?symbol={sym}&interval={interval_str}&limit=1"
 
                 fetched_current_price_df = self._fetch_data(url)
                 if fetched_current_price_df is None or fetched_current_price_df.empty:
@@ -137,29 +136,28 @@ class GetBinanceData:
 
                 fetched_current_price_df['symbol'] = sym
                 fetched_current_price_df['interval'] = interval_info['minutes']
-                fetched_current_price_df['interval_str'] = interval_str
-                logging.debug(f"Raw DataFrame: {fetched_current_price_df.tail()}")
+                logging.debug(f"Current Price DataFrame: {fetched_current_price_df.tail()}")
 
-                fetched_current_price_df = self.data_processor.preprocess_binance_data(fetched_current_price_df)
                 fetched_current_price_df = self.data_processor.fill_missing_add_features(fetched_current_price_df)
-                all_current_prices.append(fetched_current_price_df[list(self.MODEL_FEATURES.keys())])
+                all_current_prices.append(fetched_current_price_df[list(self.model_features.keys())])
 
         if not all_current_prices:
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+            return pd.DataFrame(columns=list(self.model_features.keys()))
 
         combined_current_prices_df = pd.concat(all_current_prices, ignore_index=True)
         return combined_current_prices_df
 
     def prepare_dataframe_for_save(self, real_data_df: pd.DataFrame) -> pd.DataFrame:
         current_time, _ = get_current_time()
-        real_data_df = self.data_processor.preprocess_binance_data(real_data_df[real_data_df['timestamp'] <= current_time])
+        real_data_df = real_data_df[real_data_df['timestamp'] <= current_time]
+        real_data_df = self.data_processor.preprocess_binance_data(real_data_df)
         real_data_df = self.data_processor.fill_missing_add_features(real_data_df)
         real_data_df = self.data_processor.sort_dataframe(real_data_df)
-        real_data_df = real_data_df.astype(self.MODEL_FEATURES)
+        real_data_df = real_data_df.astype(self.model_features)
         return real_data_df
 
     def save_to_csv(self, real_data_df: pd.DataFrame, filename: str):
-        self.data_processor.ensure_file_exists(filename)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         prepared_data_df = self.prepare_dataframe_for_save(real_data_df)
         if not prepared_data_df.empty:
             prepared_data_df.to_csv(filename, index=False)
@@ -170,40 +168,34 @@ class GetBinanceData:
             logging.warning("No data to save to the combined dataset.")
             return
 
-        self.data_processor.ensure_file_exists(filename)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        existing_data_df = pd.DataFrame()
         if os.path.exists(filename) and os.path.getsize(filename) > 0:
-            existing_data_df = pd.read_csv(filename, dtype=self.MODEL_FEATURES)
-            combined_real_data_df = pd.concat(
-                [existing_data_df] +
-                [df.dropna(axis=1, how='all') for df in symbol_interval_data_dict.values() if not df.empty],
-                ignore_index=True
-            )
-        else:
-            combined_real_data_df = pd.concat(
-                [df.dropna(axis=1, how='all') for df in symbol_interval_data_dict.values() if not df.empty],
-                ignore_index=True
-            )
+            existing_data_df = pd.read_csv(filename, dtype=self.model_features)
 
+        combined_real_data_df = pd.concat(
+            [existing_data_df] + [df for df in symbol_interval_data_dict.values() if not df.empty],
+            ignore_index=True
+        )
         combined_real_data_df = combined_real_data_df.drop_duplicates(subset=['timestamp', 'symbol', 'interval'], keep='first')
         combined_real_data_df = self.data_processor.sort_dataframe(combined_real_data_df)
         combined_real_data_df = self.data_processor.fill_missing_add_features(combined_real_data_df)
         prepared_combined_data_df = self.prepare_dataframe_for_save(combined_real_data_df)
         prepared_combined_data_df.to_csv(filename, index=False)
         logging.info(f"Combined dataset updated: {filename}")
-        logging.info("------------------------")
 
     def fetch_combined_data(self) -> pd.DataFrame:
-        combined_real_data_path = self.PATHS['combined_dataset']
+        combined_real_data_path = self.paths['combined_dataset']
         if os.path.exists(combined_real_data_path) and os.path.getsize(combined_real_data_path) > 0:
             try:
-                combined_real_data_df = pd.read_csv(combined_real_data_path, dtype=self.MODEL_FEATURES)
+                combined_real_data_df = pd.read_csv(combined_real_data_path, dtype=self.model_features)
                 logging.info(f"Combined data loaded from {combined_real_data_path}")
                 return combined_real_data_df
             except Exception as e:
                 logging.error(f"Error loading combined data: {e}")
         else:
             logging.warning(f"Combined data file not found or is empty: {combined_real_data_path}")
-        return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+        return pd.DataFrame(columns=list(self.model_features.keys()))
 
     def print_data_summary(
         self,
@@ -215,7 +207,7 @@ class GetBinanceData:
             summary = f"Data summary for {symbol} ({interval_key}):\n"
         else:
             summary = "Data summary for all symbols and intervals:\n"
-        feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.MODEL_FEATURES.keys()])
+        feature_headers = ' '.join([f'{feature.capitalize():<10}' for feature in self.model_features.keys()])
         summary += f"{'Timestamp':<20} {feature_headers}\n"
 
         if real_data_df.empty:
@@ -229,7 +221,7 @@ class GetBinanceData:
             timestamp = row['timestamp']
             feature_values = ' '.join([
                 f'{row[feature]:<10.6f}' if isinstance(row[feature], float) else f"{row[feature]:<10}"
-                for feature in self.MODEL_FEATURES.keys()
+                for feature in self.model_features.keys()
             ])
             summary += f"{label:<20} {timestamp:<20} {feature_values}\n"
 
@@ -240,8 +232,8 @@ class GetBinanceData:
         symbol: Optional[str] = None,
         interval_key: Optional[IntervalKey] = None
     ) -> Tuple[pd.DataFrame, Optional[int], Optional[int]]:
-        symbols = [symbol] if symbol else list(self.SYMBOL_MAPPING.keys())
-        intervals = [interval_key] if interval_key else list(self.INTERVAL_MAPPING.keys())
+        symbols = [symbol] if symbol else list(self.symbol_mapping.keys())
+        intervals = [interval_key] if interval_key else list(self.interval_mapping.keys())
         all_updated_real_data = []
         update_start_time = None
         update_end_time = None
@@ -249,20 +241,15 @@ class GetBinanceData:
         for sym in symbols:
             for interval in intervals:
                 interval_info = self.get_interval_info(interval)
-                symbol_interval_filename = os.path.join(self.PATHS['data_dir'], f"{sym}_{interval_info['minutes']}_data.csv")
+                symbol_interval_filename = os.path.join(self.paths['data_dir'], f"{sym}_{interval_info['minutes']}_data.csv")
                 server_time, _ = get_current_time()
 
-                dtype_dict = self.MODEL_FEATURES
-
                 if os.path.exists(symbol_interval_filename) and os.path.getsize(symbol_interval_filename) > 0:
-                    existing_real_data_df = pd.read_csv(symbol_interval_filename, dtype=dtype_dict)
-                    if not existing_real_data_df.empty:
-                        existing_real_data_df = self.data_processor.fill_missing_add_features(existing_real_data_df)
-                        last_timestamp = int(existing_real_data_df['timestamp'].max())
-                    else:
-                        last_timestamp = server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
+                    existing_real_data_df = pd.read_csv(symbol_interval_filename, dtype=self.model_features)
+                    existing_real_data_df = self.data_processor.fill_missing_add_features(existing_real_data_df)
+                    last_timestamp = int(existing_real_data_df['timestamp'].max())
                 else:
-                    existing_real_data_df = pd.DataFrame(columns=list(self.MODEL_FEATURES.keys()))
+                    existing_real_data_df = pd.DataFrame(columns=list(self.model_features.keys()))
                     last_timestamp = server_time - (interval_info['days'] * 24 * 60 * 60 * 1000)
 
                 time_difference = server_time - last_timestamp
@@ -273,7 +260,7 @@ class GetBinanceData:
                     new_fetched_data_df = self.get_binance_data(sym, interval, update_start_time, update_end_time)
 
                     if new_fetched_data_df is not None and not new_fetched_data_df.empty:
-                        new_fetched_data_df = new_fetched_data_df.astype(dtype_dict)
+                        new_fetched_data_df = new_fetched_data_df.astype(self.model_features)
 
                         readable_start = timestamp_to_readable_time(update_start_time)
                         readable_newest = timestamp_to_readable_time(new_fetched_data_df['timestamp'].max())
@@ -282,7 +269,7 @@ class GetBinanceData:
                             f"({readable_start} to {readable_newest})"
                         )
 
-                        existing_real_data_df = existing_real_data_df.astype(dtype_dict)
+                        existing_real_data_df = existing_real_data_df.astype(self.model_features)
 
                         updated_real_data_df = pd.concat(
                             [existing_real_data_df, new_fetched_data_df],
@@ -290,7 +277,7 @@ class GetBinanceData:
                         ).drop_duplicates(subset=['timestamp'], keep='first')
                         updated_real_data_df = self.data_processor.sort_dataframe(updated_real_data_df)
                         updated_real_data_df = self.data_processor.fill_missing_add_features(updated_real_data_df)
-                        updated_real_data_df = updated_real_data_df.astype(dtype_dict)
+                        updated_real_data_df = updated_real_data_df.astype(self.model_features)
 
                         self.save_to_csv(updated_real_data_df, symbol_interval_filename)
                         all_updated_real_data.append(updated_real_data_df)
@@ -304,14 +291,14 @@ class GetBinanceData:
             combined_real_data_df = pd.concat(all_updated_real_data, ignore_index=True)
             return combined_real_data_df, update_start_time, update_end_time
         else:
-            return pd.DataFrame(columns=list(self.MODEL_FEATURES.keys())), None, None
+            return pd.DataFrame(columns=list(self.model_features.keys())), None, None
 
 def main():
     logging.info("Script started")
     download_data = GetBinanceData()
 
     try:
-        response = requests.get(f"{download_data.API_BASE_URL}/time")
+        response = requests.get(f"{download_data.api_base_url}/time")
         response.raise_for_status()
         server_time = response.json()['serverTime']
         readable_time = timestamp_to_readable_time(server_time)
@@ -331,19 +318,19 @@ def main():
                     download_data.print_data_summary(updated_real_data_df, symbol, interval_key)
 
                     symbol_interval_data_dict = {}
-                    for sym in download_data.SYMBOL_MAPPING.keys():
-                        for interval in download_data.INTERVAL_MAPPING.keys():
-                            key = f"{sym}_{download_data.INTERVAL_MAPPING[interval]['minutes']}"
+                    for sym in download_data.symbol_mapping.keys():
+                        for interval in download_data.interval_mapping.keys():
+                            key = f"{sym}_{download_data.interval_mapping[interval]['minutes']}"
                             symbol_interval_subset_df = updated_real_data_df[
                                 (updated_real_data_df['symbol'] == sym) &
-                                (updated_real_data_df['interval'] == download_data.INTERVAL_MAPPING[interval]['minutes'])
+                                (updated_real_data_df['interval'] == download_data.interval_mapping[interval]['minutes'])
                             ]
                             if not symbol_interval_subset_df.empty:
                                 symbol_interval_data_dict[key] = symbol_interval_subset_df
 
                     download_data.save_combined_dataset(
                         symbol_interval_data_dict,
-                        download_data.PATHS['combined_dataset']
+                        download_data.paths['combined_dataset']
                     )
                 else:
                     logging.error(f"Failed to update data for symbol {symbol} and interval {interval_key}")
