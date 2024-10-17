@@ -9,6 +9,8 @@ import torch.nn as nn
 from filelock import FileLock
 from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.optim.optimizer import Optimizer
+
 from get_binance_data import GetBinanceData
 
 from config import (
@@ -162,10 +164,13 @@ def predict_future_price(
                 inputs = torch.tensor(
                     current_df.values, dtype=torch.float32
                 ).unsqueeze(0).to(device)
+                logging.info(f"Inputs shape: {inputs.shape}")
+                logging.info(f"Inputs data: {inputs}")
                 predictions = model(inputs).cpu().detach().numpy()
             except Exception as e:
                 logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
                 continue
+    # Остальной код
             predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
             predicted_data_df_denormalized = inverse_transform(predicted_data_df)
             predicted_data_df_denormalized["symbol"] = target_symbol
@@ -280,14 +285,14 @@ def get_device() -> torch.device:
     logging.info(f"Using device: {device}")
     return device
 
-def save_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str):
+def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
     }, filepath)
     logging.info(f"Model saved to {filepath}")
 
-def load_model(model: nn.Module, optimizer: torch.optim.Optimizer, filepath: str, device: torch.device):
+def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
         checkpoint = torch.load(filepath, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])

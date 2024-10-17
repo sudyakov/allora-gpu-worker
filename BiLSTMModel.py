@@ -1,5 +1,6 @@
 import logging
 import os
+from random import Random
 from time import sleep
 from typing import Dict, Tuple, Sequence, Optional, List
 import pandas as pd
@@ -325,7 +326,7 @@ def main():
             data_fetcher,
             is_training=False,
             latest_timestamp=next_timestamp - interval_ms,
-            count=SEQ_LENGTH*2,
+            count=SEQ_LENGTH
         )
 
         print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")
