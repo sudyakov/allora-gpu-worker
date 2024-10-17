@@ -312,14 +312,12 @@ def main():
         logging.error("Invalid PREDICTION_MINUTES value.")
         return
     interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
-    if last_prediction_timestamp is not None:
-        timestamps_to_predict = list(range(
-            int(last_prediction_timestamp + interval_ms),
-            int(latest_data_timestamp + interval_ms),
-            int(interval_ms)
-        ))
-    else:
-        timestamps_to_predict = [int(latest_data_timestamp)]
+    timestamps_to_predict = []
+    current_timestamp = last_prediction_timestamp + interval_ms if last_prediction_timestamp else latest_data_timestamp
+    while current_timestamp <= latest_data_timestamp:
+        timestamps_to_predict.append(current_timestamp)
+        current_timestamp += interval_ms
+
     predictions_list = []
 
     for next_timestamp in timestamps_to_predict:
@@ -327,7 +325,7 @@ def main():
             data_fetcher,
             is_training=False,
             latest_timestamp=next_timestamp - interval_ms,
-            count=SEQ_LENGTH
+            count=SEQ_LENGTH*2,
         )
 
         print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")

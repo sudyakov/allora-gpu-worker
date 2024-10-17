@@ -300,9 +300,6 @@ def load_and_prepare_data(
     data_fetcher: GetBinanceData,
     is_training: bool = False,
     latest_timestamp: Optional[int] = None,
-    seq_length: int = SEQ_LENGTH,
-    target_symbols: Optional[List[str]] = None,
-    target_intervals: Optional[List[int]] = None,
     count: int = SEQ_LENGTH
 ) -> pd.DataFrame:
     if is_training:
