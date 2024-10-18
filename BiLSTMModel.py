@@ -13,8 +13,6 @@ from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 import traceback
 
-
-
 from config import (
     INTERVAL_MAPPING,
     MODEL_FILENAME,
