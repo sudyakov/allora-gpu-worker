@@ -1,7 +1,7 @@
 import logging
 import os
-from time import sleep
 from typing import Dict, Sequence, Tuple
+from time import sleep
 
 import numpy as np
 import pandas as pd
@@ -11,6 +11,9 @@ from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
+import traceback
+
+
 
 from config import (
     INTERVAL_MAPPING,
@@ -416,4 +419,15 @@ if __name__ == "__main__":
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
 
     load_model(model, optimizer, MODEL_FILENAME, device)
-    model, optimizer = main(model, optimizer, data_fetcher)
+
+    while True:
+        try:
+            logging.info("Starting main loop iteration.")
+            model, optimizer = main(model, optimizer, data_fetcher)
+            logging.info("Main loop iteration completed successfully.")
+            sleep(60)  # Задержка между итерациями цикла
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            traceback.print_exc()
+            logging.info("Retrying after delay...")
+            sleep(60)  # Задержка перед повторной попыткой
