@@ -153,7 +153,11 @@ def predict_future_price(
             ).unsqueeze(0).to(device)
             predictions = model(inputs).cpu().detach().numpy()
             predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
+            
+            logging.debug(f"Predictions before inverse_transform:\n{predicted_data_df}")
             predicted_data_df_denormalized = inverse_transform(predicted_data_df)
+            logging.debug(f"Predictions after inverse_transform:\n{predicted_data_df_denormalized}")
+
             predicted_data_df_denormalized["symbol"] = target_symbol
             predicted_data_df_denormalized["interval"] = prediction_minutes
             predicted_data_df_denormalized["timestamp"] = int(next_timestamp)

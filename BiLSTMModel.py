@@ -155,8 +155,8 @@ class EnhancedBiLSTMModel(nn.Module):
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out, timestamps)
         predictions = self.linear(context_vector)
-        predictions = torch.clamp(predictions, min=-10, max=10)
-        predictions = torch.exp(predictions)
+        # predictions = torch.clamp(predictions, min=-10, max=10)
+        # predictions = torch.exp(predictions)
         return predictions
 
     def _initialize_weights(self, module: nn.Module) -> None:
