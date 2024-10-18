@@ -253,7 +253,7 @@ def main():
         return
 
     logging.info("Dataset after transformation:")
-    logging.info(f"\n{real_combined_data.head()}")
+    logging.info(f"\n{real_combined_data.tail()}")
 
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
@@ -298,7 +298,7 @@ def main():
 
     get_binance_data_main()
     sleep(5)
-
+    model.eval()
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         real_combined_data = pd.read_csv(combined_dataset_path)
