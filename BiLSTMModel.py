@@ -1,19 +1,16 @@
 import logging
 import os
-from typing import Dict, Tuple, Sequence, Optional, List
+from typing import Dict, Tuple, Sequence
 from time import sleep
-
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 from filelock import FileLock
 from torch.optim.adamw import AdamW
-from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-
 from config import (
     INTERVAL_MAPPING,
     MODEL_FILENAME,
@@ -49,19 +46,19 @@ logging.basicConfig(
 
 writer = SummaryWriter('runs/BiLSTMModel')
 
-
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
         super().__init__()
         self.attention_weights = nn.Parameter(torch.Tensor(hidden_size * 2, 1))
         nn.init.xavier_uniform_(self.attention_weights)
+        self.time_projection = nn.Linear(1, hidden_size * 2)
 
-    def forward(self, lstm_out: torch.Tensor) -> torch.Tensor:
-        attention_scores = torch.matmul(lstm_out, self.attention_weights).squeeze(-1)
+    def forward(self, lstm_out: torch.Tensor, timestamps: torch.Tensor) -> torch.Tensor:
+        time_embeddings = self.time_projection(timestamps.unsqueeze(-1))
+        attention_scores = torch.matmul(lstm_out + time_embeddings, self.attention_weights).squeeze(-1)
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -74,7 +71,6 @@ class EnhancedBiLSTMModel(nn.Module):
         self.numerical_columns = numerical_columns
         self.categorical_columns = categorical_columns
         self.column_name_to_index = column_name_to_index
-
         self.symbol_embedding = nn.Embedding(
             num_embeddings=MODEL_PARAMS["num_symbols"],
             embedding_dim=MODEL_PARAMS["embedding_dim"],
@@ -92,7 +88,6 @@ class EnhancedBiLSTMModel(nn.Module):
             embedding_dim=MODEL_PARAMS["embedding_dim"],
         )
         self.timestamp_embedding = nn.Linear(1, MODEL_PARAMS["timestamp_embedding_dim"])
-
         numerical_input_size = len(numerical_columns)
         self.lstm_input_size = (
             numerical_input_size
@@ -121,14 +116,12 @@ class EnhancedBiLSTMModel(nn.Module):
         intervals = x[:, :, self.column_name_to_index["interval"]].long()
         hours = x[:, :, self.column_name_to_index['hour']].long()
         days = x[:, :, self.column_name_to_index['dayofweek']].long()
-        timestamp = x[:, :, self.column_name_to_index["timestamp"]].float().unsqueeze(-1)
-
+        timestamps = x[:, :, self.column_name_to_index["timestamp"]].float()
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
         hour_embeddings = self.hour_embedding(hours)
         day_embeddings = self.dayofweek_embedding(days)
-        timestamp_embeddings = self.timestamp_embedding(timestamp)
-
+        timestamp_embeddings = self.timestamp_embedding(timestamps.unsqueeze(-1))
         lstm_input = torch.cat(
             (
                 numerical_data,
@@ -141,7 +134,7 @@ class EnhancedBiLSTMModel(nn.Module):
             dim=2
         )
         lstm_out, _ = self.lstm(lstm_input)
-        context_vector = self.attention(lstm_out)
+        context_vector = self.attention(lstm_out, timestamps)
         predictions = self.linear(context_vector)
         predictions = torch.clamp(predictions, min=-10, max=10)
         predictions = torch.exp(predictions)
@@ -161,6 +154,11 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
+def compute_time_weights(timestamps: torch.Tensor, alpha: float = 0.9) -> torch.Tensor:
+    max_timestamp = timestamps.max()
+    normalized_timestamps = (timestamps - timestamps.min()) / (max_timestamp - timestamps.min() + 1e-8)
+    time_weights = alpha ** (1 - normalized_timestamps)
+    return time_weights
 
 def _train_model(
     model: EnhancedBiLSTMModel,
@@ -170,7 +168,6 @@ def _train_model(
     epochs: int,
     desc: str
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
-    criterion = nn.MSELoss(reduction='none')
     model.train()
     for epoch in range(epochs):
         total_loss = 0.0
@@ -183,12 +180,8 @@ def _train_model(
         )
         for inputs, targets, masks in progress_bar:
             inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
-            if torch.isnan(inputs).any() or torch.isinf(inputs).any():
-                logging.error("Input data contains NaN or infinite values. Stopping training.")
-                return model, optimizer
-            if torch.isnan(targets).any() or torch.isinf(targets).any():
-                logging.error("Target data contains NaN or infinite values. Stopping training.")
-                return model, optimizer
+            timestamps = inputs[:, -1, shared_data_processor.column_name_to_index['timestamp']]
+            time_weights = compute_time_weights(timestamps).to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             if outputs.shape != targets.shape:
@@ -198,7 +191,7 @@ def _train_model(
                     targets.shape,
                 )
                 continue
-            loss = criterion(outputs, targets)
+            loss = ((outputs - targets) ** 2) * time_weights.unsqueeze(1)
             loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
             loss.backward()
             optimizer.step()
@@ -220,13 +213,10 @@ def _train_model(
             f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
         save_model(model, optimizer, MODEL_FILENAME)
-
         writer.add_scalar('Loss/train', avg_loss, epoch)
         writer.add_scalar('Correlation/train', avg_corr, epoch)
         writer.close()
-
     return model, optimizer
-
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -237,7 +227,6 @@ def train_and_save_model(
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
 
-
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
     optimizer: AdamW,
@@ -246,36 +235,31 @@ def fine_tune_model(
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
-
 def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceData):
     device = get_device()
-
-    # Обновляем данные
     get_binance_data_main()
     sleep(5)
-
-    # Подготовка данных для обучения
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         return model, optimizer
-
+    shared_data_processor.set_column_name_to_index(real_combined_data.columns)
     logging.info("Dataset after transformation:")
     logging.info(f"\n{real_combined_data.tail()}")
-
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
     if np.isinf(real_combined_data.values).any():
         logging.info("Data contains infinite values.")
-
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
-    column_name_to_index = {col: idx for idx, col in enumerate(real_combined_data.columns)}
-
-    # Подготавливаем датасет и обучаем модель
+    model = EnhancedBiLSTMModel(
+        categorical_columns=shared_data_processor.categorical_columns,
+        numerical_columns=shared_data_processor.numerical_columns,
+        column_name_to_index=shared_data_processor.column_name_to_index,
+    ).to(device)
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
     if np.isinf(real_combined_data.values).any():
@@ -298,8 +282,6 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return model, optimizer
-
-    # Загружаем последние данные
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         real_combined_data = pd.read_csv(combined_dataset_path)
@@ -307,7 +289,6 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
     else:
         logging.error("Combined dataset not found.")
         return model, optimizer
-
     predictions_path = PATHS["predictions"]
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
         existing_predictions_df = pd.read_csv(predictions_path)
@@ -318,13 +299,11 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
     else:
         existing_predictions_df = pd.DataFrame()
         last_prediction_timestamp = None
-
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
         logging.error("Invalid PREDICTION_MINUTES value.")
         return model, optimizer
     interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
-
     timestamps_to_predict = []
     if last_prediction_timestamp is not None:
         timestamps_to_predict = list(range(
@@ -336,9 +315,7 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
         print(f"Latest data timestamp: {latest_data_timestamp}")
     else:
         timestamps_to_predict = [int(latest_data_timestamp + interval_ms)]
-
     predictions_list = []
-
     for next_timestamp in tqdm(timestamps_to_predict, desc="Generating Predictions"):
         latest_df = load_and_prepare_data(
             data_fetcher,
@@ -346,9 +323,7 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
             latest_timestamp=next_timestamp - interval_ms,
             count=SEQ_LENGTH
         )
-
         print(f"Iteration {next_timestamp}: Latest timestamps are {latest_df['timestamp'].tolist()}")
-
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
             continue
@@ -357,7 +332,6 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
             logging.info(f"First row:\n{latest_df.head(1)}")
             logging.info(f"Last row:\n{latest_df.tail(1)}")
             logging.info(f"-----------------")
-
             predicted_df = predict_future_price(
                 model=model,
                 latest_real_data_df=latest_df,
@@ -367,13 +341,10 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
                 seq_length=SEQ_LENGTH,
                 target_symbol=TARGET_SYMBOL
             )
-
         if not predicted_df.empty:
             predictions_list.append(predicted_df)
         else:
             logging.info(f"No prediction made for timestamp {next_timestamp} due to insufficient data.")
-
-    # После завершения цикла
     if predictions_list:
         all_predictions = pd.concat(predictions_list, ignore_index=True)
         combined_predictions = pd.concat([existing_predictions_df, all_predictions], ignore_index=True)
@@ -384,15 +355,12 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
         logging.info(f"All predicted prices saved to {predictions_path}.")
     else:
         logging.info("No predictions were made during this run due to insufficient data.")
-
     differences_path = PATHS['differences']
-
     update_differences(
         differences_path=differences_path,
         predictions_path=predictions_path,
         combined_dataset_path=combined_dataset_path
     )
-
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_data = pd.read_csv(differences_path)
         differences_processed_data = load_and_prepare_data(
@@ -421,37 +389,25 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
                 logging.error(f"Error during fine-tuning: {e}")
     else:
         logging.info("No new differences found for fine-tuning.")
-
     return model, optimizer
-
 
 if __name__ == "__main__":
     device = get_device()
     data_fetcher = GetBinanceData()
-
-    # Создаем модель и оптимизатор один раз
-    # Определяем параметры модели после инициализации data_fetcher и shared_data_processor
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
-
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
     column_name_to_index = {col: idx for idx, col in enumerate(real_combined_data.columns)}
-
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
         column_name_to_index=column_name_to_index,
     ).to(device)
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
-
-    # Загружаем сохраненные веса, если они существуют
     load_model(model, optimizer, MODEL_FILENAME, device)
-
-    while True:
-        model, optimizer = main(model, optimizer, data_fetcher)
-        sleep(10)  # Добавляем задержку перед следующей итерацией
+    model, optimizer = main(model, optimizer, data_fetcher)

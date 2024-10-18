@@ -62,6 +62,7 @@ class DataProcessor:
     def __init__(self):
         if getattr(self, 'initialized', False):
             return
+        self.column_name_to_index: Dict[str, int] = {}
         self.is_fitted = False
         self.label_encoders: Dict[str, CustomLabelEncoder] = {}
         self.categorical_columns: Sequence[str] = ['symbol', 'interval', 'hour', 'dayofweek']
@@ -86,6 +87,9 @@ class DataProcessor:
         self.label_encoders["interval"] = CustomLabelEncoder(predefined_mapping=self.interval_mapping)
         self.scalers: Dict[str, MinMaxScaler] = {}
         self.initialized = True
+
+    def set_column_name_to_index(self, columns: Sequence[str]) -> None:
+        self.column_name_to_index = {col: idx for idx, col in enumerate(columns)}
 
     def preprocess_binance_data(self, real_data_df: pd.DataFrame) -> pd.DataFrame:
         real_data_df = real_data_df.replace([np.inf, -np.inf], pd.NA).dropna()
@@ -182,7 +186,6 @@ class DataProcessor:
         target_masks = torch.tensor(target_masks, dtype=torch.float32)
 
         return TensorDataset(sequences, targets, target_masks)
-
     def get_latest_dataset_prices(
         self,
         symbol: Optional[str] = None,
@@ -203,11 +206,14 @@ class DataProcessor:
 
             if latest_timestamp is not None:
                 df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp]
+            else:
+                latest_timestamp = df_filtered['timestamp'].max()
 
             if not df_filtered.empty:
-                df_filtered = df_filtered.sort_values('timestamp', ascending=True).tail(count)
+                # Всегда берем последние count данных вплоть до последней доступной временной метки
+                df_filtered = df_filtered.sort_values('timestamp', ascending=True)
+                df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp].tail(count)
                 return df_filtered
 
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
-
 shared_data_processor = DataProcessor()

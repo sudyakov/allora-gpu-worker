@@ -146,48 +146,50 @@ def predict_future_price(
     all_predicted_data = []
     with torch.no_grad():
         interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
-        timestamps_to_predict = [
-            last_binance_timestamp + interval_ms * i for i in range(1, future_steps + 1)
-        ]
-        for next_timestamp in timestamps_to_predict:
-            current_df = latest_real_data_df.tail(seq_length).copy()
-            if len(current_df) < seq_length:
-                logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
-                continue
+
+        # Всегда предсказываем для следующего интервала после последнего времени в данных
+        next_timestamp = last_binance_timestamp + interval_ms
+
+        current_df = latest_real_data_df.tail(seq_length).copy()
+
+        if len(current_df) < seq_length:
+            logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
+        else:
             try:
                 inputs = torch.tensor(
                     current_df.values, dtype=torch.float32
                 ).unsqueeze(0).to(device)
-                logging.info(f"Inputs shape: {inputs.shape}")
-                logging.info(f"Inputs data: {inputs}")
                 predictions = model(inputs).cpu().detach().numpy()
+
+                predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
+                predicted_data_df_denormalized = inverse_transform(predicted_data_df)
+
+                # Заполняем остальные поля
+                predicted_data_df_denormalized["symbol"] = target_symbol
+                predicted_data_df_denormalized["interval"] = prediction_minutes
+                predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
+                predicted_data_df_denormalized['hour'] = pd.to_datetime(
+                    predicted_data_df_denormalized['timestamp'], unit='ms').dt.hour
+                predicted_data_df_denormalized['dayofweek'] = pd.to_datetime(
+                    predicted_data_df_denormalized['timestamp'], unit='ms').dt.dayofweek
+                predicted_data_df_denormalized['sin_hour'] = np.sin(
+                    2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
+                predicted_data_df_denormalized['cos_hour'] = np.cos(
+                    2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
+                predicted_data_df_denormalized['sin_day'] = np.sin(
+                    2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
+                predicted_data_df_denormalized['cos_day'] = np.cos(
+                    2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
+                final_columns = list(MODEL_FEATURES.keys())
+                predicted_data_df_denormalized = predicted_data_df_denormalized[final_columns]
+                all_predicted_data.append(predicted_data_df_denormalized)
             except Exception as e:
                 logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
-                continue
 
-            predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
-            predicted_data_df_denormalized = inverse_transform(predicted_data_df)
-            predicted_data_df_denormalized["symbol"] = target_symbol
-            predicted_data_df_denormalized["interval"] = prediction_minutes
-            predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
-            predicted_data_df_denormalized['hour'] = pd.to_datetime(
-                predicted_data_df_denormalized['timestamp'], unit='ms').dt.hour
-            predicted_data_df_denormalized['dayofweek'] = pd.to_datetime(
-                predicted_data_df_denormalized['timestamp'], unit='ms').dt.dayofweek
-            predicted_data_df_denormalized['sin_hour'] = np.sin(
-                2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
-            predicted_data_df_denormalized['cos_hour'] = np.cos(
-                2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
-            predicted_data_df_denormalized['sin_day'] = np.sin(
-                2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
-            predicted_data_df_denormalized['cos_day'] = np.cos(
-                2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
-            final_columns = list(MODEL_FEATURES.keys())
-            predicted_data_df_denormalized = predicted_data_df_denormalized[final_columns]
-            all_predicted_data.append(predicted_data_df_denormalized)
     if all_predicted_data:
         all_predictions = pd.concat(all_predicted_data, ignore_index=True)
         return all_predictions
+
     return pd.DataFrame()
 
 
