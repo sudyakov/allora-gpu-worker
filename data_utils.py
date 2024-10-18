@@ -20,7 +20,8 @@ from config import (
     SYMBOL_MAPPING,
     TARGET_SYMBOL,
 )
-    
+
+
 class CustomLabelEncoder:
     def __init__(self, predefined_mapping: Optional[Dict[Any, int]] = None):
         if predefined_mapping:
@@ -49,7 +50,8 @@ class CustomLabelEncoder:
     def fit_transform(self, data: pd.Series) -> pd.Series:
         self.fit(data)
         return self.transform(data)
-    
+
+
 class DataProcessor:
     _instance = None
 
@@ -86,6 +88,9 @@ class DataProcessor:
         self.scalers: Dict[str, MinMaxScaler] = {}
         self.initialized = True
 
+    def sort_dataframe(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        return data_df.sort_values('timestamp', ascending=True)
+
     def set_column_name_to_index(self, columns: Sequence[str]) -> None:
         self.column_name_to_index = {col: idx for idx, col in enumerate(columns)}
 
@@ -119,9 +124,6 @@ class DataProcessor:
         data_df = data_df[list(MODEL_FEATURES.keys())]
         return data_df
 
-    def sort_dataframe(self, data_df: pd.DataFrame) -> pd.DataFrame:
-        return data_df.sort_values('timestamp', ascending=True)
-
     def prepare_dataset(
         self,
         data_df: pd.DataFrame,
@@ -140,7 +142,6 @@ class DataProcessor:
             raise KeyError(f"Missing target columns in DataFrame: {missing_columns}")
 
         data_df = data_df[features]
-
         if 'timestamp' in data_df.columns:
             data_df['timestamp'] = data_df['timestamp'].astype(np.float32)
 
@@ -149,13 +150,11 @@ class DataProcessor:
         target_indices = torch.tensor([features.index(col) for col in target_columns])
 
         data_tensor = torch.tensor(data_df.values, dtype=torch.float32)
-
         sequences = []
         targets = []
         target_masks = []
 
         label_encoders = self.label_encoders
-
         target_symbol_codes = (
             [label_encoders['symbol'].classes_[sym] for sym in target_symbols]
             if target_symbols else list(label_encoders['symbol'].classes_.values())
@@ -199,10 +198,8 @@ class DataProcessor:
 
             if symbol is not None:
                 df_filtered = df_filtered[df_filtered['symbol'] == symbol]
-
             if interval is not None:
                 df_filtered = df_filtered[df_filtered['interval'] == interval]
-
             if latest_timestamp is not None:
                 df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp]
             else:
@@ -214,5 +211,6 @@ class DataProcessor:
                 return df_filtered
 
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+
 
 shared_data_processor = DataProcessor()

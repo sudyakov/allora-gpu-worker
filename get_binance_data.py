@@ -348,3 +348,6 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         logging.error(f"An error occurred: {e}")
+
+    def sort_dataframe(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        return data_df.sort_values('timestamp', ascending=True)
