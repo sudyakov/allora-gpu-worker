@@ -12,6 +12,9 @@ from torch.optim.adamw import AdamW
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter('runs/BiLSTMModel')
+
 
 from config import (
     INTERVAL_MAPPING,
@@ -218,8 +221,12 @@ def _train_model(
             f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}"
         )
         save_model(model, optimizer, MODEL_FILENAME)
-    return model, optimizer
 
+        writer.add_scalar('Loss/train', avg_loss, epoch)
+        writer.add_scalar('Correlation/train', avg_corr, epoch)
+        writer.close()
+
+    return model, optimizer
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -337,7 +344,7 @@ def main():
         timestamps_to_predict = [int(latest_data_timestamp + interval_ms)]
 
     predictions_list = []
-    
+
     for next_timestamp in tqdm(timestamps_to_predict, desc="Generating Predictions"):
         latest_df = load_and_prepare_data(
             data_fetcher,

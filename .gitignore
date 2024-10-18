@@ -7,4 +7,5 @@ env_file
 allora-gpu-worker.code-workspace
 data
 models
+runs
 *.log
