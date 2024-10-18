@@ -266,11 +266,11 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
 
-    model = EnhancedBiLSTMModel(
-        categorical_columns=shared_data_processor.categorical_columns,
-        numerical_columns=shared_data_processor.numerical_columns,
-        column_name_to_index=shared_data_processor.column_name_to_index,
-    ).to(device)
+    # model = EnhancedBiLSTMModel(
+    #     categorical_columns=shared_data_processor.categorical_columns,
+    #     numerical_columns=shared_data_processor.numerical_columns,
+    #     column_name_to_index=shared_data_processor.column_name_to_index,
+    # ).to(device)
 
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
@@ -345,20 +345,19 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
             continue
-        else:
-            logging.info(f"Latest data for timestamp {next_timestamp}")
-            logging.info(f"First row:\n{latest_df.head(1)}")
-            logging.info(f"Last row:\n{latest_df.tail(1)}")
-            logging.info(f"-----------------")
-            predicted_df = predict_future_price(
-                model=model,
-                latest_real_data_df=latest_df,
-                device=device,
-                prediction_minutes=PREDICTION_MINUTES,
-                future_steps=1,
-                seq_length=SEQ_LENGTH,
-                target_symbol=TARGET_SYMBOL
-            )
+        # Логирование входных данных
+        logging.debug(f"Input data for timestamp {next_timestamp}:\n{latest_df}")
+        predicted_df = predict_future_price(
+            model=model,
+            latest_real_data_df=latest_df,
+            device=device,
+            prediction_minutes=PREDICTION_MINUTES,
+            future_steps=1,
+            seq_length=SEQ_LENGTH,
+            target_symbol=TARGET_SYMBOL
+        )
+        # Логирование результатов предсказания
+        logging.debug(f"Prediction for timestamp {next_timestamp}:\n{predicted_df}")
         if not predicted_df.empty:
             predictions_list.append(predicted_df)
         else:
@@ -434,5 +433,11 @@ if __name__ == "__main__":
         column_name_to_index=column_name_to_index,
     ).to(device)
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
+
+    logging.debug(f"Sum of model parameters before loading: {sum(p.sum().item() for p in model.parameters())}")
+
     load_model(model, optimizer, MODEL_FILENAME, device)
+
+    logging.debug(f"Sum of model parameters after loading: {sum(p.sum().item() for p in model.parameters())}")
+
     model, optimizer = main(model, optimizer, data_fetcher)
