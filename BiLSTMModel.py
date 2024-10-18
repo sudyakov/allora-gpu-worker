@@ -298,7 +298,7 @@ def main():
 
     get_binance_data_main()
     sleep(5)
-    model.eval()
+    # model.eval()
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         real_combined_data = pd.read_csv(combined_dataset_path)
