@@ -16,16 +16,17 @@ from config import (
     DATA_PROCESSOR_FILENAME,
     INTERVAL_MAPPING,
     MODEL_FEATURES,
+    MODEL_PARAMS,
     PREDICTION_MINUTES,
     SCALABLE_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
     TRAINING_PARAMS,
+    PATHS,
     get_interval,
 )
 from data_utils import CustomLabelEncoder, shared_data_processor
 from get_binance_data import GetBinanceData
-from config import PATHS
 
 def create_dataloader(
     dataset: TensorDataset,
@@ -35,6 +36,7 @@ def create_dataloader(
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+    
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -144,34 +146,34 @@ def predict_future_price(
         current_df = latest_real_data_df.tail(seq_length).copy()
         if len(current_df) < seq_length:
             logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
-        else:
-            try:
-                inputs = torch.tensor(
-                    current_df.values, dtype=torch.float32
-                ).unsqueeze(0).to(device)
-                predictions = model(inputs).cpu().detach().numpy()
-                predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
-                predicted_data_df_denormalized = inverse_transform(predicted_data_df)
-                predicted_data_df_denormalized["symbol"] = target_symbol
-                predicted_data_df_denormalized["interval"] = prediction_minutes
-                predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
-                predicted_data_df_denormalized['hour'] = pd.to_datetime(
-                    predicted_data_df_denormalized['timestamp'], unit='ms').dt.hour
-                predicted_data_df_denormalized['dayofweek'] = pd.to_datetime(
-                    predicted_data_df_denormalized['timestamp'], unit='ms').dt.dayofweek
-                predicted_data_df_denormalized['sin_hour'] = np.sin(
-                    2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
-                predicted_data_df_denormalized['cos_hour'] = np.cos(
-                    2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
-                predicted_data_df_denormalized['sin_day'] = np.sin(
-                    2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
-                predicted_data_df_denormalized['cos_day'] = np.cos(
-                    2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
-                final_columns = list(MODEL_FEATURES.keys())
-                predicted_data_df_denormalized = predicted_data_df_denormalized[final_columns]
-                all_predicted_data.append(predicted_data_df_denormalized)
-            except Exception as e:
-                logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
+            return pd.DataFrame()
+        try:
+            inputs = torch.tensor(
+                current_df.values, dtype=torch.float32
+            ).unsqueeze(0).to(device)
+            predictions = model(inputs).cpu().detach().numpy()
+            predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
+            predicted_data_df_denormalized = inverse_transform(predicted_data_df)
+            predicted_data_df_denormalized["symbol"] = target_symbol
+            predicted_data_df_denormalized["interval"] = prediction_minutes
+            predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
+            predicted_data_df_denormalized['hour'] = pd.to_datetime(
+                predicted_data_df_denormalized['timestamp'], unit='ms').dt.hour
+            predicted_data_df_denormalized['dayofweek'] = pd.to_datetime(
+                predicted_data_df_denormalized['timestamp'], unit='ms').dt.dayofweek
+            predicted_data_df_denormalized['sin_hour'] = np.sin(
+                2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
+            predicted_data_df_denormalized['cos_hour'] = np.cos(
+                2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
+            predicted_data_df_denormalized['sin_day'] = np.sin(
+                2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
+            predicted_data_df_denormalized['cos_day'] = np.cos(
+                2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
+            final_columns = list(MODEL_FEATURES.keys())
+            predicted_data_df_denormalized = predicted_data_df_denormalized[final_columns]
+            all_predicted_data.append(predicted_data_df_denormalized)
+        except Exception as e:
+            logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
     if all_predicted_data:
         all_predictions = pd.concat(all_predicted_data, ignore_index=True)
         return all_predictions
@@ -273,7 +275,7 @@ def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
 
 def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
-        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
+        checkpoint = torch.load(filepath, map_location=device)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         logging.info(f"Model loaded from {filepath}")
