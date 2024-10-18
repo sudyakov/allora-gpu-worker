@@ -322,6 +322,7 @@ def main():
         logging.error("Invalid PREDICTION_MINUTES value.")
         return
     interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
+    
     timestamps_to_predict = []
     if last_prediction_timestamp is not None:
         timestamps_to_predict = list(range(
@@ -330,7 +331,7 @@ def main():
             int(interval_ms)
         ))
     else:
-        timestamps_to_predict = [int(latest_data_timestamp)]
+        timestamps_to_predict = [int(latest_data_timestamp + interval_ms)]
 
     predictions_list = []
 
