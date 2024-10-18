@@ -275,7 +275,7 @@ def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
 
 def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
-        checkpoint = torch.load(filepath, map_location=device)
+        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         logging.info(f"Model loaded from {filepath}")
