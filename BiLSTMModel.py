@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Dict, Tuple, Sequence, Optional, List
 from time import sleep
-from tqdm import tqdm
+
 import numpy as np
 import pandas as pd
 import torch
@@ -11,10 +11,8 @@ from filelock import FileLock
 from torch.optim.adamw import AdamW
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
-writer = SummaryWriter('runs/BiLSTMModel')
-
+from tqdm import tqdm
 
 from config import (
     INTERVAL_MAPPING,
@@ -44,11 +42,12 @@ from model_utils import (
     load_and_prepare_data
 )
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s - %(message)s',
 )
+
+writer = SummaryWriter('runs/BiLSTMModel')
 
 
 class Attention(nn.Module):
@@ -228,6 +227,7 @@ def _train_model(
 
     return model, optimizer
 
+
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
@@ -235,7 +235,6 @@ def train_and_save_model(
     optimizer: AdamW,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
-    load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
 
 
@@ -245,19 +244,21 @@ def fine_tune_model(
     fine_tune_loader: DataLoader,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
-    load_model(model, optimizer, MODEL_FILENAME, device)
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
 
-def main():
+def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceData):
     device = get_device()
-    data_fetcher = GetBinanceData()
+
+    # Обновляем данные
+    get_binance_data_main()
+    sleep(5)
 
     # Подготовка данных для обучения
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
-        return
+        return model, optimizer
 
     logging.info("Dataset after transformation:")
     logging.info(f"\n{real_combined_data.tail()}")
@@ -273,13 +274,8 @@ def main():
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
     column_name_to_index = {col: idx for idx, col in enumerate(real_combined_data.columns)}
-    model = EnhancedBiLSTMModel(
-        categorical_columns=shared_data_processor.categorical_columns,
-        numerical_columns=shared_data_processor.numerical_columns,
-        column_name_to_index=column_name_to_index,
-    ).to(device)
-    optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
 
+    # Подготавливаем датасет и обучаем модель
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
     if np.isinf(real_combined_data.values).any():
@@ -293,7 +289,7 @@ def main():
         )
     except Exception as e:
         logging.error(f"Error preparing dataset: {e}")
-        return
+        return model, optimizer
     train_loader, val_loader = create_dataloader(
         training_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
     )
@@ -301,18 +297,16 @@ def main():
         model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
     except Exception as e:
         logging.error(f"Error during training: {e}")
-        return
+        return model, optimizer
 
-    get_binance_data_main()
-    sleep(5)
-    # model.eval()
+    # Загружаем последние данные
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         real_combined_data = pd.read_csv(combined_dataset_path)
         latest_data_timestamp = real_combined_data['timestamp'].max()
     else:
         logging.error("Combined dataset not found.")
-        return
+        return model, optimizer
 
     predictions_path = PATHS["predictions"]
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
@@ -324,13 +318,13 @@ def main():
     else:
         existing_predictions_df = pd.DataFrame()
         last_prediction_timestamp = None
-    
+
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
         logging.error("Invalid PREDICTION_MINUTES value.")
-        return
+        return model, optimizer
     interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
-    
+
     timestamps_to_predict = []
     if last_prediction_timestamp is not None:
         timestamps_to_predict = list(range(
@@ -390,6 +384,7 @@ def main():
         logging.info(f"All predicted prices saved to {predictions_path}.")
     else:
         logging.info("No predictions were made during this run due to insufficient data.")
+
     differences_path = PATHS['differences']
 
     update_differences(
@@ -427,6 +422,36 @@ def main():
     else:
         logging.info("No new differences found for fine-tuning.")
 
+    return model, optimizer
+
+
 if __name__ == "__main__":
+    device = get_device()
+    data_fetcher = GetBinanceData()
+
+    # Создаем модель и оптимизатор один раз
+    # Определяем параметры модели после инициализации data_fetcher и shared_data_processor
+    MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
+    MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
+    logging.info(
+        f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
+    )
+
+    real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
+    if real_combined_data.empty:
+        logging.error("Combined data is empty. Exiting.")
+    column_name_to_index = {col: idx for idx, col in enumerate(real_combined_data.columns)}
+
+    model = EnhancedBiLSTMModel(
+        categorical_columns=shared_data_processor.categorical_columns,
+        numerical_columns=shared_data_processor.numerical_columns,
+        column_name_to_index=column_name_to_index,
+    ).to(device)
+    optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
+
+    # Загружаем сохраненные веса, если они существуют
+    load_model(model, optimizer, MODEL_FILENAME, device)
+
     while True:
-        main()
+        model, optimizer = main(model, optimizer, data_fetcher)
+        sleep(10)  # Добавляем задержку перед следующей итерацией
