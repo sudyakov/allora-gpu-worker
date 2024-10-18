@@ -8,9 +8,9 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from filelock import FileLock
-from torch.optim import AdamW
+from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 
 from config import (
@@ -251,7 +251,7 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
         logging.error("Combined data is empty. Exiting.")
         return model, optimizer
 
-    shared_data_processor.set_column_name_to_index(real_combined_data.columns)
+    shared_data_processor.set_column_name_to_index(list(real_combined_data.columns))
     logging.info("Dataset after transformation:")
     logging.info(f"\n{real_combined_data.tail()}")
 
@@ -260,17 +260,11 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
     if np.isinf(real_combined_data.values).any():
         logging.info("Data contains infinite values.")
 
-    MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
-    MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
-    logging.info(
-        f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
-    )
-
-    # model = EnhancedBiLSTMModel(
-    #     categorical_columns=shared_data_processor.categorical_columns,
-    #     numerical_columns=shared_data_processor.numerical_columns,
-    #     column_name_to_index=shared_data_processor.column_name_to_index,
-    # ).to(device)
+    # MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
+    # MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
+    # logging.info(
+    #     f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
+    # )
 
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
@@ -412,32 +406,36 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
 
     return model, optimizer
 
-
 if __name__ == "__main__":
     device = get_device()
     data_fetcher = GetBinanceData()
+
+    # Загрузите данные для определения параметров модели
+    real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
+    if real_combined_data.empty:
+        logging.error("Combined data is empty. Exiting.")
+        exit()
+
+    # Обновите параметр column_name_to_index
+    shared_data_processor.set_column_name_to_index(real_combined_data.columns.tolist())
+
+    # Установите параметры num_symbols и num_intervals
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
 
-    real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
-    if real_combined_data.empty:
-        logging.error("Combined data is empty. Exiting.")
-
-    column_name_to_index = {col: idx for idx, col in enumerate(real_combined_data.columns)}
+    # Теперь создайте модель
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
-        column_name_to_index=column_name_to_index,
+        column_name_to_index=shared_data_processor.column_name_to_index,
     ).to(device)
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
 
-    logging.debug(f"Sum of model parameters before loading: {sum(p.sum().item() for p in model.parameters())}")
-
+    # Загрузите сохранённую модель
     load_model(model, optimizer, MODEL_FILENAME, device)
 
-    logging.debug(f"Sum of model parameters after loading: {sum(p.sum().item() for p in model.parameters())}")
-
+    # Вызовите функцию main
     model, optimizer = main(model, optimizer, data_fetcher)
