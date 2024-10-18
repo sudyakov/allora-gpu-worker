@@ -1,33 +1,31 @@
 import logging
 import os
-from typing import Dict, Tuple, Sequence, Optional, List
+from typing import Optional, Tuple
 
-from filelock import FileLock
-import pandas as pd
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
-from tqdm import tqdm
-from torch.utils.data import DataLoader, TensorDataset, random_split
-from torch.optim.optimizer import Optimizer
 from sklearn.preprocessing import MinMaxScaler
+from torch.optim import Optimizer
+from torch.utils.data import DataLoader, TensorDataset, random_split
+from tqdm import tqdm
 
-from get_binance_data import GetBinanceData
 from config import (
     ADD_FEATURES,
     DATA_PROCESSOR_FILENAME,
     INTERVAL_MAPPING,
     MODEL_FEATURES,
+    PREDICTION_MINUTES,
     SCALABLE_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
-    PATHS,
-    PREDICTION_MINUTES,
     TRAINING_PARAMS,
     get_interval,
 )
-from data_utils import shared_data_processor, CustomLabelEncoder
-
+from data_utils import CustomLabelEncoder, shared_data_processor
+from get_binance_data import GetBinanceData
+from config import PATHS
 
 def create_dataloader(
     dataset: TensorDataset,
@@ -50,7 +48,6 @@ def create_dataloader(
         num_workers=TRAINING_PARAMS["num_workers"],
     )
     return train_loader, val_loader
-
 
 def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     shared_data_processor.is_fitted = True
@@ -78,7 +75,6 @@ def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
 
-
 def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     for col in shared_data_processor.categorical_columns:
         encoder = shared_data_processor.label_encoders.get(col)
@@ -104,7 +100,6 @@ def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
 
-
 def inverse_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
     df_inv = real_data_df.copy()
     for col in shared_data_processor.scalable_columns:
@@ -116,7 +111,6 @@ def inverse_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
     return df_inv
-
 
 def predict_future_price(
     model: nn.Module,
@@ -146,12 +140,8 @@ def predict_future_price(
     all_predicted_data = []
     with torch.no_grad():
         interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
-
-        # Всегда предсказываем для следующего интервала после последнего времени в данных
         next_timestamp = last_binance_timestamp + interval_ms
-
         current_df = latest_real_data_df.tail(seq_length).copy()
-
         if len(current_df) < seq_length:
             logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
         else:
@@ -160,11 +150,8 @@ def predict_future_price(
                     current_df.values, dtype=torch.float32
                 ).unsqueeze(0).to(device)
                 predictions = model(inputs).cpu().detach().numpy()
-
                 predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
                 predicted_data_df_denormalized = inverse_transform(predicted_data_df)
-
-                # Заполняем остальные поля
                 predicted_data_df_denormalized["symbol"] = target_symbol
                 predicted_data_df_denormalized["interval"] = prediction_minutes
                 predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
@@ -185,13 +172,10 @@ def predict_future_price(
                 all_predicted_data.append(predicted_data_df_denormalized)
             except Exception as e:
                 logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
-
     if all_predicted_data:
         all_predictions = pd.concat(all_predicted_data, ignore_index=True)
         return all_predictions
-
     return pd.DataFrame()
-
 
 def update_differences(
     differences_path: str,
@@ -203,13 +187,11 @@ def update_differences(
     else:
         logging.info("No predictions available to process.")
         return
-    lock_path = f"{combined_dataset_path}.lock"
-    with FileLock(lock_path):
-        if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-            real_combined_data_df = pd.read_csv(combined_dataset_path)
-        else:
-            logging.error("Combined dataset not found.")
-            return
+    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
+        real_combined_data_df = pd.read_csv(combined_dataset_path)
+    else:
+        logging.error("Combined dataset not found.")
+        return
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         existing_differences_df = pd.read_csv(differences_path)
     else:
@@ -277,12 +259,10 @@ def update_differences(
     combined_differences_df.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")
 
-
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
-
 
 def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
     torch.save({
@@ -290,7 +270,6 @@ def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
         'optimizer_state_dict': optimizer.state_dict(),
     }, filepath)
     logging.info(f"Model saved to {filepath}")
-
 
 def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
@@ -300,7 +279,6 @@ def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: to
         logging.info(f"Model loaded from {filepath}")
     else:
         logging.info(f"No saved model found at {filepath}. Starting from scratch.")
-
 
 def load_and_prepare_data(
     data_fetcher: GetBinanceData,

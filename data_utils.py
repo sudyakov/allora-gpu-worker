@@ -19,17 +19,16 @@ from config import (
     SEQ_LENGTH,
     SYMBOL_MAPPING,
     TARGET_SYMBOL,
-    TRAINING_PARAMS,
 )
-
+    
 class CustomLabelEncoder:
     def __init__(self, predefined_mapping: Optional[Dict[Any, int]] = None):
         if predefined_mapping:
             self.classes_ = predefined_mapping
             self.classes_reverse = {v: k for k, v in predefined_mapping.items()}
         else:
-            self.classes_: Dict[Any, int] = {}
-            self.classes_reverse: Dict[int, Any] = {}
+            self.classes_ = {}
+            self.classes_reverse = {}
 
     def fit(self, data: pd.Series) -> None:
         if not self.classes_:
@@ -50,7 +49,7 @@ class CustomLabelEncoder:
     def fit_transform(self, data: pd.Series) -> pd.Series:
         self.fit(data)
         return self.transform(data)
-
+    
 class DataProcessor:
     _instance = None
 
@@ -77,7 +76,6 @@ class DataProcessor:
         self.label_encoders["symbol"] = CustomLabelEncoder(predefined_mapping=self.symbol_mapping)
         self.label_encoders['hour'] = CustomLabelEncoder()
         self.label_encoders['dayofweek'] = CustomLabelEncoder()
-
         self.interval_mapping = {k: idx for idx, k in enumerate(INTERVAL_MAPPING.keys())}
 
         if PREDICTION_MINUTES not in INTERVAL_MAPPING:
@@ -91,12 +89,12 @@ class DataProcessor:
     def set_column_name_to_index(self, columns: Sequence[str]) -> None:
         self.column_name_to_index = {col: idx for idx, col in enumerate(columns)}
 
-    def preprocess_binance_data(self, real_data_df: pd.DataFrame) -> pd.DataFrame:
-        real_data_df = real_data_df.replace([np.inf, -np.inf], pd.NA).dropna()
+    def preprocess_binance_data(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        data_df = data_df.replace([np.inf, -np.inf], pd.NA).dropna()
         for col, dtype in {**RAW_FEATURES, **SCALABLE_FEATURES}.items():
-            if col in real_data_df.columns:
-                real_data_df[col] = real_data_df[col].astype(dtype)
-        return real_data_df
+            if col in data_df.columns:
+                data_df[col] = data_df[col].astype(dtype)
+        return data_df
 
     def save(self, filepath: str) -> None:
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -176,7 +174,7 @@ class DataProcessor:
             targets.append(target)
 
             mask = (
-                int(next_step[symbol_idx].item() in target_symbol_codes) and 
+                int(next_step[symbol_idx].item() in target_symbol_codes) and
                 int(next_step[interval_idx].item() in target_interval_codes)
             )
             target_masks.append(mask)
@@ -186,6 +184,7 @@ class DataProcessor:
         target_masks = torch.tensor(target_masks, dtype=torch.float32)
 
         return TensorDataset(sequences, targets, target_masks)
+
     def get_latest_dataset_prices(
         self,
         symbol: Optional[str] = None,
@@ -195,8 +194,8 @@ class DataProcessor:
     ) -> pd.DataFrame:
         combined_dataset_path = PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-            combined_real_data_df = pd.read_csv(combined_dataset_path)
-            df_filtered = combined_real_data_df.copy()
+            combined_data_df = pd.read_csv(combined_dataset_path)
+            df_filtered = combined_data_df.copy()
 
             if symbol is not None:
                 df_filtered = df_filtered[df_filtered['symbol'] == symbol]
@@ -210,10 +209,10 @@ class DataProcessor:
                 latest_timestamp = df_filtered['timestamp'].max()
 
             if not df_filtered.empty:
-                # Всегда берем последние count данных вплоть до последней доступной временной метки
                 df_filtered = df_filtered.sort_values('timestamp', ascending=True)
                 df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp].tail(count)
                 return df_filtered
 
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+
 shared_data_processor = DataProcessor()
