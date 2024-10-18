@@ -11,7 +11,7 @@ API_BASE_URL: str = "https://api.binance.com/api/v3"
 MAX_RETRIES: int = 3
 RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
-SEQ_LENGTH: int = 50
+SEQ_LENGTH: int = 10
 
 class IntervalConfig(TypedDict):
     days: int

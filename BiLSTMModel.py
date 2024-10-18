@@ -317,6 +317,7 @@ def main():
     else:
         existing_predictions_df = pd.DataFrame()
         last_prediction_timestamp = None
+    
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
         logging.error("Invalid PREDICTION_MINUTES value.")
@@ -327,14 +328,16 @@ def main():
     if last_prediction_timestamp is not None:
         timestamps_to_predict = list(range(
             int(last_prediction_timestamp + interval_ms),
-            int(latest_data_timestamp + interval_ms),
+            int(latest_data_timestamp + 2 * interval_ms),
             int(interval_ms)
         ))
+        print(f"Timestamps to predict: {timestamps_to_predict}")
+        print(f"Latest data timestamp: {latest_data_timestamp}")
     else:
         timestamps_to_predict = [int(latest_data_timestamp + interval_ms)]
 
     predictions_list = []
-
+    
     for next_timestamp in tqdm(timestamps_to_predict, desc="Generating Predictions"):
         latest_df = load_and_prepare_data(
             data_fetcher,
