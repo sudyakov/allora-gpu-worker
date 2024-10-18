@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from filelock import FileLock
 from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
@@ -15,7 +14,6 @@ from tqdm import tqdm
 
 from config import (
     INTERVAL_MAPPING,
-    MODEL_FEATURES,
     MODEL_FILENAME,
     MODEL_PARAMS,
     PATHS,
@@ -30,14 +28,11 @@ from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData, main as get_binance_data_main
 from model_utils import (
     create_dataloader,
-    fit_transform,
     get_device,
-    inverse_transform,
     load_and_prepare_data,
     load_model,
     predict_future_price,
     save_model,
-    transform,
     update_differences,
 )
 
@@ -219,14 +214,12 @@ def _train_model(
         save_model(model, optimizer, MODEL_FILENAME)
         writer.add_scalar('Loss/train', avg_loss, epoch)
         writer.add_scalar('Correlation/train', avg_corr, epoch)
-        writer.close()
     return model, optimizer
 
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
-    val_loader: DataLoader,
     optimizer: AdamW,
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, AdamW]:
@@ -244,8 +237,10 @@ def fine_tune_model(
 
 def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceData):
     device = get_device()
+
     get_binance_data_main()
     sleep(5)
+
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
@@ -254,17 +249,6 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
     shared_data_processor.set_column_name_to_index(list(real_combined_data.columns))
     logging.info("Dataset after transformation:")
     logging.info(f"\n{real_combined_data.tail()}")
-
-    if real_combined_data.isnull().values.any():
-        logging.info("Data contains missing values.")
-    if np.isinf(real_combined_data.values).any():
-        logging.info("Data contains infinite values.")
-
-    # MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
-    # MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
-    # logging.info(
-    #     f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
-    # )
 
     if real_combined_data.isnull().values.any():
         logging.info("Data contains missing values.")
@@ -282,12 +266,12 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
         logging.error(f"Error preparing dataset: {e}")
         return model, optimizer
 
-    train_loader, val_loader = create_dataloader(
+    train_loader, _ = create_dataloader(
         training_dataset, TRAINING_PARAMS["batch_size"], shuffle=True
     )
 
     try:
-        model, optimizer = train_and_save_model(model, train_loader, val_loader, optimizer, device)
+        model, optimizer = train_and_save_model(model, train_loader, optimizer, device)
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return model, optimizer
@@ -339,7 +323,7 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
         if latest_df.empty:
             logging.warning(f"No data available for timestamp {next_timestamp}. Skipping prediction.")
             continue
-        # Логирование входных данных
+
         logging.debug(f"Input data for timestamp {next_timestamp}:\n{latest_df}")
         predicted_df = predict_future_price(
             model=model,
@@ -350,7 +334,6 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
             seq_length=SEQ_LENGTH,
             target_symbol=TARGET_SYMBOL
         )
-        # Логирование результатов предсказания
         logging.debug(f"Prediction for timestamp {next_timestamp}:\n{predicted_df}")
         if not predicted_df.empty:
             predictions_list.append(predicted_df)
@@ -406,27 +389,25 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
 
     return model, optimizer
 
+
 if __name__ == "__main__":
     device = get_device()
     data_fetcher = GetBinanceData()
+    get_binance_data_main()
+    sleep(5)
 
-    # Загрузите данные для определения параметров модели
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
         logging.error("Combined data is empty. Exiting.")
         exit()
 
-    # Обновите параметр column_name_to_index
     shared_data_processor.set_column_name_to_index(real_combined_data.columns.tolist())
-
-    # Установите параметры num_symbols и num_intervals
     MODEL_PARAMS["num_symbols"] = len(shared_data_processor.symbol_mapping)
     MODEL_PARAMS["num_intervals"] = len(shared_data_processor.interval_mapping)
     logging.info(
         f"num_symbols: {MODEL_PARAMS['num_symbols']}, num_intervals: {MODEL_PARAMS['num_intervals']}"
     )
 
-    # Теперь создайте модель
     model = EnhancedBiLSTMModel(
         categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
@@ -434,8 +415,5 @@ if __name__ == "__main__":
     ).to(device)
     optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
 
-    # Загрузите сохранённую модель
     load_model(model, optimizer, MODEL_FILENAME, device)
-
-    # Вызовите функцию main
     model, optimizer = main(model, optimizer, data_fetcher)
