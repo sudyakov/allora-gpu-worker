@@ -85,7 +85,7 @@ MODEL_PARAMS: ModelParams = {
     "hidden_layer_size": 128,
     "num_layers": 16,
     "dropout": 0.2,
-    "embedding_dim": 128,
+    "embedding_dim": 64,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
     "num_intervals": len(INTERVAL_MAPPING.keys()),
     "timestamp_embedding_dim": 128

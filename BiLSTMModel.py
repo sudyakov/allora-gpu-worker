@@ -47,14 +47,20 @@ class Attention(nn.Module):
         self.attention_weights = nn.Parameter(torch.Tensor(hidden_size * 2, 1))
         nn.init.xavier_uniform_(self.attention_weights)
         self.time_projection = nn.Linear(1, hidden_size * 2)
-
     def forward(self, lstm_out: torch.Tensor, timestamps: torch.Tensor) -> torch.Tensor:
         time_embeddings = self.time_projection(timestamps.unsqueeze(-1))
+        # Вычисление весов времени для внимания
+        seq_positions = torch.arange(lstm_out.size(1), device=lstm_out.device).float()
+        seq_weights = torch.exp(seq_positions / seq_positions.max())
+        seq_weights = seq_weights.unsqueeze(0).unsqueeze(-1)
+        
         attention_scores = torch.matmul(lstm_out + time_embeddings, self.attention_weights).squeeze(-1)
+        # Применение весов времени к оценкам внимания
+        attention_scores = attention_scores * seq_weights.squeeze(-1)
+        
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -85,12 +91,18 @@ class EnhancedBiLSTMModel(nn.Module):
             embedding_dim=MODEL_PARAMS["embedding_dim"],
         )
         self.timestamp_embedding = nn.Linear(1, MODEL_PARAMS["timestamp_embedding_dim"])
+        self.position_embedding = nn.Embedding(
+            num_embeddings=SEQ_LENGTH,
+            embedding_dim=MODEL_PARAMS["embedding_dim"],
+        )
 
         numerical_input_size = len(numerical_columns)
+        # Обновление размера входа LSTM
         self.lstm_input_size = (
             numerical_input_size
             + 4 * MODEL_PARAMS["embedding_dim"]
             + MODEL_PARAMS["timestamp_embedding_dim"]
+            + MODEL_PARAMS["embedding_dim"]  # для позиционных эмбеддингов
         )
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
@@ -122,6 +134,11 @@ class EnhancedBiLSTMModel(nn.Module):
         day_embeddings = self.dayofweek_embedding(days)
         timestamp_embeddings = self.timestamp_embedding(timestamps.unsqueeze(-1))
 
+        # Получение позиционных эмбеддингов
+        seq_positions = torch.arange(x.size(1), device=x.device).unsqueeze(0).expand(x.size(0), -1)
+        position_embeddings = self.position_embedding(seq_positions)
+
+        # Обновление входа LSTM
         lstm_input = torch.cat(
             (
                 numerical_data,
@@ -129,7 +146,8 @@ class EnhancedBiLSTMModel(nn.Module):
                 interval_embeddings,
                 timestamp_embeddings,
                 hour_embeddings,
-                day_embeddings
+                day_embeddings,
+                position_embeddings
             ),
             dim=2
         )
@@ -156,10 +174,10 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.zeros_(param.data)
 
 
-def compute_time_weights(timestamps: torch.Tensor, alpha: float = 0.9) -> torch.Tensor:
+def compute_time_weights(timestamps: torch.Tensor, alpha: float = 5.0) -> torch.Tensor:
     max_timestamp = timestamps.max()
     normalized_timestamps = (timestamps - timestamps.min()) / (max_timestamp - timestamps.min() + 1e-8)
-    time_weights = alpha ** (1 - normalized_timestamps)
+    time_weights = torch.exp(alpha * (normalized_timestamps - 1))
     return time_weights
 
 
@@ -178,8 +196,8 @@ def _train_model(
         progress_bar = tqdm(loader, desc=f"{desc} Epoch {epoch + 1}/{epochs}", unit="batch", leave=True)
         for inputs, targets, masks in progress_bar:
             inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
-            timestamps = inputs[:, -1, shared_data_processor.column_name_to_index['timestamp']]
-            time_weights = compute_time_weights(timestamps).to(device)
+            timestamps = inputs[:, :, shared_data_processor.column_name_to_index['timestamp']]
+            time_weights = compute_time_weights(timestamps[:, -1]).to(device)  # Используем последние временные метки
 
             optimizer.zero_grad()
             outputs = model(inputs)
