@@ -11,7 +11,7 @@ API_BASE_URL: str = "https://api.binance.com/api/v3"
 MAX_RETRIES: int = 3
 RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
-SEQ_LENGTH: int = 10
+SEQ_LENGTH: int = 5
 
 class IntervalConfig(TypedDict):
     days: int
@@ -27,7 +27,7 @@ SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
 ])
 
 TARGET_SYMBOL: str = "ETHUSDT"
-PREDICTION_MINUTES: int = 5
+PREDICTION_MINUTES: int = 1
 
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
     (1, {"days": 30, "minutes": 1, "milliseconds": 60000}),

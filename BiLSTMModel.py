@@ -201,18 +201,23 @@ def _train_model(
             if masks.sum() > 0:
                 preds = outputs[masks == 1].detach().cpu().numpy()
                 truths = targets[masks == 1].detach().cpu().numpy()
-                corr = np.mean(
-                    [
-                        np.corrcoef(preds[i], truths[i])[0, 1]
-                        if not np.isnan(np.corrcoef(preds[i], truths[i])[0, 1])
-                        else 0
-                        for i in range(len(preds))
-                    ]
-                )
+                corr_values = []
+                for i in range(len(preds)):
+                    pred_i = preds[i]
+                    truth_i = truths[i]
+                    # Проверяем стандартное отклонение
+                    if np.std(pred_i) == 0 or np.std(truth_i) == 0:
+                        corr_i = 0  # Задаём корреляцию равной 0 при нулевом стандартном отклонении
+                    else:
+                        corr_i = np.corrcoef(pred_i, truth_i)[0, 1]
+                        if np.isnan(corr_i):
+                            corr_i = 0
+                    corr_values.append(corr_i)
+                corr = np.mean(corr_values)
                 total_corr += corr
             else:
                 corr = 0
-            progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
+                progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
 
         avg_loss = total_loss / len(loader)
         avg_corr = total_corr / len(loader)
