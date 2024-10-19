@@ -25,8 +25,9 @@ from config import (
     TRAINING_PARAMS,
     get_interval,
 )
-from data_utils import shared_data_processor
+
 from get_binance_data import GetBinanceData, main as get_binance_data_main
+from data_utils import shared_data_processor
 from model_utils import (
     create_dataloader,
     get_device,
@@ -36,6 +37,7 @@ from model_utils import (
     save_model,
     update_differences,
 )
+
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 writer = SummaryWriter('runs/BiLSTMModel')
