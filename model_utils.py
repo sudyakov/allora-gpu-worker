@@ -314,9 +314,12 @@ def load_and_prepare_data(
     data_fetcher: GetBinanceData,
     is_training: bool = False,
     latest_timestamp: Optional[int] = None,
-    count: int = SEQ_LENGTH
+    count: int = SEQ_LENGTH,
+    external_data: Optional[pd.DataFrame] = None
 ) -> pd.DataFrame:
-    if is_training:
+    if external_data is not None:
+        real_data = external_data
+    elif is_training:
         real_data = data_fetcher.fetch_combined_data()
     else:
         real_data = shared_data_processor.get_latest_dataset_prices(
@@ -325,19 +328,19 @@ def load_and_prepare_data(
             count=count,
             latest_timestamp=latest_timestamp
         )
-
+        
     if real_data.empty:
         logging.error("Data is empty.")
         return pd.DataFrame()
-
+    
     real_data = shared_data_processor.preprocess_binance_data(real_data)
     real_data = shared_data_processor.fill_missing_add_features(real_data)
     real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
-
+    
     if is_training and not shared_data_processor.is_fitted:
         real_data = fit_transform(real_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
     else:
         real_data = transform(real_data)
-
+    
     return real_data

@@ -363,13 +363,17 @@ def main(model: EnhancedBiLSTMModel, optimizer: RAdam, data_fetcher: GetBinanceD
 
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         differences_data = pd.read_csv(differences_path)
-        differences_processed_data = load_and_prepare_data(data_fetcher, is_training=False)
+        differences_processed_data = load_and_prepare_data(
+            data_fetcher,
+            is_training=False,
+            external_data=differences_data
+        )
         if differences_processed_data.empty:
-            logging.error("Differences data is empty. Skipping fine-tuning.")
+            logging.error("Differences data is empty after processing. Skipping fine-tuning.")
         elif differences_processed_data.isnull().values.any():
-            logging.error("Differences data contains missing values. Skipping fine-tuning.")
+            logging.error("Differences data contains missing values after processing. Skipping fine-tuning.")
         elif np.isinf(differences_processed_data.values).any():
-            logging.error("Differences data contains infinite values. Skipping fine-tuning.")
+            logging.error("Differences data contains infinite values after processing. Skipping fine-tuning.")
         else:
             try:
                 fine_tuning_dataset = shared_data_processor.prepare_dataset(
