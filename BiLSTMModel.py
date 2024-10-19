@@ -101,7 +101,7 @@ class EnhancedBiLSTMModel(nn.Module):
             bidirectional=True,
         )
 
-        self.attention = Attention(MODEL_PARAMS["hidden_layer_size"] * 2)
+        self.attention = Attention(MODEL_PARAMS["hidden_layer_size"])
         self.linear = nn.Linear(MODEL_PARAMS["hidden_layer_size"] * 2, len(SCALABLE_FEATURES))
         self.apply(self._initialize_weights)
 
@@ -423,9 +423,9 @@ if __name__ == "__main__":
             logging.info("Starting main loop iteration.")
             model, optimizer = main(model, optimizer, data_fetcher)
             logging.info("Main loop iteration completed successfully.")
-            sleep(60)  # Задержка между итерациями цикла
+            sleep(30)  # Задержка между итерациями цикла
         except Exception as e:
             logging.error(f"An error occurred: {e}")
             traceback.print_exc()
             logging.info("Retrying after delay...")
-            sleep(60)  # Задержка перед повторной попыткой
+            sleep(10)  # Задержка перед повторной попыткой
