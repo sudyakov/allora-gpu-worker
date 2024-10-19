@@ -241,8 +241,6 @@ def fine_tune_model(
 
 def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceData):
     device = get_device()
-    get_binance_data_main()
-    sleep(5)
 
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
@@ -275,6 +273,9 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
     except Exception as e:
         logging.error("Error during training: %s", e)
         return model, optimizer
+
+    get_binance_data_main()
+    sleep(3)
 
     combined_dataset_path = PATHS["combined_dataset"]
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
@@ -391,9 +392,9 @@ def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceD
 
 if __name__ == "__main__":
     device = get_device()
-    data_fetcher = GetBinanceData()
     get_binance_data_main()
-    sleep(5)
+    sleep(3)
+    data_fetcher = GetBinanceData()
 
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
     if real_combined_data.empty:
