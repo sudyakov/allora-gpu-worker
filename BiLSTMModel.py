@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch.optim.adamw import AdamW
+from torch.optim.radam import RAdam
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
@@ -165,11 +165,11 @@ def compute_time_weights(timestamps: torch.Tensor, alpha: float = 0.9) -> torch.
 def _train_model(
     model: EnhancedBiLSTMModel,
     loader: DataLoader,
-    optimizer: AdamW,
+    optimizer: RAdam,
     device: torch.device,
     epochs: int,
     desc: str,
-) -> Tuple[EnhancedBiLSTMModel, AdamW]:
+) -> Tuple[EnhancedBiLSTMModel, RAdam]:
     model.train()
     for epoch in range(epochs):
         total_loss = 0.0
@@ -224,22 +224,22 @@ def _train_model(
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
-    optimizer: AdamW,
+    optimizer: RAdam,
     device: torch.device,
-) -> Tuple[EnhancedBiLSTMModel, AdamW]:
+) -> Tuple[EnhancedBiLSTMModel, RAdam]:
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
 
 
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
-    optimizer: AdamW,
+    optimizer: RAdam,
     fine_tune_loader: DataLoader,
     device: torch.device,
-) -> Tuple[EnhancedBiLSTMModel, AdamW]:
+) -> Tuple[EnhancedBiLSTMModel, RAdam]:
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
 
-def main(model: EnhancedBiLSTMModel, optimizer: AdamW, data_fetcher: GetBinanceData):
+def main(model: EnhancedBiLSTMModel, optimizer: RAdam, data_fetcher: GetBinanceData):
     device = get_device()
 
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
@@ -415,7 +415,7 @@ if __name__ == "__main__":
         numerical_columns=shared_data_processor.numerical_columns,
         column_name_to_index=shared_data_processor.column_name_to_index,
     ).to(device)
-    optimizer = AdamW(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
+    optimizer = RAdam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
 
     load_model(model, optimizer, MODEL_FILENAME, device)
 
