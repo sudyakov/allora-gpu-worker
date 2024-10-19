@@ -194,6 +194,7 @@ def _train_model(
 
             loss = ((outputs - targets) ** 2) * time_weights.unsqueeze(1)
             loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
@@ -216,7 +217,7 @@ def _train_model(
                 total_corr += corr
             else:
                 corr = 0
-            progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
+            progress_bar.set_postfix(loss=f"{loss.item():.8f}", corr=f"{corr:.4f}")
 
         avg_loss = total_loss / len(loader)
         avg_corr = total_corr / len(loader)
