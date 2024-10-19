@@ -84,12 +84,12 @@ class ModelParams(TypedDict):
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES),
     "hidden_layer_size": 256,
-    "num_layers": 16,
+    "num_layers": 18,
     "dropout": 0.0000001,
-    "embedding_dim": 128,
+    "embedding_dim": 256,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
     "num_intervals": len(INTERVAL_MAPPING.keys()),
-    "timestamp_embedding_dim": 128
+    "timestamp_embedding_dim": 256
 }
 
 class TrainingParams(TypedDict):

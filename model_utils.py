@@ -6,10 +6,9 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader, TensorDataset, random_split
-
+from tqdm import tqdm
 
 from config import (
     ADD_FEATURES,
@@ -25,8 +24,9 @@ from config import (
     TRAINING_PARAMS,
     get_interval,
 )
-from data_utils import CustomLabelEncoder, shared_data_processor
+from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
+
 
 def create_dataloader(
     dataset: TensorDataset,
@@ -50,6 +50,7 @@ def create_dataloader(
         num_workers=TRAINING_PARAMS["num_workers"],
     )
     return train_loader, val_loader
+
 
 def predict_future_price(
     model: nn.Module,
@@ -95,7 +96,10 @@ def predict_future_price(
             inputs = torch.tensor(current_df.values, dtype=torch.float32).unsqueeze(0).to(device)
             predictions = model(inputs).cpu().detach().numpy()
             predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
+
+            # Используем метод inverse_transform из DataProcessor
             predicted_data_df_denormalized = shared_data_processor.inverse_transform(predicted_data_df)
+
             predicted_data_df_denormalized["symbol"] = target_symbol
             predicted_data_df_denormalized["interval"] = prediction_minutes
             predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
@@ -121,6 +125,7 @@ def predict_future_price(
         all_predictions = pd.concat(all_predicted_data, ignore_index=True)
         return all_predictions
     return pd.DataFrame()
+
 
 def update_differences(
     differences_path: str,
@@ -218,10 +223,12 @@ def update_differences(
     combined_differences_df.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")
 
+
 def get_device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
+
 
 def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
     torch.save({
@@ -230,14 +237,16 @@ def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
     }, filepath)
     logging.info(f"Model saved to {filepath}")
 
+
 def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
-        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
+        checkpoint = torch.load(filepath, map_location=device)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         logging.info(f"Model loaded from {filepath}")
     else:
         logging.info(f"No saved model found at {filepath}. Starting from scratch.")
+
 
 def load_and_prepare_data(
     data_fetcher: GetBinanceData,

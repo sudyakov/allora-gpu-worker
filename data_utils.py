@@ -124,6 +124,77 @@ class DataProcessor:
         data_df = data_df[list(MODEL_FEATURES.keys())]
         return data_df
 
+    def fit_transform(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        self.is_fitted = True
+        for col in self.categorical_columns:
+            encoder = self.label_encoders.get(col)
+            if encoder is None:
+                encoder = CustomLabelEncoder()
+                self.label_encoders[col] = encoder
+            data_df[col] = encoder.fit_transform(data_df[col])
+
+        for col in self.scalable_columns:
+            if col in data_df.columns:
+                scaler = MinMaxScaler(feature_range=(0, 1))
+                data_df[col] = scaler.fit_transform(data_df[[col]])
+                self.scalers[col] = scaler
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+
+        for col in self.numerical_columns:
+            if col in data_df.columns:
+                dtype = MODEL_FEATURES.get(col, np.float32)
+                data_df[col] = data_df[col].astype(dtype)
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+
+        if 'timestamp' in data_df.columns:
+            data_df['timestamp'] = data_df['timestamp'].astype(np.int64)
+
+        data_df = data_df[list(MODEL_FEATURES.keys())]
+        return data_df
+
+    def transform(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        for col in self.categorical_columns:
+            encoder = self.label_encoders.get(col)
+            if encoder is None:
+                raise ValueError(f"LabelEncoder not found for column {col}.")
+            data_df[col] = encoder.transform(data_df[col])
+
+        for col in self.scalable_columns:
+            if col in data_df.columns:
+                scaler = self.scalers.get(col)
+                if scaler is None:
+                    raise ValueError(f"Scaler not found for column {col}.")
+                data_df[col] = scaler.transform(data_df[[col]])
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+
+        for col in self.numerical_columns:
+            if col in data_df.columns:
+                dtype = MODEL_FEATURES.get(col, np.float32)
+                data_df[col] = data_df[col].astype(dtype)
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+
+        if 'timestamp' in data_df.columns:
+            data_df['timestamp'] = data_df['timestamp'].astype(np.int64)
+
+        data_df = data_df[list(MODEL_FEATURES.keys())]
+        return data_df
+
+    def inverse_transform(self, data_df: pd.DataFrame) -> pd.DataFrame:
+        df_inv = data_df.copy()
+        for col in self.scalable_columns:
+            if col in df_inv.columns:
+                scaler = self.scalers.get(col)
+                if scaler is None:
+                    raise ValueError(f"Scaler not found for column {col}.")
+                df_inv[col] = scaler.inverse_transform(df_inv[[col]])
+            else:
+                raise KeyError(f"Column {col} is missing in DataFrame.")
+        return df_inv
+
     def prepare_dataset(
         self,
         data_df: pd.DataFrame,
@@ -211,76 +282,5 @@ class DataProcessor:
                 return df_filtered
 
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
-
-    def fit_transform(self, data_df: pd.DataFrame) -> pd.DataFrame:
-        self.is_fitted = True
-        for col in self.categorical_columns:
-            encoder = self.label_encoders.get(col)
-            if encoder is None:
-                encoder = CustomLabelEncoder()
-                self.label_encoders[col] = encoder
-            data_df[col] = encoder.fit_transform(data_df[col])
-
-        for col in self.scalable_columns:
-            if col in data_df.columns:
-                scaler = MinMaxScaler(feature_range=(0, 1))
-                data_df[col] = scaler.fit_transform(data_df[[col]])
-                self.scalers[col] = scaler
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-
-        for col in self.numerical_columns:
-            if col in data_df.columns:
-                dtype = MODEL_FEATURES.get(col, np.float32)
-                data_df[col] = data_df[col].astype(dtype)
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-
-        if 'timestamp' in data_df.columns:
-            data_df['timestamp'] = data_df['timestamp'].astype(np.int64)
-
-        data_df = data_df[list(MODEL_FEATURES.keys())]
-        return data_df
-
-    def transform(self, data_df: pd.DataFrame) -> pd.DataFrame:
-        for col in self.categorical_columns:
-            encoder = self.label_encoders.get(col)
-            if encoder is None:
-                raise ValueError(f"LabelEncoder not found for column {col}.")
-            data_df[col] = encoder.transform(data_df[col])
-
-        for col in self.scalable_columns:
-            if col in data_df.columns:
-                scaler = self.scalers.get(col)
-                if scaler is None:
-                    raise ValueError(f"Scaler not found for column {col}.")
-                data_df[col] = scaler.transform(data_df[[col]])
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-
-        for col in self.numerical_columns:
-            if col in data_df.columns:
-                dtype = MODEL_FEATURES.get(col, np.float32)
-                data_df[col] = data_df[col].astype(dtype)
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-
-        if 'timestamp' in data_df.columns:
-            data_df['timestamp'] = data_df['timestamp'].astype(np.int64)
-
-        data_df = data_df[list(MODEL_FEATURES.keys())]
-        return data_df
-
-    def inverse_transform(self, data_df: pd.DataFrame) -> pd.DataFrame:
-        df_inv = data_df.copy()
-        for col in self.scalable_columns:
-            if col in df_inv.columns:
-                scaler = self.scalers.get(col)
-                if scaler is None:
-                    raise ValueError(f"Scaler not found for column {col}.")
-                df_inv[col] = scaler.inverse_transform(df_inv[[col]])
-            else:
-                raise KeyError(f"Column {col} is missing in DataFrame.")
-        return df_inv
 
 shared_data_processor = DataProcessor()
