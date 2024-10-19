@@ -30,9 +30,9 @@ TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
-    (1, {"days": 30, "minutes": 1, "milliseconds": 60000}),
-    (5, {"days": 720, "minutes": 5, "milliseconds": 300000}),
-    (15, {"days": 1440, "minutes": 15, "milliseconds": 900000})
+    (1, {"days": 90, "minutes": 1, "milliseconds": 60000}),
+    (5, {"days": 1440, "minutes": 5, "milliseconds": 300000}),
+    (15, {"days": 2880, "minutes": 15, "milliseconds": 900000})
 ])
 
 RAW_FEATURES = OrderedDict([
