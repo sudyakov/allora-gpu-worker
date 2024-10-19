@@ -17,12 +17,12 @@ from config import (
     INTERVAL_MAPPING,
     MODEL_FEATURES,
     MODEL_PARAMS,
+    PATHS,
     PREDICTION_MINUTES,
     SCALABLE_FEATURES,
     SEQ_LENGTH,
     TARGET_SYMBOL,
     TRAINING_PARAMS,
-    PATHS,
     get_interval,
 )
 from data_utils import CustomLabelEncoder, shared_data_processor
@@ -36,7 +36,7 @@ def create_dataloader(
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-    
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -59,6 +59,7 @@ def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
             encoder = CustomLabelEncoder()
             shared_data_processor.label_encoders[col] = encoder
         real_data_df[col] = encoder.fit_transform(real_data_df[col])
+
     for col in shared_data_processor.scalable_columns:
         if col in real_data_df.columns:
             scaler = MinMaxScaler(feature_range=(0, 1))
@@ -66,14 +67,17 @@ def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
             shared_data_processor.scalers[col] = scaler
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+
     for col in shared_data_processor.numerical_columns:
         if col in real_data_df.columns:
             dtype = MODEL_FEATURES.get(col, np.float32)
             real_data_df[col] = real_data_df[col].astype(dtype)
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+
     if 'timestamp' in real_data_df.columns:
         real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
+
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
 
@@ -83,6 +87,7 @@ def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
         if encoder is None:
             raise ValueError(f"LabelEncoder not found for column {col}.")
         real_data_df[col] = encoder.transform(real_data_df[col])
+
     for col in shared_data_processor.scalable_columns:
         if col in real_data_df.columns:
             scaler = shared_data_processor.scalers.get(col)
@@ -91,14 +96,17 @@ def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
             real_data_df[col] = scaler.transform(real_data_df[[col]])
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+
     for col in shared_data_processor.numerical_columns:
         if col in real_data_df.columns:
             dtype = MODEL_FEATURES.get(col, np.float32)
             real_data_df[col] = real_data_df[col].astype(dtype)
         else:
             raise KeyError(f"Column {col} is missing in DataFrame.")
+
     if 'timestamp' in real_data_df.columns:
         real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
+
     real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
     return real_data_df
 
@@ -126,31 +134,36 @@ def predict_future_price(
     if latest_real_data_df.empty:
         logging.error("Latest DataFrame is empty.")
         return pd.DataFrame()
+
     latest_real_data_df = latest_real_data_df.sort_values(by="timestamp").reset_index(drop=True)
     if len(latest_real_data_df) < seq_length:
         logging.info("Insufficient data for prediction.")
         return pd.DataFrame()
+
     last_binance_timestamp = latest_real_data_df["timestamp"].iloc[-1]
     if pd.isna(last_binance_timestamp):
         logging.error("Invalid last Binance timestamp value.")
         return pd.DataFrame()
+
     interval = get_interval(prediction_minutes)
     if interval is None:
         logging.error("Invalid prediction interval.")
         return pd.DataFrame()
+
     model.eval()
     all_predicted_data = []
+
     with torch.no_grad():
         interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
         next_timestamp = last_binance_timestamp + interval_ms
         current_df = latest_real_data_df.tail(seq_length).copy()
+
         if len(current_df) < seq_length:
             logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
             return pd.DataFrame()
+
         try:
-            inputs = torch.tensor(
-                current_df.values, dtype=torch.float32
-            ).unsqueeze(0).to(device)
+            inputs = torch.tensor(current_df.values, dtype=torch.float32).unsqueeze(0).to(device)
             predictions = model(inputs).cpu().detach().numpy()
             predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
             predicted_data_df_denormalized = inverse_transform(predicted_data_df)
@@ -174,6 +187,7 @@ def predict_future_price(
             all_predicted_data.append(predicted_data_df_denormalized)
         except Exception as e:
             logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
+
     if all_predicted_data:
         all_predictions = pd.concat(all_predicted_data, ignore_index=True)
         return all_predictions
@@ -189,24 +203,29 @@ def update_differences(
     else:
         logging.info("No predictions available to process.")
         return
+
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         real_combined_data_df = pd.read_csv(combined_dataset_path)
     else:
         logging.error("Combined dataset not found.")
         return
+
     if os.path.exists(differences_path) and os.path.getsize(differences_path) > 0:
         existing_differences_df = pd.read_csv(differences_path)
     else:
         existing_differences_df = pd.DataFrame(columns=predictions_df.columns)
+
     required_columns = predictions_df.columns.tolist()
     missing_columns_pred = set(required_columns) - set(predictions_df.columns)
     missing_columns_actual = set(required_columns) - set(real_combined_data_df.columns)
+
     if missing_columns_pred:
         logging.error(f"Missing columns in predictions DataFrame: {missing_columns_pred}")
         return
     if missing_columns_actual:
         logging.error(f"Missing columns in actual DataFrame: {missing_columns_actual}")
         return
+
     actual_data_df = real_combined_data_df[
         (real_combined_data_df['symbol'].isin(predictions_df['symbol'].unique())) &
         (real_combined_data_df['interval'].isin(predictions_df['interval'].unique())) &
@@ -214,18 +233,22 @@ def update_differences(
         (real_combined_data_df['dayofweek'].isin(predictions_df['dayofweek'].unique())) &
         (real_combined_data_df['timestamp'].isin(predictions_df['timestamp'].unique()))
     ]
+
     if actual_data_df.empty:
         logging.info("No matching actual data found for predictions to make differences.")
         return
+
     merged_predictions_actual_df = pd.merge(
         predictions_df,
         actual_data_df,
         on=['symbol', 'interval', 'hour', 'dayofweek', 'timestamp'],
         suffixes=('_pred', '_actual')
     )
+
     if merged_predictions_actual_df.empty:
         logging.info("No matching timestamps between predictions and actual data.")
         return
+
     if not existing_differences_df.empty:
         merged_predictions_actual_df = pd.merge(
             merged_predictions_actual_df,
@@ -237,13 +260,16 @@ def update_differences(
         merged_predictions_actual_df = merged_predictions_actual_df[
             merged_predictions_actual_df['_merge'] == 'left_only'
         ].drop(columns=['_merge'])
+
         if merged_predictions_actual_df.empty:
             logging.info("All differences have already been processed.")
             return
+
     key_columns = ['symbol', 'interval', 'hour', 'dayofweek', 'timestamp']
     pred_columns = [col for col in merged_predictions_actual_df.columns if col.endswith('_pred')]
     differences_data_df = merged_predictions_actual_df[key_columns + pred_columns].copy()
     differences_data_df.rename(columns=lambda x: x.replace('_pred', '') if x.endswith('_pred') else x, inplace=True)
+
     feature_cols = list(SCALABLE_FEATURES.keys()) + list(ADD_FEATURES.keys())
     for feature in feature_cols:
         pred_col = f"{feature}_pred"
@@ -252,9 +278,11 @@ def update_differences(
             differences_data_df[feature] = merged_predictions_actual_df[actual_col] - merged_predictions_actual_df[pred_col]
         else:
             logging.warning(f"Columns {pred_col} or {actual_col} not found in merged DataFrame.")
+
     for col in differences_data_df.columns:
         if col in predictions_df.columns:
             differences_data_df[col] = differences_data_df[col].astype(predictions_df[col].dtype)
+
     combined_differences_df = pd.concat([existing_differences_df, differences_data_df], ignore_index=True)
     combined_differences_df = combined_differences_df[predictions_df.columns]
     combined_differences_df.sort_values(by='timestamp', ascending=True, inplace=True)
@@ -297,15 +325,19 @@ def load_and_prepare_data(
             count=count,
             latest_timestamp=latest_timestamp
         )
+
     if real_data.empty:
         logging.error("Data is empty.")
         return pd.DataFrame()
+
     real_data = shared_data_processor.preprocess_binance_data(real_data)
     real_data = shared_data_processor.fill_missing_add_features(real_data)
     real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
+
     if is_training and not shared_data_processor.is_fitted:
         real_data = fit_transform(real_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
     else:
         real_data = transform(real_data)
+
     return real_data
