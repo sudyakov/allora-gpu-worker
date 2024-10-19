@@ -205,9 +205,8 @@ def _train_model(
                 for i in range(len(preds)):
                     pred_i = preds[i]
                     truth_i = truths[i]
-                    # Проверяем стандартное отклонение
                     if np.std(pred_i) == 0 or np.std(truth_i) == 0:
-                        corr_i = 0  # Задаём корреляцию равной 0 при нулевом стандартном отклонении
+                        corr_i = 0
                     else:
                         corr_i = np.corrcoef(pred_i, truth_i)[0, 1]
                         if np.isnan(corr_i):
@@ -217,7 +216,7 @@ def _train_model(
                 total_corr += corr
             else:
                 corr = 0
-                progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
+            progress_bar.set_postfix(loss=f"{loss.item():.4f}", corr=f"{corr:.4f}")
 
         avg_loss = total_loss / len(loader)
         avg_corr = total_corr / len(loader)
