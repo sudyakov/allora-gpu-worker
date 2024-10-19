@@ -183,7 +183,7 @@ def update_differences(
     merged_predictions_actual_df = pd.merge(
         predictions_df,
         actual_data_df,
-        on=['symbol', 'interval', 'hour', 'dayofweek', 'timestamp'],
+        on=['symbol', 'interval', 'timestamp'],
         suffixes=('_pred', '_actual')
     )
 
@@ -194,8 +194,8 @@ def update_differences(
     if not existing_differences_df.empty:
         merged_predictions_actual_df = pd.merge(
             merged_predictions_actual_df,
-            existing_differences_df[['symbol', 'interval', 'hour', 'dayofweek', 'timestamp']],
-            on=['symbol', 'interval', 'hour', 'dayofweek', 'timestamp'],
+            existing_differences_df[['symbol', 'interval', 'timestamp']],
+            on=['symbol', 'interval', 'timestamp'],
             how='left',
             indicator=True
         )
@@ -207,7 +207,7 @@ def update_differences(
             logging.info("All differences have already been processed.")
             return
 
-    key_columns = ['symbol', 'interval', 'hour', 'dayofweek', 'timestamp']
+    key_columns = ['symbol', 'interval', 'timestamp']
     pred_columns = [col for col in merged_predictions_actual_df.columns if col.endswith('_pred')]
     differences_data_df = merged_predictions_actual_df[key_columns + pred_columns].copy()
     differences_data_df.rename(columns=lambda x: x.replace('_pred', '') if x.endswith('_pred') else x, inplace=True)
@@ -225,7 +225,12 @@ def update_differences(
         if col in predictions_df.columns:
             differences_data_df[col] = differences_data_df[col].astype(predictions_df[col].dtype)
 
-    combined_differences_df = pd.concat([existing_differences_df, differences_data_df], ignore_index=True)
+    dataframes_to_concat = [df for df in [existing_differences_df, differences_data_df] if not df.empty]
+    
+    if dataframes_to_concat:
+        combined_differences_df = pd.concat(dataframes_to_concat, ignore_index=True)
+    else:
+        combined_differences_df = pd.DataFrame(columns=predictions_df.columns)
     combined_differences_df = combined_differences_df[predictions_df.columns]
     combined_differences_df.sort_values(by='timestamp', ascending=True, inplace=True)
     combined_differences_df.to_csv(differences_path, index=False)
@@ -248,7 +253,7 @@ def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
 
 def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
-        checkpoint = torch.load(filepath, map_location=device)
+        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         logging.info(f"Model loaded from {filepath}")
