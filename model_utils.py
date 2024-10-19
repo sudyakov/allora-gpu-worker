@@ -159,6 +159,16 @@ def update_differences(
     if missing_columns_actual:
         logging.error(f"Missing columns in actual DataFrame: {missing_columns_actual}")
         return
+    # Вычисляем значение интервала в миллисекундах
+    interval = get_interval(PREDICTION_MINUTES)
+    if interval is None:
+        logging.error("Invalid prediction interval.")
+        return
+    interval_ms = INTERVAL_MAPPING[interval]['milliseconds']
+
+    # Сдвигаем метки времени предсказаний на один интервал назад
+    predictions_df_adjusted = predictions_df.copy()
+    predictions_df_adjusted['timestamp'] -= interval_ms
 
     actual_data_df = real_combined_data_df[
         (real_combined_data_df['symbol'].isin(predictions_df['symbol'].unique())) &
