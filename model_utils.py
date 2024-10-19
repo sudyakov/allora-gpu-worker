@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from sklearn.preprocessing import MinMaxScaler
+
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader, TensorDataset, random_split
-from tqdm import tqdm
+
 
 from config import (
     ADD_FEATURES,
@@ -50,77 +50,6 @@ def create_dataloader(
         num_workers=TRAINING_PARAMS["num_workers"],
     )
     return train_loader, val_loader
-
-def fit_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
-    shared_data_processor.is_fitted = True
-    for col in shared_data_processor.categorical_columns:
-        encoder = shared_data_processor.label_encoders.get(col)
-        if encoder is None:
-            encoder = CustomLabelEncoder()
-            shared_data_processor.label_encoders[col] = encoder
-        real_data_df[col] = encoder.fit_transform(real_data_df[col])
-
-    for col in shared_data_processor.scalable_columns:
-        if col in real_data_df.columns:
-            scaler = MinMaxScaler(feature_range=(0, 1))
-            real_data_df[col] = scaler.fit_transform(real_data_df[[col]])
-            shared_data_processor.scalers[col] = scaler
-        else:
-            raise KeyError(f"Column {col} is missing in DataFrame.")
-
-    for col in shared_data_processor.numerical_columns:
-        if col in real_data_df.columns:
-            dtype = MODEL_FEATURES.get(col, np.float32)
-            real_data_df[col] = real_data_df[col].astype(dtype)
-        else:
-            raise KeyError(f"Column {col} is missing in DataFrame.")
-
-    if 'timestamp' in real_data_df.columns:
-        real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
-
-    real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
-    return real_data_df
-
-def transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
-    for col in shared_data_processor.categorical_columns:
-        encoder = shared_data_processor.label_encoders.get(col)
-        if encoder is None:
-            raise ValueError(f"LabelEncoder not found for column {col}.")
-        real_data_df[col] = encoder.transform(real_data_df[col])
-
-    for col in shared_data_processor.scalable_columns:
-        if col in real_data_df.columns:
-            scaler = shared_data_processor.scalers.get(col)
-            if scaler is None:
-                raise ValueError(f"Scaler not found for column {col}.")
-            real_data_df[col] = scaler.transform(real_data_df[[col]])
-        else:
-            raise KeyError(f"Column {col} is missing in DataFrame.")
-
-    for col in shared_data_processor.numerical_columns:
-        if col in real_data_df.columns:
-            dtype = MODEL_FEATURES.get(col, np.float32)
-            real_data_df[col] = real_data_df[col].astype(dtype)
-        else:
-            raise KeyError(f"Column {col} is missing in DataFrame.")
-
-    if 'timestamp' in real_data_df.columns:
-        real_data_df['timestamp'] = real_data_df['timestamp'].astype(np.int64)
-
-    real_data_df = real_data_df[list(MODEL_FEATURES.keys())]
-    return real_data_df
-
-def inverse_transform(real_data_df: pd.DataFrame) -> pd.DataFrame:
-    df_inv = real_data_df.copy()
-    for col in shared_data_processor.scalable_columns:
-        if col in df_inv.columns:
-            scaler = shared_data_processor.scalers.get(col)
-            if scaler is None:
-                raise ValueError(f"Scaler not found for column {col}.")
-            df_inv[col] = scaler.inverse_transform(df_inv[[col]])
-        else:
-            raise KeyError(f"Column {col} is missing in DataFrame.")
-    return df_inv
 
 def predict_future_price(
     model: nn.Module,
@@ -166,7 +95,7 @@ def predict_future_price(
             inputs = torch.tensor(current_df.values, dtype=torch.float32).unsqueeze(0).to(device)
             predictions = model(inputs).cpu().detach().numpy()
             predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
-            predicted_data_df_denormalized = inverse_transform(predicted_data_df)
+            predicted_data_df_denormalized = shared_data_processor.inverse_transform(predicted_data_df)
             predicted_data_df_denormalized["symbol"] = target_symbol
             predicted_data_df_denormalized["interval"] = prediction_minutes
             predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
@@ -328,19 +257,19 @@ def load_and_prepare_data(
             count=count,
             latest_timestamp=latest_timestamp
         )
-        
+
     if real_data.empty:
         logging.error("Data is empty.")
         return pd.DataFrame()
-    
+
     real_data = shared_data_processor.preprocess_binance_data(real_data)
     real_data = shared_data_processor.fill_missing_add_features(real_data)
     real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
-    
+
     if is_training and not shared_data_processor.is_fitted:
-        real_data = fit_transform(real_data)
+        real_data = shared_data_processor.fit_transform(real_data)
         shared_data_processor.save(DATA_PROCESSOR_FILENAME)
     else:
-        real_data = transform(real_data)
-    
+        real_data = shared_data_processor.transform(real_data)
+
     return real_data
