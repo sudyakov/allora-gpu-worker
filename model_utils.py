@@ -163,8 +163,6 @@ def update_differences(
     actual_data_df = real_combined_data_df[
         (real_combined_data_df['symbol'].isin(predictions_df['symbol'].unique())) &
         (real_combined_data_df['interval'].isin(predictions_df['interval'].unique())) &
-        (real_combined_data_df['hour'].isin(predictions_df['hour'].unique())) &
-        (real_combined_data_df['dayofweek'].isin(predictions_df['dayofweek'].unique())) &
         (real_combined_data_df['timestamp'].isin(predictions_df['timestamp'].unique()))
     ]
 
