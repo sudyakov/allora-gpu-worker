@@ -282,9 +282,14 @@ def load_and_prepare_data(
         logging.error("Data is empty.")
         return pd.DataFrame()
 
+    # Randomly shuffle the data
+    real_data = real_data.sample(frac=1).reset_index(drop=True)
+
+    # Then sort the data from oldest to newest
+    real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
+
     real_data = shared_data_processor.preprocess_binance_data(real_data)
     real_data = shared_data_processor.fill_missing_add_features(real_data)
-    real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
 
     if is_training and not shared_data_processor.is_fitted:
         real_data = shared_data_processor.fit_transform(real_data)
@@ -293,3 +298,4 @@ def load_and_prepare_data(
         real_data = shared_data_processor.transform(real_data)
 
     return real_data
+

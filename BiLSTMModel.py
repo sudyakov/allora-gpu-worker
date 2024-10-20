@@ -157,10 +157,10 @@ class EnhancedBiLSTMModel(nn.Module):
                     nn.init.zeros_(param.data)
 
 
-def compute_time_weights(timestamps: torch.Tensor, alpha: float = 0.9) -> torch.Tensor:
+def compute_time_weights(timestamps: torch.Tensor) -> torch.Tensor:
     max_timestamp = timestamps.max()
     normalized_timestamps = (timestamps - timestamps.min()) / (max_timestamp - timestamps.min() + 1e-8)
-    time_weights = alpha ** (1 - normalized_timestamps)
+    time_weights = 1 - normalized_timestamps
     return time_weights
 
 
