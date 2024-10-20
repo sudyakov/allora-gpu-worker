@@ -282,14 +282,21 @@ def load_and_prepare_data(
         logging.error("Data is empty.")
         return pd.DataFrame()
 
-    # Randomly shuffle the data
+    # Случайное перемешивание данных
     real_data = real_data.sample(frac=1).reset_index(drop=True)
 
-    # Then sort the data from oldest to newest
+    # Сортировка данных от самых старых к самым новым
     real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
+
+    # Добавление минимального шума к колонкам из SCALABLE_FEATURES
+    noise_level = 1e-6  # Уровень шума, можно настроить при необходимости
+    for feature in SCALABLE_FEATURES.keys():
+        noise = np.random.normal(0, noise_level, size=real_data[feature].shape)
+        real_data[feature] += noise
 
     real_data = shared_data_processor.preprocess_binance_data(real_data)
     real_data = shared_data_processor.fill_missing_add_features(real_data)
+    real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
 
     if is_training and not shared_data_processor.is_fitted:
         real_data = shared_data_processor.fit_transform(real_data)
