@@ -15,8 +15,6 @@ from config import (
     DATA_PROCESSOR_FILENAME,
     INTERVAL_MAPPING,
     MODEL_FEATURES,
-    MODEL_PARAMS,
-    PATHS,
     PREDICTION_MINUTES,
     SCALABLE_FEATURES,
     SEQ_LENGTH,
@@ -226,7 +224,7 @@ def update_differences(
             differences_data_df[col] = differences_data_df[col].astype(predictions_df[col].dtype)
 
     dataframes_to_concat = [df for df in [existing_differences_df, differences_data_df] if not df.empty]
-    
+
     if dataframes_to_concat:
         combined_differences_df = pd.concat(dataframes_to_concat, ignore_index=True)
     else:
