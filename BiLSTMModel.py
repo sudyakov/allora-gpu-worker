@@ -221,7 +221,7 @@ def _train_model(
 
         avg_loss = total_loss / len(loader)
         avg_corr = total_corr / len(loader)
-        logging.info(f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}")
+        logging.info(f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.8f}, Correlation: {avg_corr:.4f}")
         save_model(model, optimizer, MODEL_FILENAME)
         writer.add_scalar("Loss/train", avg_loss, epoch)
         writer.add_scalar("Correlation/train", avg_corr, epoch)
