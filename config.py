@@ -11,7 +11,7 @@ API_BASE_URL: str = "https://api.binance.com/api/v3"
 MAX_RETRIES: int = 3
 RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
-SEQ_LENGTH: int = 50
+SEQ_LENGTH: int = 100
 
 class IntervalConfig(TypedDict):
     days: int
@@ -24,15 +24,16 @@ SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
     ("ETHUSDT", 0),
     ("BTCUSDT", 1),
     ("BNBUSDT", 2),
+    ("SOLUSDT", 3)
 ])
 
 TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
-    (1, {"days": 90, "minutes": 1, "milliseconds": 60000}),
-    (5, {"days": 1440, "minutes": 5, "milliseconds": 300000}),
-    (15, {"days": 2880, "minutes": 15, "milliseconds": 900000})
+    (1, {"days": 30, "minutes": 1, "milliseconds": 60000}),
+    (5, {"days": 360, "minutes": 5, "milliseconds": 300000}),
+    (15, {"days": 720, "minutes": 15, "milliseconds": 900000})
 ])
 
 RAW_FEATURES = OrderedDict([
@@ -83,13 +84,13 @@ class ModelParams(TypedDict):
 
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES),
-    "hidden_layer_size": 256,
-    "num_layers": 18,
+    "hidden_layer_size": 128,
+    "num_layers": 8,
     "dropout": 0.0000001,
-    "embedding_dim": 256,
+    "embedding_dim": 128,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
     "num_intervals": len(INTERVAL_MAPPING.keys()),
-    "timestamp_embedding_dim": 256
+    "timestamp_embedding_dim": 128
 }
 
 class TrainingParams(TypedDict):
