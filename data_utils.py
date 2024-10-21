@@ -19,6 +19,7 @@ from config import (
     SEQ_LENGTH,
     SYMBOL_MAPPING,
     TARGET_SYMBOL,
+    BINANCE_LIMIT_STRING
 )
 
 
@@ -259,28 +260,32 @@ class DataProcessor:
         self,
         symbol: Optional[str] = None,
         interval: Optional[int] = None,
-        count: int = SEQ_LENGTH,
+        count: Optional[int] = None,
         latest_timestamp: Optional[int] = None
     ) -> pd.DataFrame:
         combined_dataset_path = PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
             combined_data_df = pd.read_csv(combined_dataset_path)
-            df_filtered = combined_data_df.copy()
-
+            # Фильтрация по символу, если указан
             if symbol is not None:
-                df_filtered = df_filtered[df_filtered['symbol'] == symbol]
+                combined_data_df = combined_data_df[combined_data_df['symbol'] == symbol]
+            # Фильтрация по интервалу, если указан
             if interval is not None:
-                df_filtered = df_filtered[df_filtered['interval'] == interval]
+                combined_data_df = combined_data_df[combined_data_df['interval'] == interval]
+                
             if latest_timestamp is not None:
-                df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp]
+                combined_data_df = combined_data_df[combined_data_df['timestamp'] <= latest_timestamp]
             else:
-                latest_timestamp = df_filtered['timestamp'].max()
-
-            if not df_filtered.empty:
-                df_filtered = df_filtered.sort_values('timestamp', ascending=True)
-                df_filtered = df_filtered[df_filtered['timestamp'] <= latest_timestamp].tail(count)
-                return df_filtered
-
+                latest_timestamp = combined_data_df['timestamp'].max()
+            
+            if not combined_data_df.empty:
+                combined_data_df = combined_data_df.sort_values('timestamp', ascending=True)
+                if count is not None:
+                    combined_data_df = combined_data_df[combined_data_df['timestamp'] <= latest_timestamp].tail(count)
+                return combined_data_df
+            
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+
+
 
 shared_data_processor = DataProcessor()
