@@ -52,8 +52,8 @@ def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: to
 def load_and_prepare_data(
     data_fetcher: GetBinanceData,
     is_training: bool = False,
-    latest_timestamp: Optional[int] = None,
-    count: int = SEQ_LENGTH,
+    start_timestamp: Optional[int] = None,
+    end_timestamp: Optional[int] = None,
     external_data: Optional[pd.DataFrame] = None
 ) -> pd.DataFrame:
     if external_data is not None:
@@ -64,8 +64,8 @@ def load_and_prepare_data(
         real_data = shared_data_processor.get_latest_dataset_prices(
             symbol=None,
             interval=None,
-            count=count,
-            latest_timestamp=latest_timestamp
+            start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp
         )
 
     if real_data.empty:
@@ -118,13 +118,21 @@ def create_dataloader(
 
 def predict_future_price(
     model: nn.Module,
-    latest_real_data_df: pd.DataFrame,
     device: torch.device,
     prediction_minutes: int = PREDICTION_MINUTES,
     future_steps: int = 1,
     seq_length: int = SEQ_LENGTH,
-    target_symbol: str = TARGET_SYMBOL
+    target_symbol: str = TARGET_SYMBOL,
+    start_timestamp: Optional[int] = None,
+    end_timestamp: Optional[int] = None
 ) -> pd.DataFrame:
+    latest_real_data_df = shared_data_processor.get_latest_dataset_prices(
+        symbol=target_symbol,
+        interval=prediction_minutes,
+        start_timestamp=start_timestamp,
+        end_timestamp=end_timestamp
+    )
+
     if latest_real_data_df.empty:
         logging.error("Latest DataFrame is empty.")
         return pd.DataFrame()

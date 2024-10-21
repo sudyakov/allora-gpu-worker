@@ -260,8 +260,8 @@ class DataProcessor:
         self,
         symbol: Optional[str] = None,
         interval: Optional[int] = None,
-        count: Optional[int] = None,
-        latest_timestamp: Optional[int] = None
+        start_timestamp: Optional[int] = None,
+        end_timestamp: Optional[int] = None
     ) -> pd.DataFrame:
         combined_dataset_path = PATHS['combined_dataset']
         if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
@@ -272,19 +272,31 @@ class DataProcessor:
             # Фильтрация по интервалу, если указан
             if interval is not None:
                 combined_data_df = combined_data_df[combined_data_df['interval'] == interval]
-                
-            if latest_timestamp is not None:
-                combined_data_df = combined_data_df[combined_data_df['timestamp'] <= latest_timestamp]
-            else:
-                latest_timestamp = combined_data_df['timestamp'].max()
             
             if not combined_data_df.empty:
+                # Определение минимальных и максимальных временных меток в данных
+                min_timestamp = combined_data_df['timestamp'].min()
+                max_timestamp = combined_data_df['timestamp'].max()
+                
+                # Установка временных меток по умолчанию, если они не указаны
+                if start_timestamp is None:
+                    start_timestamp = min_timestamp
+                if end_timestamp is None:
+                    end_timestamp = max_timestamp
+
+                # Фильтрация по временным меткам
+                combined_data_df = combined_data_df[
+                    (combined_data_df['timestamp'] >= start_timestamp) & 
+                    (combined_data_df['timestamp'] <= end_timestamp)
+                ]
+
+                # Сортировка данных по возрастанию времени
                 combined_data_df = combined_data_df.sort_values('timestamp', ascending=True)
-                if count is not None:
-                    combined_data_df = combined_data_df[combined_data_df['timestamp'] <= latest_timestamp].tail(count)
                 return combined_data_df
-            
+        
+        # Если данных нет, возвращаем пустой DataFrame с необходимыми колонками
         return pd.DataFrame(columns=list(MODEL_FEATURES.keys()))
+
 
 
 
