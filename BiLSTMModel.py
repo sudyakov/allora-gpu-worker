@@ -1,14 +1,13 @@
 import logging
 import os
-import traceback
 from time import sleep
 from typing import Dict, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
-from torch.optim.radam import RAdam
+from torch import nn
+from torch.optim.radam import RAdam as Optimizer
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
@@ -25,7 +24,6 @@ from config import (
     TRAINING_PARAMS,
     get_interval,
 )
-
 from get_binance_data import GetBinanceData, main as get_binance_data_main
 from data_utils import shared_data_processor
 from model_utils import (
@@ -38,7 +36,7 @@ from model_utils import (
     update_differences,
 )
 
-
+# Настройка логирования
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 writer = SummaryWriter('runs/BiLSTMModel')
 
@@ -167,11 +165,11 @@ def compute_time_weights(timestamps: torch.Tensor) -> torch.Tensor:
 def _train_model(
     model: EnhancedBiLSTMModel,
     loader: DataLoader,
-    optimizer: RAdam,
+    optimizer: Optimizer,
     device: torch.device,
     epochs: int,
     desc: str,
-) -> Tuple[EnhancedBiLSTMModel, RAdam]:
+) -> Tuple[EnhancedBiLSTMModel, Optimizer]:
     model.train()
     for epoch in range(epochs):
         total_loss = 0.0
@@ -194,7 +192,6 @@ def _train_model(
 
             loss = ((outputs - targets) ** 2) * time_weights.unsqueeze(1)
             loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
@@ -203,9 +200,7 @@ def _train_model(
                 preds = outputs[masks == 1].detach().cpu().numpy()
                 truths = targets[masks == 1].detach().cpu().numpy()
                 corr_values = []
-                for i in range(len(preds)):
-                    pred_i = preds[i]
-                    truth_i = truths[i]
+                for pred_i, truth_i in zip(preds, truths):
                     if np.std(pred_i) == 0 or np.std(truth_i) == 0:
                         corr_i = 0
                     else:
@@ -231,22 +226,22 @@ def _train_model(
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
     train_loader: DataLoader,
-    optimizer: RAdam,
+    optimizer: Optimizer,
     device: torch.device,
-) -> Tuple[EnhancedBiLSTMModel, RAdam]:
+) -> Tuple[EnhancedBiLSTMModel, Optimizer]:
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
 
 
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
-    optimizer: RAdam,
+    optimizer: Optimizer,
     fine_tune_loader: DataLoader,
     device: torch.device,
-) -> Tuple[EnhancedBiLSTMModel, RAdam]:
+) -> Tuple[EnhancedBiLSTMModel, Optimizer]:
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
 
 
-def main(model: EnhancedBiLSTMModel, optimizer: RAdam, data_fetcher: GetBinanceData):
+def main(model: EnhancedBiLSTMModel, optimizer: Optimizer, data_fetcher: GetBinanceData):
     device = get_device()
 
     real_combined_data = load_and_prepare_data(data_fetcher, is_training=True)
@@ -426,7 +421,7 @@ if __name__ == "__main__":
         numerical_columns=shared_data_processor.numerical_columns,
         column_name_to_index=shared_data_processor.column_name_to_index,
     ).to(device)
-    optimizer = RAdam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
+    optimizer = Optimizer(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
 
     load_model(model, optimizer, MODEL_FILENAME, device)
 
@@ -438,6 +433,5 @@ if __name__ == "__main__":
             sleep(30)
         except Exception as e:
             logging.error("An error occurred: %s", e)
-            traceback.print_exc()
             logging.info("Retrying after delay...")
             sleep(10)

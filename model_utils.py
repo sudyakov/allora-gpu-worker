@@ -5,10 +5,9 @@ from typing import Optional, Tuple
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader, TensorDataset, random_split
-from tqdm import tqdm
 
 from config import (
     ADD_FEATURES,
@@ -20,10 +19,77 @@ from config import (
     SEQ_LENGTH,
     TARGET_SYMBOL,
     TRAINING_PARAMS,
-    get_interval,
+    get_interval
 )
 from data_utils import shared_data_processor
 from get_binance_data import GetBinanceData
+
+
+def get_device() -> torch.device:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logging.info(f"Using device: {device}")
+    return device
+
+
+def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, filepath)
+    logging.info(f"Model saved to {filepath}")
+
+
+def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
+    if os.path.exists(filepath):
+        checkpoint = torch.load(filepath, map_location=device)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        logging.info(f"Model loaded from {filepath}")
+    else:
+        logging.info(f"No saved model found at {filepath}. Starting from scratch.")
+
+
+def load_and_prepare_data(
+    data_fetcher: GetBinanceData,
+    is_training: bool = False,
+    latest_timestamp: Optional[int] = None,
+    count: int = SEQ_LENGTH,
+    external_data: Optional[pd.DataFrame] = None
+) -> pd.DataFrame:
+    if external_data is not None:
+        real_data = external_data
+    elif is_training:
+        real_data = data_fetcher.fetch_combined_data()
+    else:
+        real_data = shared_data_processor.get_latest_dataset_prices(
+            symbol=TARGET_SYMBOL,
+            interval=PREDICTION_MINUTES,
+            count=count,
+            latest_timestamp=latest_timestamp
+        )
+
+    if real_data.empty:
+        logging.error("Data is empty.")
+        return pd.DataFrame()
+
+    real_data = real_data.sample(frac=1).reset_index(drop=True)
+    real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
+
+    noise_level = 1000  # Noise level, adjustable if needed
+    for feature in SCALABLE_FEATURES.keys():
+        noise = np.random.normal(0, noise_level, size=real_data[feature].shape)
+        real_data[feature] += noise
+
+    real_data = shared_data_processor.preprocess_binance_data(real_data)
+    real_data = shared_data_processor.fill_missing_add_features(real_data)
+
+    if is_training and not shared_data_processor.is_fitted:
+        real_data = shared_data_processor.fit_transform(real_data)
+        shared_data_processor.save(DATA_PROCESSOR_FILENAME)
+    else:
+        real_data = shared_data_processor.transform(real_data)
+
+    return real_data
 
 
 def create_dataloader(
@@ -90,34 +156,23 @@ def predict_future_price(
             logging.info(f"Insufficient data to predict for timestamp {next_timestamp}.")
             return pd.DataFrame()
 
-        try:
-            inputs = torch.tensor(current_df.values, dtype=torch.float32).unsqueeze(0).to(device)
-            predictions = model(inputs).cpu().detach().numpy()
-            predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
+        inputs = torch.tensor(current_df.values, dtype=torch.float32).unsqueeze(0).to(device)
+        predictions = model(inputs).cpu().detach().numpy()
+        predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
-            # Используем метод inverse_transform из DataProcessor
-            predicted_data_df_denormalized = shared_data_processor.inverse_transform(predicted_data_df)
+        predicted_data_df = shared_data_processor.inverse_transform(predicted_data_df)
 
-            predicted_data_df_denormalized["symbol"] = target_symbol
-            predicted_data_df_denormalized["interval"] = prediction_minutes
-            predicted_data_df_denormalized["timestamp"] = int(next_timestamp)
-            predicted_data_df_denormalized['hour'] = pd.to_datetime(
-                predicted_data_df_denormalized['timestamp'], unit='ms').dt.hour
-            predicted_data_df_denormalized['dayofweek'] = pd.to_datetime(
-                predicted_data_df_denormalized['timestamp'], unit='ms').dt.dayofweek
-            predicted_data_df_denormalized['sin_hour'] = np.sin(
-                2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
-            predicted_data_df_denormalized['cos_hour'] = np.cos(
-                2 * np.pi * predicted_data_df_denormalized['hour'] / 24)
-            predicted_data_df_denormalized['sin_day'] = np.sin(
-                2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
-            predicted_data_df_denormalized['cos_day'] = np.cos(
-                2 * np.pi * predicted_data_df_denormalized['dayofweek'] / 7)
-            final_columns = list(MODEL_FEATURES.keys())
-            predicted_data_df_denormalized = predicted_data_df_denormalized[final_columns]
-            all_predicted_data.append(predicted_data_df_denormalized)
-        except Exception as e:
-            logging.error(f"Error during prediction for timestamp {next_timestamp}: {e}")
+        predicted_data_df["symbol"] = target_symbol
+        predicted_data_df["interval"] = prediction_minutes
+        predicted_data_df["timestamp"] = int(next_timestamp)
+        predicted_data_df['hour'] = pd.to_datetime(predicted_data_df['timestamp'], unit='ms').dt.hour
+        predicted_data_df['dayofweek'] = pd.to_datetime(predicted_data_df['timestamp'], unit='ms').dt.dayofweek
+        predicted_data_df['sin_hour'] = np.sin(2 * np.pi * predicted_data_df['hour'] / 24)
+        predicted_data_df['cos_hour'] = np.cos(2 * np.pi * predicted_data_df['hour'] / 24)
+        predicted_data_df['sin_day'] = np.sin(2 * np.pi * predicted_data_df['dayofweek'] / 7)
+        predicted_data_df['cos_day'] = np.cos(2 * np.pi * predicted_data_df['dayofweek'] / 7)
+        predicted_data_df = predicted_data_df[list(MODEL_FEATURES.keys())]
+        all_predicted_data.append(predicted_data_df)
 
     if all_predicted_data:
         all_predictions = pd.concat(all_predicted_data, ignore_index=True)
@@ -130,11 +185,11 @@ def update_differences(
     predictions_path: str,
     combined_dataset_path: str
 ) -> None:
-    if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
-        predictions_df = pd.read_csv(predictions_path)
-    else:
+    if not os.path.exists(predictions_path) or os.path.getsize(predictions_path) == 0:
         logging.info("No predictions available to process.")
         return
+
+    predictions_df = pd.read_csv(predictions_path)
 
     if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
         real_combined_data_df = pd.read_csv(combined_dataset_path)
@@ -157,14 +212,13 @@ def update_differences(
     if missing_columns_actual:
         logging.error(f"Missing columns in actual DataFrame: {missing_columns_actual}")
         return
-    # Вычисляем значение интервала в миллисекундах
+
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
         logging.error("Invalid prediction interval.")
         return
     interval_ms = INTERVAL_MAPPING[interval]['milliseconds']
 
-    # Сдвигаем метки времени предсказаний на один интервал назад
     predictions_df_adjusted = predictions_df.copy()
     predictions_df_adjusted['timestamp'] -= interval_ms
 
@@ -229,80 +283,8 @@ def update_differences(
         combined_differences_df = pd.concat(dataframes_to_concat, ignore_index=True)
     else:
         combined_differences_df = pd.DataFrame(columns=predictions_df.columns)
+
     combined_differences_df = combined_differences_df[predictions_df.columns]
     combined_differences_df.sort_values(by='timestamp', ascending=True, inplace=True)
     combined_differences_df.to_csv(differences_path, index=False)
     logging.info(f"Differences updated and saved to {differences_path}")
-
-
-def get_device() -> torch.device:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logging.info(f"Using device: {device}")
-    return device
-
-
-def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-    }, filepath)
-    logging.info(f"Model saved to {filepath}")
-
-
-def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
-    if os.path.exists(filepath):
-        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        logging.info(f"Model loaded from {filepath}")
-    else:
-        logging.info(f"No saved model found at {filepath}. Starting from scratch.")
-
-
-def load_and_prepare_data(
-    data_fetcher: GetBinanceData,
-    is_training: bool = False,
-    latest_timestamp: Optional[int] = None,
-    count: int = SEQ_LENGTH,
-    external_data: Optional[pd.DataFrame] = None
-) -> pd.DataFrame:
-    if external_data is not None:
-        real_data = external_data
-    elif is_training:
-        real_data = data_fetcher.fetch_combined_data()
-    else:
-        real_data = shared_data_processor.get_latest_dataset_prices(
-            symbol=TARGET_SYMBOL,
-            interval=PREDICTION_MINUTES,
-            count=count,
-            latest_timestamp=latest_timestamp
-        )
-
-    if real_data.empty:
-        logging.error("Data is empty.")
-        return pd.DataFrame()
-
-    # Случайное перемешивание данных
-    real_data = real_data.sample(frac=1).reset_index(drop=True)
-
-    # Сортировка данных от самых старых к самым новым
-    real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
-
-    # Добавление минимального шума к колонкам из SCALABLE_FEATURES
-    noise_level = 1000  # Уровень шума, можно настроить при необходимости
-    for feature in SCALABLE_FEATURES.keys():
-        noise = np.random.normal(0, noise_level, size=real_data[feature].shape)
-        real_data[feature] += noise
-
-    real_data = shared_data_processor.preprocess_binance_data(real_data)
-    real_data = shared_data_processor.fill_missing_add_features(real_data)
-    real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
-
-    if is_training and not shared_data_processor.is_fitted:
-        real_data = shared_data_processor.fit_transform(real_data)
-        shared_data_processor.save(DATA_PROCESSOR_FILENAME)
-    else:
-        real_data = shared_data_processor.transform(real_data)
-
-    return real_data
-
