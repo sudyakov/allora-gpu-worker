@@ -75,7 +75,7 @@ def load_and_prepare_data(
     real_data = real_data.sample(frac=1).reset_index(drop=True)
     real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
 
-    noise_level = 1000  # Noise level, adjustable if needed
+    noise_level = 0.001
     for feature in SCALABLE_FEATURES.keys():
         noise = np.random.normal(0, noise_level, size=real_data[feature].shape)
         real_data[feature] += noise

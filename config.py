@@ -11,7 +11,7 @@ API_BASE_URL: str = "https://api.binance.com/api/v3"
 MAX_RETRIES: int = 3
 RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
-SEQ_LENGTH: int = 5
+SEQ_LENGTH: int = 30  # Увеличено с 10 до 30
 
 class IntervalConfig(TypedDict):
     days: int
@@ -84,13 +84,13 @@ class ModelParams(TypedDict):
 
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES),
-    "hidden_layer_size": 128,
-    "num_layers": 32,
-    "dropout": 0.0000001,
+    "hidden_layer_size": 256,  # Увеличено с 128 до 256
+    "num_layers": 4,  # Уменьшено с 32 до 4 для предотвращения переобучения
+    "dropout": 0.1,  # Увеличено с 0.0000001 до 0.1 для улучшения обобщающей способности
     "embedding_dim": 64,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
     "num_intervals": len(INTERVAL_MAPPING.keys()),
-    "timestamp_embedding_dim": 256
+    "timestamp_embedding_dim": 512  # Увеличено с 256 до 512
 }
 
 class TrainingParams(TypedDict):
@@ -105,8 +105,8 @@ class TrainingParams(TypedDict):
 
 TRAINING_PARAMS: TrainingParams = {
     "batch_size": 1024,
-    "initial_epochs": 3,
-    "fine_tune_epochs": 3,
+    "initial_epochs": 5,  # Увеличено с 3 до 5
+    "fine_tune_epochs": 5,  # Увеличено с 3 до 5
     "initial_lr": 0.0005,
     "max_epochs": 100,
     "min_lr": 0.00001,
