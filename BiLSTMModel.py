@@ -24,8 +24,8 @@ from config import (
     TRAINING_PARAMS,
     get_interval,
 )
-from get_binance_data import GetBinanceData, main as get_binance_data_main
 from data_utils import shared_data_processor
+from get_binance_data import GetBinanceData, main as get_binance_data_main
 from model_utils import (
     create_dataloader,
     get_device,
@@ -68,6 +68,7 @@ class EnhancedBiLSTMModel(nn.Module):
         self.categorical_columns = categorical_columns
         self.column_name_to_index = column_name_to_index
 
+        # Embedding layers
         self.symbol_embedding = nn.Embedding(
             num_embeddings=MODEL_PARAMS["num_symbols"],
             embedding_dim=MODEL_PARAMS["embedding_dim"],
@@ -87,11 +88,9 @@ class EnhancedBiLSTMModel(nn.Module):
         self.timestamp_embedding = nn.Linear(1, MODEL_PARAMS["timestamp_embedding_dim"])
 
         numerical_input_size = len(numerical_columns)
-        self.lstm_input_size = (
-            numerical_input_size
-            + 4 * MODEL_PARAMS["embedding_dim"]
-            + MODEL_PARAMS["timestamp_embedding_dim"]
-        )
+        embedding_total_dim = 4 * MODEL_PARAMS["embedding_dim"] + MODEL_PARAMS["timestamp_embedding_dim"]
+        self.lstm_input_size = numerical_input_size + embedding_total_dim
+
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_size,
             hidden_size=MODEL_PARAMS["hidden_layer_size"],
@@ -115,6 +114,7 @@ class EnhancedBiLSTMModel(nn.Module):
         days = x[:, :, self.column_name_to_index["dayofweek"]].long()
         timestamps = x[:, :, self.column_name_to_index["timestamp"]].float()
 
+        # Embeddings
         symbol_embeddings = self.symbol_embedding(symbols)
         interval_embeddings = self.interval_embedding(intervals)
         hour_embeddings = self.hour_embedding(hours)
@@ -141,23 +141,25 @@ class EnhancedBiLSTMModel(nn.Module):
         return predictions
 
     def _initialize_weights(self, module: nn.Module) -> None:
-        if isinstance(module, nn.Linear):
+        if isinstance(module, (nn.Linear, nn.Embedding)):
             nn.init.xavier_uniform_(module.weight)
-            if module.bias is not None:
+            if hasattr(module, 'bias') and module.bias is not None:
                 nn.init.zeros_(module.bias)
         elif isinstance(module, nn.LSTM):
             for name, param in module.named_parameters():
-                if "weight_ih" in name:
+                if 'weight_ih' in name:
                     nn.init.xavier_uniform_(param.data)
-                elif "weight_hh" in name:
+                elif 'weight_hh' in name:
                     nn.init.orthogonal_(param.data)
-                elif "bias" in name:
+                elif 'bias' in name:
                     nn.init.zeros_(param.data)
 
 
 def compute_time_weights(timestamps: torch.Tensor) -> torch.Tensor:
     max_timestamp = timestamps.max()
-    normalized_timestamps = (timestamps - timestamps.min()) / (max_timestamp - timestamps.min() + 1e-8)
+    min_timestamp = timestamps.min()
+    time_range = max_timestamp - min_timestamp + 1e-8
+    normalized_timestamps = (timestamps - min_timestamp) / time_range
     time_weights = 1 - normalized_timestamps
     return time_weights
 
@@ -182,6 +184,7 @@ def _train_model(
 
             optimizer.zero_grad()
             outputs = model(inputs)
+
             if outputs.shape != targets.shape:
                 logging.error(
                     "Output shape %s does not match target shape %s",
@@ -204,9 +207,8 @@ def _train_model(
                     if np.std(pred_i) == 0 or np.std(truth_i) == 0:
                         corr_i = 0
                     else:
-                        corr_i = np.corrcoef(pred_i, truth_i)[0, 1]
-                        if np.isnan(corr_i):
-                            corr_i = 0
+                        corr_matrix = np.corrcoef(pred_i, truth_i)
+                        corr_i = corr_matrix[0, 1] if not np.isnan(corr_matrix[0, 1]) else 0
                     corr_values.append(corr_i)
                 corr = np.mean(corr_values)
                 total_corr += corr
@@ -218,8 +220,8 @@ def _train_model(
         avg_corr = total_corr / len(loader)
         logging.info(f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.8f}, Correlation: {avg_corr:.4f}")
         save_model(model, optimizer, MODEL_FILENAME)
-        writer.add_scalar("Loss/train", avg_loss, epoch)
-        writer.add_scalar("Correlation/train", avg_corr, epoch)
+        writer.add_scalar(f"Loss/{desc.lower()}", avg_loss, epoch)
+        writer.add_scalar(f"Correlation/{desc.lower()}", avg_corr, epoch)
     return model, optimizer
 
 
@@ -253,9 +255,9 @@ def main(model: EnhancedBiLSTMModel, optimizer: Optimizer, data_fetcher: GetBina
     logging.info("Dataset after transformation:\n%s", real_combined_data.tail())
 
     if real_combined_data.isnull().values.any():
-        logging.info("Data contains missing values.")
+        logging.warning("Data contains missing values.")
     if np.isinf(real_combined_data.values).any():
-        logging.info("Data contains infinite values.")
+        logging.warning("Data contains infinite values.")
 
     try:
         training_dataset = shared_data_processor.prepare_dataset(
@@ -280,20 +282,17 @@ def main(model: EnhancedBiLSTMModel, optimizer: Optimizer, data_fetcher: GetBina
     sleep(3)
 
     combined_dataset_path = PATHS["combined_dataset"]
-    if os.path.exists(combined_dataset_path) and os.path.getsize(combined_dataset_path) > 0:
-        real_combined_data = pd.read_csv(combined_dataset_path)
-        latest_data_timestamp = real_combined_data["timestamp"].max()
-    else:
-        logging.error("Combined dataset not found.")
+    if not os.path.exists(combined_dataset_path) or os.path.getsize(combined_dataset_path) == 0:
+        logging.error("Combined dataset not found or is empty.")
         return model, optimizer
+
+    real_combined_data = pd.read_csv(combined_dataset_path)
+    latest_data_timestamp = real_combined_data["timestamp"].max()
 
     predictions_path = PATHS["predictions"]
     if os.path.exists(predictions_path) and os.path.getsize(predictions_path) > 0:
         existing_predictions_df = pd.read_csv(predictions_path)
-        if not existing_predictions_df.empty:
-            last_prediction_timestamp = existing_predictions_df["timestamp"].max()
-        else:
-            last_prediction_timestamp = None
+        last_prediction_timestamp = existing_predictions_df["timestamp"].max() if not existing_predictions_df.empty else None
     else:
         existing_predictions_df = pd.DataFrame()
         last_prediction_timestamp = None
@@ -305,17 +304,12 @@ def main(model: EnhancedBiLSTMModel, optimizer: Optimizer, data_fetcher: GetBina
 
     interval_ms = INTERVAL_MAPPING[interval]["milliseconds"]
     timestamps_to_predict = []
-
     if last_prediction_timestamp is not None:
-        timestamps_to_predict = list(
-            range(
-                int(last_prediction_timestamp + interval_ms),
-                int(latest_data_timestamp + 2 * interval_ms),
-                int(interval_ms),
-            )
-        )
+        start_timestamp = int(last_prediction_timestamp + interval_ms)
     else:
-        timestamps_to_predict = [int(latest_data_timestamp + interval_ms)]
+        start_timestamp = int(latest_data_timestamp + interval_ms)
+    end_timestamp = int(latest_data_timestamp + 2 * interval_ms)
+    timestamps_to_predict = list(range(start_timestamp, end_timestamp, int(interval_ms)))
 
     predictions_list = []
     for next_timestamp in tqdm(timestamps_to_predict, desc="Generating Predictions"):
@@ -329,7 +323,6 @@ def main(model: EnhancedBiLSTMModel, optimizer: Optimizer, data_fetcher: GetBina
             logging.warning("No data available for timestamp %s. Skipping prediction.", next_timestamp)
             continue
 
-        logging.debug("Input data for timestamp %s:\n%s", next_timestamp, latest_df)
         predicted_df = predict_future_price(
             model=model,
             latest_real_data_df=latest_df,
@@ -339,7 +332,6 @@ def main(model: EnhancedBiLSTMModel, optimizer: Optimizer, data_fetcher: GetBina
             seq_length=SEQ_LENGTH,
             target_symbol=TARGET_SYMBOL,
         )
-        logging.debug("Prediction for timestamp %s:\n%s", next_timestamp, predicted_df)
         if not predicted_df.empty:
             predictions_list.append(predicted_df)
         else:
