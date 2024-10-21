@@ -289,7 +289,7 @@ def load_and_prepare_data(
     real_data = real_data.sort_values(by="timestamp").reset_index(drop=True)
 
     # Добавление минимального шума к колонкам из SCALABLE_FEATURES
-    noise_level = 1  # Уровень шума, можно настроить при необходимости
+    noise_level = 1000  # Уровень шума, можно настроить при необходимости
     for feature in SCALABLE_FEATURES.keys():
         noise = np.random.normal(0, noise_level, size=real_data[feature].shape)
         real_data[feature] += noise

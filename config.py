@@ -11,7 +11,7 @@ API_BASE_URL: str = "https://api.binance.com/api/v3"
 MAX_RETRIES: int = 3
 RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
-SEQ_LENGTH: int = 30
+SEQ_LENGTH: int = 5
 
 class IntervalConfig(TypedDict):
     days: int
@@ -84,13 +84,13 @@ class ModelParams(TypedDict):
 
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES),
-    "hidden_layer_size": 256,
-    "num_layers": 4,
+    "hidden_layer_size": 128,
+    "num_layers": 32,
     "dropout": 0.0000001,
-    "embedding_dim": 256,
+    "embedding_dim": 64,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
     "num_intervals": len(INTERVAL_MAPPING.keys()),
-    "timestamp_embedding_dim": 512
+    "timestamp_embedding_dim": 256
 }
 
 class TrainingParams(TypedDict):
