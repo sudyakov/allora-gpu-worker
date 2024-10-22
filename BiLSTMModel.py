@@ -435,9 +435,9 @@ if __name__ == "__main__":
             logging.info("Starting main loop iteration.")
             model, optimizer = main(model, optimizer, data_fetcher)
             logging.info("Main loop iteration completed successfully.")
-            sleep(30)
+            sleep(3)
         except Exception as e:
             logging.error("An error occurred: %s", e)
             traceback.print_exc()
             logging.info("Retrying after delay...")
-            sleep(3)
+            sleep(30)

@@ -52,9 +52,6 @@ def create_dataloader(
     return train_loader, val_loader
 
 
-import logging
-# ... остальные импорты ...
-
 def predict_future_price(
     model: nn.Module,
     latest_real_data_df: pd.DataFrame,

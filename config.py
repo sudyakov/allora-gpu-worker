@@ -23,11 +23,11 @@ SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
     ("ETHUSDT", 0),
     ("BTCUSDT", 1),
     ("BNBUSDT", 2),
-    ("SOLUSDT", 3),
-    ("ARBUSDT", 4)
+    #("SOLUSDT", 3),
+    #("ARBUSDT", 4)
 ])
 
-SEQ_LENGTH: int = len(SYMBOL_MAPPING.keys())*3
+SEQ_LENGTH: int = len(SYMBOL_MAPPING.keys())*1
 
 TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
