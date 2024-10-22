@@ -1,23 +1,19 @@
 import logging
 import os
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import pandas as pd
 import requests
 from requests.exceptions import RequestException
 
 from config import (
-    ADD_FEATURES,
     API_BASE_URL,
     BINANCE_LIMIT_STRING,
     INTERVAL_MAPPING,
     MODEL_FEATURES,
     PATHS,
     PREDICTION_MINUTES,
-    RAW_FEATURES,
-    SCALABLE_FEATURES,
-    SEQ_LENGTH,
     SYMBOL_MAPPING,
     TARGET_SYMBOL,
     get_current_time,
