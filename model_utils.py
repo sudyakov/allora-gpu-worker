@@ -52,6 +52,9 @@ def create_dataloader(
     return train_loader, val_loader
 
 
+import logging
+# ... остальные импорты ...
+
 def predict_future_price(
     model: nn.Module,
     latest_real_data_df: pd.DataFrame,
@@ -69,6 +72,9 @@ def predict_future_price(
     if len(latest_real_data_df) < seq_length:
         logging.info("Insufficient data for prediction.")
         return pd.DataFrame()
+    
+    # Добавляем вывод таблицы после трансформации данных
+    logging.info("Dataset after transformation:\n%s", latest_real_data_df.to_string())
 
     last_binance_timestamp = latest_real_data_df["timestamp"].iloc[-1]
     if pd.isna(last_binance_timestamp):

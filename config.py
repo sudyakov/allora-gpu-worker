@@ -11,7 +11,6 @@ API_BASE_URL: str = "https://api.binance.com/api/v3"
 MAX_RETRIES: int = 3
 RETRY_DELAY: int = 5
 BINANCE_LIMIT_STRING: int = 1000
-SEQ_LENGTH: int = 10
 
 class IntervalConfig(TypedDict):
     days: int
@@ -23,16 +22,20 @@ IntervalKey = int
 SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
     ("ETHUSDT", 0),
     ("BTCUSDT", 1),
-    # ("BNBUSDT", 2),
+    ("BNBUSDT", 2),
+    ("SOLUSDT", 3),
+    ("ARBUSDT", 4)
 ])
 
+SEQ_LENGTH: int = len(SYMBOL_MAPPING.keys())*3
+
 TARGET_SYMBOL: str = "ETHUSDT"
-PREDICTION_MINUTES: int = 1
+PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
-    (1, {"days": 15, "minutes": 1, "milliseconds": 60000}),
-    (5, {"days": 180, "minutes": 5, "milliseconds": 300000}),
-    (15, {"days": 360, "minutes": 15, "milliseconds": 900000})
+    # (1, {"days": 15, "minutes": 1, "milliseconds": 60000}),
+    (5, {"days": 360, "minutes": 5, "milliseconds": 300000}),
+    # (15, {"days": 720, "minutes": 15, "milliseconds": 900000})
 ])
 
 RAW_FEATURES = OrderedDict([
@@ -82,9 +85,9 @@ class ModelParams(TypedDict):
     timestamp_embedding_dim: int
 
 MODEL_PARAMS: ModelParams = {
-    "input_size": len(MODEL_FEATURES),
-    "hidden_layer_size": 256,
-    "num_layers": 18,
+    "input_size": len(MODEL_FEATURES.keys()),
+    "hidden_layer_size": 512,
+    "num_layers": 4,
     "dropout": 0.0000001,
     "embedding_dim": 256,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
