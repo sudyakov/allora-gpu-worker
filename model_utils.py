@@ -274,8 +274,8 @@ def load_and_prepare_data(
         real_data = data_fetcher.fetch_combined_data()
     else:
         real_data = shared_data_processor.get_latest_dataset_prices(
-            symbol=TARGET_SYMBOL,
-            interval=PREDICTION_MINUTES,
+            symbol=None,
+            interval=None,
             count=count,
             latest_timestamp=latest_timestamp
         )
