@@ -38,10 +38,8 @@ from model_utils import (
     update_differences,
 )
 
-
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 writer = SummaryWriter('runs/BiLSTMModel')
-
 
 class Attention(nn.Module):
     def __init__(self, hidden_size: int):
@@ -56,7 +54,6 @@ class Attention(nn.Module):
         attention_weights = torch.softmax(attention_scores, dim=1)
         context_vector = torch.sum(lstm_out * attention_weights.unsqueeze(-1), dim=1)
         return context_vector
-
 
 class EnhancedBiLSTMModel(nn.Module):
     def __init__(
@@ -138,8 +135,6 @@ class EnhancedBiLSTMModel(nn.Module):
         lstm_out, _ = self.lstm(lstm_input)
         context_vector = self.attention(lstm_out, timestamps)
         predictions = self.linear(context_vector)
-        # predictions = torch.clamp(predictions, min=-10, max=10)
-        # predictions = torch.exp(predictions)
         return predictions
 
     def _initialize_weights(self, module: nn.Module) -> None:
@@ -156,13 +151,11 @@ class EnhancedBiLSTMModel(nn.Module):
                 elif "bias" in name:
                     nn.init.zeros_(param.data)
 
-
 def compute_time_weights(timestamps: torch.Tensor, alpha: float = 0.9) -> torch.Tensor:
     max_timestamp = timestamps.max()
     normalized_timestamps = (timestamps - timestamps.min()) / (max_timestamp - timestamps.min() + 1e-8)
     time_weights = alpha ** (1 - normalized_timestamps)
     return time_weights
-
 
 def _train_model(
     model: EnhancedBiLSTMModel,
@@ -177,7 +170,8 @@ def _train_model(
         total_loss = 0.0
         total_corr = 0.0
         progress_bar = tqdm(loader, desc=f"{desc} Epoch {epoch + 1}/{epochs}", unit="batch", leave=True)
-        for inputs, targets, masks in progress_bar:
+        for batch in progress_bar:
+            inputs, targets, masks = batch
             inputs, targets, masks = inputs.to(device), targets.to(device), masks.to(device)
             timestamps = inputs[:, -1, shared_data_processor.column_name_to_index["timestamp"]]
             time_weights = compute_time_weights(timestamps).to(device)
@@ -194,7 +188,6 @@ def _train_model(
 
             loss = ((outputs - targets) ** 2) * time_weights.unsqueeze(1)
             loss = (loss.mean(dim=1) * masks).sum() / masks.sum()
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
@@ -223,10 +216,9 @@ def _train_model(
         avg_corr = total_corr / len(loader)
         logging.info(f"{desc} Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f}, Correlation: {avg_corr:.4f}")
         save_model(model, optimizer, MODEL_FILENAME)
-        writer.add_scalar("Loss/train", avg_loss, epoch)
-        writer.add_scalar("Correlation/train", avg_corr, epoch)
+        writer.add_scalar(f"Loss/{desc}", avg_loss, epoch)
+        writer.add_scalar(f"Correlation/{desc}", avg_corr, epoch)
     return model, optimizer
-
 
 def train_and_save_model(
     model: EnhancedBiLSTMModel,
@@ -236,7 +228,6 @@ def train_and_save_model(
 ) -> Tuple[EnhancedBiLSTMModel, RAdam]:
     return _train_model(model, train_loader, optimizer, device, TRAINING_PARAMS["initial_epochs"], "Training")
 
-
 def fine_tune_model(
     model: EnhancedBiLSTMModel,
     optimizer: RAdam,
@@ -244,7 +235,6 @@ def fine_tune_model(
     device: torch.device,
 ) -> Tuple[EnhancedBiLSTMModel, RAdam]:
     return _train_model(model, fine_tune_loader, optimizer, device, TRAINING_PARAMS["fine_tune_epochs"], "Fine-tuning")
-
 
 def main(model: EnhancedBiLSTMModel, optimizer: RAdam, data_fetcher: GetBinanceData):
     device = get_device()
@@ -422,12 +412,13 @@ if __name__ == "__main__":
     )
 
     model = EnhancedBiLSTMModel(
-        categorical_columns=shared_data_processor.categorical_columns,
         numerical_columns=shared_data_processor.numerical_columns,
+        categorical_columns=shared_data_processor.categorical_columns,
         column_name_to_index=shared_data_processor.column_name_to_index,
     ).to(device)
     optimizer = RAdam(model.parameters(), lr=TRAINING_PARAMS["initial_lr"])
 
+    # Загружаем модель, если есть сохранённая версия
     load_model(model, optimizer, MODEL_FILENAME, device)
 
     while True:
@@ -435,7 +426,10 @@ if __name__ == "__main__":
             logging.info("Starting main loop iteration.")
             model, optimizer = main(model, optimizer, data_fetcher)
             logging.info("Main loop iteration completed successfully.")
-            sleep(3)
+            sleep(TRAINING_PARAMS.get("loop_sleep", 10))
+        except KeyboardInterrupt:
+            logging.info("Interrupted by user. Exiting.")
+            break
         except Exception as e:
             logging.error("An error occurred: %s", e)
             traceback.print_exc()
