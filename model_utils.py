@@ -37,17 +37,25 @@ def create_dataloader(
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
+    # Используем параметр persistent_workers для ускорения загрузки данных
+    num_workers = TRAINING_PARAMS.get("num_workers", 0)
+    persistent_workers = True if num_workers > 0 else False
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=shuffle,
-        num_workers=TRAINING_PARAMS["num_workers"],
+        num_workers=num_workers,
+        persistent_workers=persistent_workers,
+        pin_memory=True,
     )
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=TRAINING_PARAMS["num_workers"],
+        num_workers=num_workers,
+        persistent_workers=persistent_workers,
+        pin_memory=True,
     )
     return train_loader, val_loader
 
@@ -69,8 +77,7 @@ def predict_future_price(
     if len(latest_real_data_df) < seq_length:
         logging.info("Insufficient data for prediction.")
         return pd.DataFrame()
-    
-    # Добавляем вывод таблицы после трансформации данных
+
     logging.info("Dataset after transformation:\n%s", latest_real_data_df.to_string())
 
     last_binance_timestamp = latest_real_data_df["timestamp"].iloc[-1]
@@ -97,7 +104,7 @@ def predict_future_price(
 
         try:
             inputs = torch.tensor(current_df.values, dtype=torch.float32).unsqueeze(0).to(device)
-            predictions = model(inputs).cpu().detach().numpy()
+            predictions = model(inputs).cpu().numpy()
             predicted_data_df = pd.DataFrame(predictions, columns=list(SCALABLE_FEATURES.keys()))
 
             # Используем метод inverse_transform из DataProcessor
@@ -162,7 +169,7 @@ def update_differences(
     if missing_columns_actual:
         logging.error(f"Missing columns in actual DataFrame: {missing_columns_actual}")
         return
-    # Вычисляем значение интервала в миллисекундах
+
     interval = get_interval(PREDICTION_MINUTES)
     if interval is None:
         logging.error("Invalid prediction interval.")
@@ -184,7 +191,7 @@ def update_differences(
         return
 
     merged_predictions_actual_df = pd.merge(
-        predictions_df,
+        predictions_df_adjusted,
         actual_data_df,
         on=['symbol', 'interval', 'timestamp'],
         suffixes=('_pred', '_actual')
@@ -229,7 +236,7 @@ def update_differences(
             differences_data_df[col] = differences_data_df[col].astype(predictions_df[col].dtype)
 
     dataframes_to_concat = [df for df in [existing_differences_df, differences_data_df] if not df.empty]
-    
+
     if dataframes_to_concat:
         combined_differences_df = pd.concat(dataframes_to_concat, ignore_index=True)
     else:
@@ -241,12 +248,16 @@ def update_differences(
 
 
 def get_device() -> torch.device:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Using device: {device}")
     return device
 
 
 def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
@@ -256,7 +267,7 @@ def save_model(model: nn.Module, optimizer: Optimizer, filepath: str):
 
 def load_model(model: nn.Module, optimizer: Optimizer, filepath: str, device: torch.device):
     if os.path.exists(filepath):
-        checkpoint = torch.load(filepath, map_location=device, weights_only=False)
+        checkpoint = torch.load(filepath, map_location=device)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         logging.info(f"Model loaded from {filepath}")

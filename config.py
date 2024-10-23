@@ -27,15 +27,15 @@ SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
     #("ARBUSDT", 4)
 ])
 
-SEQ_LENGTH: int = len(SYMBOL_MAPPING.keys())*1
+SEQ_LENGTH: int = 57
 
 TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
 
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
-    # (1, {"days": 15, "minutes": 1, "milliseconds": 60000}),
+    (1, {"days": 30, "minutes": 1, "milliseconds": 60000}),
     (5, {"days": 360, "minutes": 5, "milliseconds": 300000}),
-    # (15, {"days": 720, "minutes": 15, "milliseconds": 900000})
+    (15, {"days": 1080, "minutes": 15, "milliseconds": 900000})
 ])
 
 RAW_FEATURES = OrderedDict([
@@ -87,8 +87,8 @@ class ModelParams(TypedDict):
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES.keys()),
     "hidden_layer_size": 512,
-    "num_layers": 4,
-    "dropout": 0.0000001,
+    "num_layers": 3,
+    "dropout": 0.01,
     "embedding_dim": 256,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
     "num_intervals": len(INTERVAL_MAPPING.keys()),
@@ -106,14 +106,14 @@ class TrainingParams(TypedDict):
     num_workers: int
 
 TRAINING_PARAMS: TrainingParams = {
-    "batch_size": 1024,
-    "initial_epochs": 3,
+    "batch_size": 128,
+    "initial_epochs": 5,
     "fine_tune_epochs": 3,
-    "initial_lr": 0.0005,
-    "max_epochs": 100,
+    "initial_lr": 0.001,
+    "max_epochs": 50,
     "min_lr": 0.00001,
     "use_mixed_precision": True,
-    "num_workers": 8
+    "num_workers": 32
 }
 
 PATHS: Dict[str, str] = {
