@@ -27,7 +27,7 @@ SYMBOL_MAPPING: OrderedDict[str, int] = OrderedDict([
     #("ARBUSDT", 4)
 ])
 
-SEQ_LENGTH: int = 57
+SEQ_LENGTH: int = 60
 
 TARGET_SYMBOL: str = "ETHUSDT"
 PREDICTION_MINUTES: int = 5
@@ -86,13 +86,13 @@ class ModelParams(TypedDict):
 
 MODEL_PARAMS: ModelParams = {
     "input_size": len(MODEL_FEATURES.keys()),
-    "hidden_layer_size": 512,
+    "hidden_layer_size": 128,
     "num_layers": 3,
     "dropout": 0.01,
-    "embedding_dim": 256,
+    "embedding_dim": 32,
     "num_symbols": len(SYMBOL_MAPPING.keys()),
     "num_intervals": len(INTERVAL_MAPPING.keys()),
-    "timestamp_embedding_dim": 256
+    "timestamp_embedding_dim": 64
 }
 
 class TrainingParams(TypedDict):
