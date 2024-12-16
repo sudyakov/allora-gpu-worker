@@ -35,7 +35,7 @@ PREDICTION_MINUTES: int = 5
 INTERVAL_MAPPING: OrderedDict[IntervalKey, IntervalConfig] = OrderedDict([
     (1, {"days": 30, "minutes": 1, "milliseconds": 60000}),
     (5, {"days": 360, "minutes": 5, "milliseconds": 300000}),
-    (15, {"days": 1080, "minutes": 15, "milliseconds": 900000})
+    # (15, {"days": 1080, "minutes": 15, "milliseconds": 900000})
 ])
 
 RAW_FEATURES = OrderedDict([
